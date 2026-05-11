@@ -1,6 +1,6 @@
 import React from 'react';
 import { Star, AlertCircle, Plus, Minus } from 'lucide-react';
-import { C, ITEMS, REVIEWS, FRESH_BOARD } from '../data/menu';
+import { C, ITEMS, REVIEWS, FRESH_BOARD } from '../../data/menu';
 
 // ── HELPERS ────────────────────────────────────────────────────────────────
 const hasPCB = (cart) => cart.some(i => ["pizza", "cake", "bake"].includes(i.cat));

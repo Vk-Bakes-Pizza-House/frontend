@@ -1,6 +1,5 @@
 // ── CONFIG ─────────────────────────────────────────────────────────────────
-export const WA = "919999999999"; // ← Replace with your WhatsApp number
-export const DELIVERY_FEE = 20;
+
 
 // ── DESIGN TOKENS ──────────────────────────────────────────────────────────
 export const C = {
@@ -17,6 +16,7 @@ export const C = {
   f2: "'DM Sans', sans-serif",
 };
 
+export const EMOJI = { pizza:"🍕", bake:"🥐", bread:"🍞", toast:"🥖", biscuit:"🍪", cake:"🎂", ice:"🍦" };
 // ── DATA ───────────────────────────────────────────────────────────────────
 export const ITEMS = [
   { id: 1, name: "Margherita Pizza", cat: "pizza", price: 199, desc: "Classic tomato & mozzarella", dlv: true, tag: "Bestseller" },
