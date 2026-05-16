@@ -1,13 +1,11 @@
 // admin/AdminLogin.jsx
 // ─────────────────────────────────────────────────────────────
 // Login page for VK Bakes & Pizza House admin panel.
-// Credentials are checked against env vars (set in Vercel dashboard).
-// ADMIN_USER  → process.env.REACT_APP_ADMIN_USER
-// ADMIN_PASS  → process.env.REACT_APP_ADMIN_PASS
-// For now defaults to: user = "vkadmin" / pass = "vkbakes123"
+// Uses authStore for backend authentication.
 // ─────────────────────────────────────────────────────────────
 import { useState } from "react";
 import { Eye, EyeOff, Lock, User, AlertCircle } from "lucide-react";
+import useAuthStore from "../../store/authStore";
 
 // ── design tokens (same as main app) ────────────────────────
 const C = {
@@ -22,33 +20,26 @@ const C = {
   f2:     "'DM Sans', sans-serif",
 };
 
-// ── credentials ─────────────────────────────────────────────
-// const ADMIN_USER = process.env.REACT_APP_ADMIN_USER || "vkadmin";
-const ADMIN_USER =  "vkadmin";
-// const ADMIN_PASS = process.env.REACT_APP_ADMIN_PASS || "vkbakes123";
-const ADMIN_PASS ="vkbakes123";
-
 // ─────────────────────────────────────────────────────────────
 export default function AdminLogin({ onLogin }) {
-  const [user,    setUser]    = useState("");
-  const [pass,    setPass]    = useState("");
-  const [show,    setShow]    = useState(false);
-  const [error,   setError]   = useState("");
-  const [loading, setLoading] = useState(false);
+  const [user, setUser] = useState("");
+  const [pass, setPass] = useState("");
+  const [show, setShow] = useState(false);
+
+  const { login, loading, error, clearError } = useAuthStore();
 
   const submit = async () => {
-    setError("");
-    if (!user || !pass) { setError("Please enter both username and password."); return; }
-    setLoading(true);
-    // Simulate network delay for UX
-    await new Promise(r => setTimeout(r, 700));
-    if (user === ADMIN_USER && pass === ADMIN_PASS) {
+    clearError();
+    if (!user || !pass) {
+      // Handle validation error locally since authStore expects valid input
+      return;
+    }
+
+    const result = await login(user, pass);
+    if (result.success) {
       sessionStorage.setItem("vk_admin_auth", "true");
       onLogin();
-    } else {
-      setError("Invalid username or password. Please try again.");
     }
-    setLoading(false);
   };
 
   const handleKey = (e) => { if (e.key === "Enter") submit(); };

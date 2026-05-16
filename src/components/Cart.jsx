@@ -1,9 +1,8 @@
 import { useState } from "react";
-import { AlertCircle } from "lucide-react";
+import { AlertCircle, Plus, Minus } from "lucide-react";
 import { C, EMOJI } from "../data/menu";
 import { isDlv, hasPCB, buildMsg } from "../config";
 import { WA, DELIVERY_FEE } from "../config";
-
 
 function Cart({ cart, add }) {
   const [addr, setAddr] = useState("");
@@ -17,76 +16,86 @@ function Cart({ cart, add }) {
   };
 
   return (
-    <div style={{ background:C.bg, minHeight:"100vh", padding:"24px 16px" }}>
-      <div style={{ maxWidth:560, margin:"0 auto" }}>
-        <h2 style={{ fontFamily:C.f1, color:C.mid, fontSize:28, fontWeight:700, marginBottom:20 }}>Your Cart</h2>
+    <div className="min-h-screen py-6 px-4" style={{ background: C.bg }}>
+      <div className="max-w-2xl mx-auto">
+        <h2 className="text-3xl font-bold mb-5" style={{ color: C.mid, fontFamily: C.f1 }}>Your Cart</h2>
+        
         {cart.length === 0 ? (
-          <div style={{ textAlign:"center", padding:"64px 0", color:C.muted, fontFamily:C.f2 }}>
-            <div style={{ fontSize:56, marginBottom:12 }}>🛒</div>
-            <div style={{ fontSize:16, fontWeight:600, marginBottom:6 }}>Your cart is empty</div>
-            <div style={{ fontSize:13 }}>Go to the menu and add some items!</div>
+          <div className="text-center py-16" style={{ color: C.muted, fontFamily: C.f2 }}>
+            <div className="text-6xl mb-3">🛒</div>
+            <div className="text-lg font-semibold mb-2">Your cart is empty</div>
+            <div className="text-sm">Go to the menu and add some items!</div>
           </div>
         ) : (
-          <div style={{ display:"flex", flexDirection:"column", gap:12 }}>
+          <div className="flex flex-col gap-3">
             {iceWarn && (
-              <div style={{ background:"#FFF3E0", border:`1px solid ${C.gold}`, borderRadius:8, padding:"10px 13px", display:"flex", gap:8 }}>
-                <AlertCircle size={15} color={C.gold} style={{ flexShrink:0, marginTop:1 }} />
-                <p style={{ fontFamily:C.f2, fontSize:12, color:"#5D3A00" }}>
+              <div className="flex gap-2 rounded-lg p-3" style={{ background: "#FFF3E0", border: `1px solid ${C.gold}` }}>
+                <AlertCircle size={15} className="flex-shrink-0 mt-0.5" style={{ color: C.gold }} />
+                <p className="text-xs" style={{ color: "#5D3A00", fontFamily: C.f2 }}>
                   Ice cream delivers only when you also order a Pizza, Bake or Cake. Add one, or pick up ice cream from the store.
                 </p>
               </div>
             )}
 
             {cart.map(item => (
-              <div key={item.id} style={{ background:"white", borderRadius:10, padding:"13px 15px", border:`1px solid ${C.border}`, display:"flex", alignItems:"center", gap:12 }}>
-                <div style={{ fontSize:26, flexShrink:0 }}>{EMOJI[item.cat]}</div>
-                <div style={{ flex:1, minWidth:0 }}>
-                  <div style={{ fontFamily:C.f2, fontWeight:600, color:C.mid, fontSize:14 }}>{item.name}</div>
-                  <div style={{ fontFamily:C.f2, fontSize:11, color:isDlv(item,cart)?"#16A34A":C.muted, marginTop:2 }}>
+              <div key={item.id} className="flex items-center gap-3 rounded-lg p-3.5 bg-white border" style={{ borderColor: C.border }}>
+                <div className="text-2xl flex-shrink-0">{EMOJI[item.cat]}</div>
+                <div className="flex-1 min-w-0">
+                  <div className="font-semibold text-sm" style={{ color: C.mid, fontFamily: C.f2 }}>{item.name}</div>
+                  <div className="text-xs mt-1" style={{ color: isDlv(item, cart) ? "#16A34A" : C.muted, fontFamily: C.f2 }}>
                     {isDlv(item, cart) ? "✅ Will be delivered" : "🏪 Store pickup only"}
                   </div>
                 </div>
-                <div style={{ display:"flex", alignItems:"center", gap:6 }}>
-                  <button onClick={() => add(item,-1)} style={{ width:26, height:26, borderRadius:5, background:"#F0E0D0", display:"flex", alignItems:"center", justifyContent:"center" }}>
-                    <Minus size={12} color={C.red} />
+                <div className="flex items-center gap-1.5">
+                  <button onClick={() => add(item, -1)} className="w-6 h-6 rounded flex items-center justify-center flex-shrink-0" style={{ background: "#F0E0D0" }}>
+                    <Minus size={12} style={{ color: C.red }} />
                   </button>
-                  <span style={{ fontFamily:C.f2, fontWeight:700, color:C.mid, minWidth:18, textAlign:"center" }}>{item.qty}</span>
-                  <button onClick={() => add(item,1)} style={{ width:26, height:26, borderRadius:5, background:C.red, display:"flex", alignItems:"center", justifyContent:"center" }}>
+                  <span className="font-bold text-sm w-4 text-center" style={{ color: C.mid, fontFamily: C.f2 }}>{item.qty}</span>
+                  <button onClick={() => add(item, 1)} className="w-6 h-6 rounded flex items-center justify-center flex-shrink-0" style={{ background: C.red }}>
                     <Plus size={12} color="white" />
                   </button>
                 </div>
-                <div style={{ fontFamily:C.f2, fontWeight:700, color:C.red, fontSize:14, minWidth:48, textAlign:"right" }}>₹{item.price * item.qty}</div>
+                <div className="font-bold text-sm text-right w-12" style={{ color: C.red, fontFamily: C.f2 }}>₹{item.price * item.qty}</div>
               </div>
             ))}
 
             {hasDlv && (
               <div>
-                <div style={{ fontFamily:C.f2, fontWeight:600, color:C.mid, fontSize:13, marginBottom:6 }}>📍 Delivery Address</div>
-                <textarea value={addr} onChange={e => setAddr(e.target.value)} placeholder="Enter your full delivery address..." rows={2}
-                  style={{ width:"100%", padding:"10px 13px", border:`1px solid ${C.border}`, borderRadius:8, fontFamily:C.f2, fontSize:13, resize:"none", outline:"none", boxSizing:"border-box" }} />
+                <div className="font-semibold text-xs mb-2" style={{ color: C.mid, fontFamily: C.f2 }}>📍 Delivery Address</div>
+                <textarea 
+                  value={addr} 
+                  onChange={e => setAddr(e.target.value)} 
+                  placeholder="Enter your full delivery address..." 
+                  rows={2}
+                  className="w-full p-3 border rounded text-xs resize-none outline-none box-border"
+                  style={{ borderColor: C.border, fontFamily: C.f2 }}
+                />
               </div>
             )}
 
-            <div style={{ background:"white", borderRadius:10, padding:"15px", border:`1px solid ${C.border}` }}>
-              <div style={{ display:"flex", justifyContent:"space-between", marginBottom:6 }}>
-                <span style={{ fontFamily:C.f2, color:C.muted, fontSize:13 }}>Subtotal</span>
-                <span style={{ fontFamily:C.f2, fontWeight:600, color:C.mid, fontSize:13 }}>₹{sub}</span>
+            <div className="rounded-lg p-4 bg-white border" style={{ borderColor: C.border }}>
+              <div className="flex justify-between mb-1.5">
+                <span className="text-xs" style={{ color: C.muted, fontFamily: C.f2 }}>Subtotal</span>
+                <span className="font-semibold text-xs" style={{ color: C.mid, fontFamily: C.f2 }}>₹{sub}</span>
               </div>
               {hasDlv && (
-                <div style={{ display:"flex", justifyContent:"space-between", marginBottom:6 }}>
-                  <span style={{ fontFamily:C.f2, color:C.muted, fontSize:13 }}>Delivery charge</span>
-                  <span style={{ fontFamily:C.f2, fontWeight:600, color:C.mid, fontSize:13 }}>₹{DELIVERY_FEE}</span>
+                <div className="flex justify-between mb-1.5">
+                  <span className="text-xs" style={{ color: C.muted, fontFamily: C.f2 }}>Delivery charge</span>
+                  <span className="font-semibold text-xs" style={{ color: C.mid, fontFamily: C.f2 }}>₹{DELIVERY_FEE}</span>
                 </div>
               )}
-              <div style={{ borderTop:`1px solid ${C.border}`, marginTop:8, paddingTop:8, display:"flex", justifyContent:"space-between" }}>
-                <span style={{ fontFamily:C.f2, fontWeight:700, color:C.mid, fontSize:15 }}>Total</span>
-                <span style={{ fontFamily:C.f2, fontWeight:700, color:C.red, fontSize:15 }}>₹{sub + (hasDlv ? DELIVERY_FEE : 0)}</span>
+              <div className="border-t flex justify-between mt-2 pt-2" style={{ borderColor: C.border }}>
+                <span className="font-bold text-sm" style={{ color: C.mid, fontFamily: C.f2 }}>Total</span>
+                <span className="font-bold text-sm" style={{ color: C.red, fontFamily: C.f2 }}>₹{sub + (hasDlv ? DELIVERY_FEE : 0)}</span>
               </div>
-              <div style={{ fontFamily:C.f2, fontSize:11, color:C.muted, marginTop:4 }}>💵 Cash on Delivery</div>
+              <div className="text-xs mt-1" style={{ color: C.muted, fontFamily: C.f2 }}>💵 Cash on Delivery</div>
             </div>
 
-            <button onClick={order}
-              style={{ background:C.green, color:"white", padding:"15px", borderRadius:10, fontFamily:C.f2, fontWeight:700, fontSize:15, width:"100%" }}>
+            <button 
+              onClick={order}
+              className="w-full py-3 rounded-lg font-bold text-sm text-white"
+              style={{ background: C.green, fontFamily: C.f2 }}
+            >
               📱 Order via WhatsApp
             </button>
           </div>
@@ -95,6 +104,5 @@ function Cart({ cart, add }) {
     </div>
   );
 }
-
 
 export default Cart;

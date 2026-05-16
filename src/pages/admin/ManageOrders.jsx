@@ -1,53 +1,24 @@
 // admin/ManageOrders.jsx
 // ─────────────────────────────────────────────────────────────
 // View incoming orders, update status, reply on WhatsApp.
-// In production: fetch from GET /api/orders  (Express backend).
+// Fetches from backend using orderStore.
 // Status flow: Pending → Confirmed → Preparing → Delivered
 //                                              → Cancelled
 // ─────────────────────────────────────────────────────────────
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Search, MessageCircle, ChevronDown,
   Clock, CheckCircle, Truck, XCircle, Package,
 } from "lucide-react";
 import { C } from "./Dashboard";
+import useOrderStore from "../../store/orderStore";
 
-// ── mock orders ──────────────────────────────────────────────
+
 const INIT_ORDERS = [
   {
     id: "#1042",
     customer: "Priya S.",
-    phone: "9876543210",
-    address: "12, Gandhi Nagar, Near Park",
-    items: [
-      { name:"Margherita Pizza",  qty:2, price:199 },
-      { name:"Mango Ice Cream",   qty:1, price:60  },
-    ],
-    type: "delivery",
-    status: "Pending",
-    note: "",
-    time: "2 min ago",
-    ts: Date.now() - 2*60000,
-  },
-  {
-    id: "#1041",
-    customer: "Rahul M.",
-    phone: "9123456789",
-    address: "45, Shivaji Road, Block B",
-    items: [
-      { name:"Paneer Tikka Pizza",  qty:1, price:279 },
-      { name:"Chocolate Ice Cream", qty:2, price:60  },
-    ],
-    type: "delivery",
-    status: "Preparing",
-    note: "Extra spicy please",
-    time: "28 min ago",
-    ts: Date.now() - 28*60000,
-  },
-  {
-    id: "#1040",
-    customer: "Anita K.",
-    phone: "9988776655",
+    phone: "9123456780",
     address: "Flat 3B, Sunrise Apartments",
     items: [
       { name:"Veg Cheese Bake",  qty:3, price:89 },
@@ -249,23 +220,70 @@ function OrderCard({ order, onStatus }) {
 
 // ── Main component ────────────────────────────────────────────
 export default function ManageOrders() {
-  const [orders,    setOrders]    = useState(INIT_ORDERS);
-  const [filter,    setFilter]    = useState("all");
-  const [q,         setQ]         = useState("");
+  const {
+    orders,
+    loading,
+    error,
+    filters,
+    pagination,
+    fetchOrders,
+    updateStatus,
+    setFilter,
+    goToPage,
+    clearError
+  } = useOrderStore();
 
-  const updateStatus = (id, newStatus) => {
-    setOrders(prev => prev.map(o => o.id === id ? { ...o, status:newStatus } : o));
+  const [q, setQ] = useState("");
+
+  // Fetch orders on mount and when filters change
+  useEffect(() => {
+    fetchOrders();
+  }, [filters.status]);
+
+  const handleStatusUpdate = async (id, status) => {
+    await updateStatus(id, status);
+    // Refresh the list to get updated data
+    fetchOrders();
+  };
+
+  const handleSearch = (searchQuery) => {
+    setQ(searchQuery);
+    // For now, we'll filter client-side. In production, you might want server-side search
   };
 
   const visible = orders.filter(o =>
-    (filter === "all" || o.status === filter) &&
-    (o.customer.toLowerCase().includes(q.toLowerCase()) || o.id.includes(q))
+    (filters.status === "all" || o.status === filters.status) &&
+    (!q || o.customer?.name?.toLowerCase().includes(q.toLowerCase()) || o._id.includes(q))
   );
 
-  const counts = STATUSES.reduce((acc, s) => {
+  const counts = ["Pending", "Confirmed", "Preparing", "Delivered", "Cancelled"].reduce((acc, s) => {
     acc[s] = orders.filter(o => o.status === s).length;
     return acc;
   }, {});
+
+  if (error) {
+    return (
+      <div style={{ padding: "40px", textAlign: "center" }}>
+        <div style={{ color: C.red, fontFamily: C.f2, marginBottom: 16 }}>
+          Error loading orders: {error}
+        </div>
+        <button
+          onClick={() => { clearError(); fetchOrders(); }}
+          style={{
+            padding: "8px 16px",
+            background: C.red,
+            color: "white",
+            border: "none",
+            borderRadius: 6,
+            fontFamily: C.f2,
+            cursor: "pointer"
+          }}
+        >
+          Retry
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div>
@@ -273,22 +291,23 @@ export default function ManageOrders() {
       <div style={{ marginBottom:20 }}>
         <h2 style={{ fontFamily:C.f1, color:C.mid, fontSize:24, fontWeight:700 }}>Manage Orders</h2>
         <p style={{ fontFamily:C.f2, color:C.muted, fontSize:13, marginTop:3 }}>
-          {orders.length} total · {counts.Pending || 0} pending
+          {pagination.total} total · {counts.Pending || 0} pending
+          {loading && " (Loading...)"}
         </p>
       </div>
 
       {/* Status tabs */}
       <div style={{ display:"flex", gap:6, overflowX:"auto", paddingBottom:4, marginBottom:16, flexWrap:"wrap" }}>
-        {["all", ...STATUSES].map(s => {
+        {["all", "Pending", "Confirmed", "Preparing", "Delivered", "Cancelled"].map(s => {
           const cnt = s === "all" ? orders.length : counts[s] || 0;
           const meta = s !== "all" ? STATUS_META[s] : null;
           return (
-            <button key={s} onClick={() => setFilter(s)} style={{
+            <button key={s} onClick={() => setFilter("status", s)} style={{
               padding:"7px 14px", borderRadius:20, flexShrink:0,
               fontFamily:C.f2, fontSize:12, fontWeight:600,
-              background: filter===s ? (meta?.color || C.mid) : "white",
-              color:      filter===s ? "white" : C.mid,
-              border:     filter===s ? "none" : `1px solid ${C.border}`,
+              background: filters.status === s ? (meta?.color || C.mid) : "white",
+              color:      filters.status === s ? "white" : C.mid,
+              border:     filters.status === s ? "none" : `1px solid ${C.border}`,
             }}>
               {s.charAt(0).toUpperCase()+s.slice(1)} ({cnt})
             </button>
@@ -300,21 +319,70 @@ export default function ManageOrders() {
       <div style={{ display:"flex", alignItems:"center", gap:8, background:"white",
         border:`1px solid ${C.border}`, borderRadius:8, padding:"0 12px", marginBottom:14 }}>
         <Search size={14} color={C.muted} />
-        <input value={q} onChange={e => setQ(e.target.value)} placeholder="Search by customer name or order ID…"
+        <input value={q} onChange={e => handleSearch(e.target.value)} placeholder="Search by customer name or order ID…"
           style={{ border:"none", outline:"none", fontFamily:C.f2, fontSize:13, color:C.mid, padding:"10px 0", flex:1 }} />
       </div>
 
       {/* Order cards */}
       <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
         {visible.map(o => (
-          <OrderCard key={o.id} order={o} onStatus={updateStatus} />
+          <OrderCard key={o._id} order={{
+            ...o,
+            id: o._id,
+            customer: o.customer?.name || "Unknown",
+            phone: o.customer?.phone || "",
+            address: o.customer?.address || "",
+            items: o.items || [],
+            type: o.orderType,
+            time: new Date(o.createdAt).toLocaleString(),
+            ts: new Date(o.createdAt).getTime()
+          }} onStatus={handleStatusUpdate} />
         ))}
-        {visible.length === 0 && (
+        {visible.length === 0 && !loading && (
           <div style={{ padding:"60px 0", textAlign:"center", fontFamily:C.f2, color:C.muted, fontSize:14 }}>
             No orders found.
           </div>
         )}
       </div>
+
+      {/* Pagination */}
+      {pagination.pages > 1 && (
+        <div style={{ display: "flex", justifyContent: "center", gap: 8, marginTop: 20 }}>
+          <button
+            onClick={() => goToPage(pagination.page - 1)}
+            disabled={pagination.page <= 1}
+            style={{
+              padding: "8px 12px",
+              background: pagination.page <= 1 ? C.border : C.red,
+              color: "white",
+              border: "none",
+              borderRadius: 6,
+              fontFamily: C.f2,
+              cursor: pagination.page <= 1 ? "not-allowed" : "pointer"
+            }}
+          >
+            Previous
+          </button>
+          <span style={{ padding: "8px 12px", fontFamily: C.f2, color: C.mid }}>
+            Page {pagination.page} of {pagination.pages}
+          </span>
+          <button
+            onClick={() => goToPage(pagination.page + 1)}
+            disabled={pagination.page >= pagination.pages}
+            style={{
+              padding: "8px 12px",
+              background: pagination.page >= pagination.pages ? C.border : C.red,
+              color: "white",
+              border: "none",
+              borderRadius: 6,
+              fontFamily: C.f2,
+              cursor: pagination.page >= pagination.pages ? "not-allowed" : "pointer"
+            }}
+          >
+            Next
+          </button>
+        </div>
+      )}
     </div>
   );
 }

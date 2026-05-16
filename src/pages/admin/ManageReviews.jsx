@@ -2,77 +2,12 @@
 // ─────────────────────────────────────────────────────────────
 // Moderate customer reviews — approve, reject, or delete.
 // Only approved reviews show on the public website.
-// In production: fetch from GET /api/reviews (Express backend)
-// PATCH /api/reviews/:id  { status: "approved" | "rejected" }
-// DELETE /api/reviews/:id
+// Uses reviewStore for backend integration.
 // ─────────────────────────────────────────────────────────────
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Star, Check, X, Trash2, Search, MessageSquare } from "lucide-react";
 import { C } from "./Dashboard";
-
-// ── mock reviews ─────────────────────────────────────────────
-const INIT_REVIEWS = [
-  {
-    id: 1,
-    name: "Priya Sharma",
-    phone: "987****210",
-    rating: 5,
-    text: "Best pizza in the neighborhood! Always fresh and hot. The paneer tikka pizza is my absolute favourite. Will keep ordering!",
-    item: "Paneer Tikka Pizza",
-    status: "pending",
-    time: "5 min ago",
-  },
-  {
-    id: 2,
-    name: "Rahul Mehta",
-    phone: "912****789",
-    rating: 5,
-    text: "Ordered a custom birthday cake for my wife — it came out absolutely perfect. The chocolate truffle was divine. VK Bakes never disappoints!",
-    item: "Custom Chocolate Cake",
-    status: "pending",
-    time: "1 hr ago",
-  },
-  {
-    id: 3,
-    name: "Anita Kumar",
-    phone: "998****655",
-    rating: 4,
-    text: "Good bakes and fast delivery. The cheese bake was a little cold when it arrived but tasted great. Overall very happy!",
-    item: "Veg Cheese Bake",
-    status: "approved",
-    time: "Yesterday",
-  },
-  {
-    id: 4,
-    name: "Suresh Pillai",
-    phone: "901****678",
-    rating: 5,
-    text: "Fresh bread every morning — the whole colony loves VK Bakes! The brown bread is perfect.",
-    item: "Brown Bread Loaf",
-    status: "approved",
-    time: "2 days ago",
-  },
-  {
-    id: 5,
-    name: "Unknown",
-    phone: "900****000",
-    rating: 1,
-    text: "This is spam content trying to advertise another website. Visit xyz.com for cheap deals!!!",
-    item: "—",
-    status: "rejected",
-    time: "3 days ago",
-  },
-  {
-    id: 6,
-    name: "Deepa Nair",
-    phone: "944****321",
-    rating: 4,
-    text: "Ice cream is yummy! Ordered with pizza and both came in perfect condition. Great combo deal!",
-    item: "Mango Ice Cream + Pizza",
-    status: "pending",
-    time: "3 hr ago",
-  },
-];
+import useReviewStore from "../../store/reviewStore";
 
 // ── Stars display ────────────────────────────────────────────
 function Stars({ n }) {
@@ -207,99 +142,157 @@ function ReviewCard({ review, onApprove, onReject, onDelete }) {
 
 // ── Main component ────────────────────────────────────────────
 export default function ManageReviews() {
-  const [reviews, setReviews] = useState(INIT_REVIEWS);
-  const [filter,  setFilter]  = useState("all");
-  const [q,       setQ]       = useState("");
+  const {
+    allReviews,
+    pendingCount,
+    loading,
+    error,
+    fetchAllReviews,
+    approveReview,
+    rejectReview,
+    deleteReview,
+    clearError
+  } = useReviewStore();
 
-  const approve = (id) => setReviews(prev => prev.map(r => r.id===id ? { ...r, status:"approved" } : r));
-  const reject  = (id) => setReviews(prev => prev.map(r => r.id===id ? { ...r, status:"rejected" } : r));
-  const remove  = (id) => setReviews(prev => prev.filter(r => r.id !== id));
+  const [filter, setFilter] = useState("all");
+  const [q, setQ] = useState("");
 
-  const counts = {
-    all:      reviews.length,
-    pending:  reviews.filter(r => r.status==="pending").length,
-    approved: reviews.filter(r => r.status==="approved").length,
-    rejected: reviews.filter(r => r.status==="rejected").length,
+  useEffect(() => {
+    fetchAllReviews();
+  }, [fetchAllReviews]);
+
+  const handleApprove = async (id) => {
+    await approveReview(id);
+    fetchAllReviews(); // Refresh to get updated counts
   };
 
-  const avgRating = reviews.length
-    ? (reviews.reduce((s,r) => s+r.rating, 0) / reviews.length).toFixed(1)
+  const handleReject = async (id) => {
+    await rejectReview(id);
+    fetchAllReviews(); // Refresh to get updated counts
+  };
+
+  const handleDelete = async (id) => {
+    if (window.confirm("Permanently delete this review?")) {
+      await deleteReview(id);
+      fetchAllReviews(); // Refresh to get updated counts
+    }
+  };
+
+  const counts = {
+    all: allReviews.length,
+    pending: allReviews.filter(r => r.status === "pending").length,
+    approved: allReviews.filter(r => r.status === "approved").length,
+    rejected: allReviews.filter(r => r.status === "rejected").length,
+  };
+
+  const avgRating = allReviews.length
+    ? (allReviews.reduce((s, r) => s + r.rating, 0) / allReviews.length).toFixed(1)
     : "—";
 
-  const visible = reviews.filter(r =>
+  const visible = allReviews.filter(r =>
     (filter === "all" || r.status === filter) &&
     (r.name.toLowerCase().includes(q.toLowerCase()) ||
      r.text.toLowerCase().includes(q.toLowerCase()))
   );
 
-  const FILTERS = ["all","pending","approved","rejected"];
+  const FILTERS = ["all", "pending", "approved", "rejected"];
+
+  if (error) {
+    return (
+      <div style={{ padding: "40px", textAlign: "center" }}>
+        <div style={{ color: C.red, fontFamily: C.f2, marginBottom: 16 }}>
+          Error loading reviews: {error}
+        </div>
+        <button
+          onClick={() => { clearError(); fetchAllReviews(); }}
+          style={{
+            padding: "8px 16px",
+            background: C.red,
+            color: "white",
+            border: "none",
+            borderRadius: 6,
+            fontFamily: C.f2,
+            cursor: "pointer"
+          }}
+        >
+          Retry
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div>
       {/* Header */}
-      <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", marginBottom:20, flexWrap:"wrap", gap:12 }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 20, flexWrap: "wrap", gap: 12 }}>
         <div>
-          <h2 style={{ fontFamily:C.f1, color:C.mid, fontSize:24, fontWeight:700 }}>Manage Reviews</h2>
-          <p style={{ fontFamily:C.f2, color:C.muted, fontSize:13, marginTop:3 }}>
-            {counts.pending} pending approval · {counts.approved} live on website
+          <h2 style={{ fontFamily: C.f1, color: C.mid, fontSize: 24, fontWeight: 700 }}>Manage Reviews</h2>
+          <p style={{ fontFamily: C.f2, color: C.muted, fontSize: 13, marginTop: 3 }}>
+            {pendingCount} pending approval · {counts.approved} live on website
+            {loading && " (Loading...)"}
           </p>
         </div>
         {/* Avg rating pill */}
-        <div style={{ display:"flex", alignItems:"center", gap:8, background:"white",
-          border:`1px solid ${C.border}`, borderRadius:10, padding:"10px 16px" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 8, background: "white",
+          border: `1px solid ${C.border}`, borderRadius: 10, padding: "10px 16px" }}>
           <Stars n={Math.round(Number(avgRating))} />
-          <span style={{ fontFamily:C.f2, fontWeight:700, color:C.mid, fontSize:16 }}>{avgRating}</span>
-          <span style={{ fontFamily:C.f2, color:C.muted, fontSize:12 }}>avg. rating</span>
+          <span style={{ fontFamily: C.f2, fontWeight: 700, color: C.mid, fontSize: 16 }}>{avgRating}</span>
+          <span style={{ fontFamily: C.f2, color: C.muted, fontSize: 12 }}>avg. rating</span>
         </div>
       </div>
 
       {/* Filter tabs */}
-      <div style={{ display:"flex", gap:6, marginBottom:14, flexWrap:"wrap" }}>
+      <div style={{ display: "flex", gap: 6, marginBottom: 14, flexWrap: "wrap" }}>
         {FILTERS.map(f => {
           const s = f !== "all" ? STATUS_STYLE[f] : null;
           return (
             <button key={f} onClick={() => setFilter(f)} style={{
-              padding:"7px 14px", borderRadius:20,
-              fontFamily:C.f2, fontSize:12, fontWeight:600,
-              background: filter===f ? (s?.color || C.mid) : "white",
-              color:      filter===f ? "white" : C.mid,
-              border:     filter===f ? "none" : `1px solid ${C.border}`,
+              padding: "7px 14px", borderRadius: 20,
+              fontFamily: C.f2, fontSize: 12, fontWeight: 600,
+              background: filter === f ? (s?.color || C.mid) : "white",
+              color: filter === f ? "white" : C.mid,
+              border: filter === f ? "none" : `1px solid ${C.border}`,
             }}>
-              {f.charAt(0).toUpperCase()+f.slice(1)} ({counts[f]})
+              {f.charAt(0).toUpperCase() + f.slice(1)} ({counts[f]})
             </button>
           );
         })}
       </div>
 
       {/* Pending alert */}
-      {counts.pending > 0 && filter !== "approved" && filter !== "rejected" && (
-        <div style={{ background:"#FEF9C3", border:"1px solid #FDE68A", borderRadius:8,
-          padding:"10px 14px", marginBottom:14, fontFamily:C.f2, fontSize:13, color:"#854D0E" }}>
-          ⚠️ <strong>{counts.pending} review{counts.pending>1?"s":""}</strong> waiting for your approval before showing on the website.
+      {pendingCount > 0 && filter !== "approved" && filter !== "rejected" && (
+        <div style={{ background: "#FEF9C3", border: "1px solid #FDE68A", borderRadius: 8,
+          padding: "10px 14px", marginBottom: 14, fontFamily: C.f2, fontSize: 13, color: "#854D0E" }}>
+          ⚠️ <strong>{pendingCount} review{pendingCount > 1 ? "s" : ""}</strong> waiting for your approval before showing on the website.
         </div>
       )}
 
       {/* Search */}
-      <div style={{ display:"flex", alignItems:"center", gap:8, background:"white",
-        border:`1px solid ${C.border}`, borderRadius:8, padding:"0 12px", marginBottom:14 }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 8, background: "white",
+        border: `1px solid ${C.border}`, borderRadius: 8, padding: "0 12px", marginBottom: 14 }}>
         <Search size={14} color={C.muted} />
         <input value={q} onChange={e => setQ(e.target.value)} placeholder="Search by name or review content…"
-          style={{ border:"none", outline:"none", fontFamily:C.f2, fontSize:13, color:C.mid, padding:"10px 0", flex:1 }} />
+          style={{ border: "none", outline: "none", fontFamily: C.f2, fontSize: 13, color: C.mid, padding: "10px 0", flex: 1 }} />
       </div>
 
       {/* Review cards */}
-      <div style={{ display:"flex", flexDirection:"column", gap:12 }}>
+      <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
         {visible.map(r => (
           <ReviewCard
-            key={r.id}
-            review={r}
-            onApprove={approve}
-            onReject={reject}
-            onDelete={remove}
+            key={r._id}
+            review={{
+              ...r,
+              id: r._id,
+              time: new Date(r.createdAt).toLocaleDateString(),
+              item: r.itemOrdered || "—"
+            }}
+            onApprove={handleApprove}
+            onReject={handleReject}
+            onDelete={handleDelete}
           />
         ))}
-        {visible.length === 0 && (
-          <div style={{ padding:"60px 0", textAlign:"center", fontFamily:C.f2, color:C.muted, fontSize:14 }}>
+        {visible.length === 0 && !loading && (
+          <div style={{ padding: "60px 0", textAlign: "center", fontFamily: C.f2, color: C.muted, fontSize: 14 }}>
             No reviews found.
           </div>
         )}

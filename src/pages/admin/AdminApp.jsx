@@ -7,27 +7,33 @@
 //   e.g. using react-router-dom:
 //     <Route path="/admin/*" element={<AdminApp />} />
 // ─────────────────────────────────────────────────────────────
-import { useState } from "react";
+import { useState ,useEffect } from "react";
 import AdminLogin                   from "./AdminLogin";
 import Dashboard, { AdminShell }    from "./Dashboard";
 import ManageMenu                   from "./ManageMenu";
 import ManageOrders                 from "./ManageOrders";
 import ManageReviews                from "./ManageReviews";
+import AdminProfile                 from "./AdminProfile";
+import useAuthStore                 from "../../store/authStore";
 
 export default function AdminApp() {
-  // Check if already signed in this browser session
-  const [authed, setAuthed] = useState(
-    () => sessionStorage.getItem("vk_admin_auth") === "true"
-  );
+  const { isLoggedIn, fetchMe } = useAuthStore();
   const [page, setPage] = useState("dashboard");
 
+  // Check auth on mount
+  useEffect(() => {
+    if (isLoggedIn()) {
+      fetchMe();
+    }
+  }, [isLoggedIn, fetchMe]);
+
   const logout = () => {
+    useAuthStore.getState().logout();
     sessionStorage.removeItem("vk_admin_auth");
-    setAuthed(false);
   };
 
-  if (!authed) {
-    return <AdminLogin onLogin={() => setAuthed(true)} />;
+  if (!isLoggedIn()) {
+    return <AdminLogin onLogin={() => {}} />;
   }
 
   const PAGE = {
@@ -35,10 +41,11 @@ export default function AdminApp() {
     menu:      <ManageMenu />,
     orders:    <ManageOrders />,
     reviews:   <ManageReviews />,
+    profile:   <AdminProfile onLogout={logout} />,
   };
 
   return (
-    <AdminShell page={page} onNavigate={setPage} onLogout={logout}>
+    <AdminShell page={page} onNavigate={setPage} onLogout={logout} onProfileClick={() => setPage("profile")}>
       {PAGE[page] || <Dashboard />}
     </AdminShell>
   );

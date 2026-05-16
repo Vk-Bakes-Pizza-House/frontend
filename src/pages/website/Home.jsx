@@ -1,6 +1,8 @@
 import React from 'react';
 import { Star, AlertCircle, Plus, Minus } from 'lucide-react';
 import { C, ITEMS, REVIEWS, FRESH_BOARD } from '../../data/menu';
+import Footer from '../../components/Footer';
+import ReviewsSection from '../../section/reviewSection';
 
 // ── HELPERS ────────────────────────────────────────────────────────────────
 const hasPCB = (cart) => cart.some(i => ["pizza", "cake", "bake"].includes(i.cat));
@@ -84,7 +86,7 @@ const Home = ({ go, cart, add }) => {
       </div>
 
       {/* Reviews */}
-      <div style={{ background: C.mid, padding: "36px 16px" }}>
+      {/* <div style={{ background: C.mid, padding: "36px 16px" }}>
         <div style={{ maxWidth: 960, margin: "0 auto" }}>
           <div style={{ fontFamily: C.f2, color: C.gold, fontSize: 11, letterSpacing: 3, marginBottom: 6 }}>WHAT LOCALS SAY</div>
           <h2 style={{ fontFamily: C.f1, color: "#FFF8F0", fontSize: 26, fontWeight: 700, marginBottom: 20 }}>Customer Reviews</h2>
@@ -103,7 +105,8 @@ const Home = ({ go, cart, add }) => {
             ))}
           </div>
         </div>
-      </div>
+      </div> */}
+      <ReviewsSection/>
     </div>
   );
 };
