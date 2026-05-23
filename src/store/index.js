@@ -5,8 +5,9 @@
 //   import { useMenuStore, useCartStore } from "@/store";
 //
 // ─────────────────────────────────────────────────────────────
-export { default as useAuthStore   } from "./useAuthStore";
-export { default as useMenuStore   } from "./useMenuStore";
-export { default as useCartStore   } from "./useCartStore";
-export { default as useOrderStore  } from "./useOrderStore";
-export { default as useReviewStore } from "./useReviewStore";
+export { default as useAuthStore   } from "./authStore";
+export { default as useMenuStore   } from "./menuStore";
+export { default as useCartStore   } from "./cartStore";
+export { default as useOrderStore  } from "./orderStore";
+export { default as useReviewStore } from "./reviewStore";
+export { default as useStoreStore  } from "./storeStore";

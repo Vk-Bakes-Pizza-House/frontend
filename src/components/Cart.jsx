@@ -3,11 +3,12 @@ import { AlertCircle, Plus, Minus } from "lucide-react";
 import { C, EMOJI } from "../data/menu";
 import { isDlv, hasPCB, buildMsg } from "../config";
 import { WA, DELIVERY_FEE } from "../config";
+import { AddressBox, CartSummary } from "../section/order/CheckoutComponents"
 
 function Cart({ cart, add }) {
   const [addr, setAddr] = useState("");
-  const sub     = cart.reduce((s, i) => s + i.price * i.qty, 0);
-  const hasDlv  = cart.some(i => isDlv(i, cart));
+  const sub = cart.reduce((s, i) => s + i.price * i.qty, 0);
+  const hasDlv = cart.some(i => isDlv(i, cart));
   const iceWarn = cart.some(i => i.cat === "ice") && !hasPCB(cart);
 
   const order = () => {
@@ -19,7 +20,7 @@ function Cart({ cart, add }) {
     <div className="min-h-screen py-6 px-4" style={{ background: C.bg }}>
       <div className="max-w-2xl mx-auto">
         <h2 className="text-3xl font-bold mb-5" style={{ color: C.mid, fontFamily: C.f1 }}>Your Cart</h2>
-        
+
         {cart.length === 0 ? (
           <div className="text-center py-16" style={{ color: C.muted, fontFamily: C.f2 }}>
             <div className="text-6xl mb-3">🛒</div>
@@ -59,39 +60,20 @@ function Cart({ cart, add }) {
               </div>
             ))}
 
-            {hasDlv && (
-              <div>
-                <div className="font-semibold text-xs mb-2" style={{ color: C.mid, fontFamily: C.f2 }}>📍 Delivery Address</div>
-                <textarea 
-                  value={addr} 
-                  onChange={e => setAddr(e.target.value)} 
-                  placeholder="Enter your full delivery address..." 
-                  rows={2}
-                  className="w-full p-3 border rounded text-xs resize-none outline-none box-border"
-                  style={{ borderColor: C.border, fontFamily: C.f2 }}
-                />
-              </div>
-            )}
 
-            <div className="rounded-lg p-4 bg-white border" style={{ borderColor: C.border }}>
-              <div className="flex justify-between mb-1.5">
-                <span className="text-xs" style={{ color: C.muted, fontFamily: C.f2 }}>Subtotal</span>
-                <span className="font-semibold text-xs" style={{ color: C.mid, fontFamily: C.f2 }}>₹{sub}</span>
-              </div>
-              {hasDlv && (
-                <div className="flex justify-between mb-1.5">
-                  <span className="text-xs" style={{ color: C.muted, fontFamily: C.f2 }}>Delivery charge</span>
-                  <span className="font-semibold text-xs" style={{ color: C.mid, fontFamily: C.f2 }}>₹{DELIVERY_FEE}</span>
-                </div>
-              )}
-              <div className="border-t flex justify-between mt-2 pt-2" style={{ borderColor: C.border }}>
-                <span className="font-bold text-sm" style={{ color: C.mid, fontFamily: C.f2 }}>Total</span>
-                <span className="font-bold text-sm" style={{ color: C.red, fontFamily: C.f2 }}>₹{sub + (hasDlv ? DELIVERY_FEE : 0)}</span>
-              </div>
-              <div className="text-xs mt-1" style={{ color: C.muted, fontFamily: C.f2 }}>💵 Cash on Delivery</div>
-            </div>
+            <AddressBox
+              value={addr}
+              onChange={setAddr}
+            />
 
-            <button 
+            <CartSummary
+              subtotal={sub}
+              deliveryFee={DELIVERY_FEE}
+              total={sub + DELIVERY_FEE}
+            />
+
+
+            <button
               onClick={order}
               className="w-full py-3 rounded-lg font-bold text-sm text-white"
               style={{ background: C.green, fontFamily: C.f2 }}

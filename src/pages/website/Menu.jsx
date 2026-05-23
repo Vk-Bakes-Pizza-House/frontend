@@ -1,14 +1,16 @@
 import { useState, useEffect } from "react";
+import { useSearchParams, useNavigate } from "react-router-dom";
 import { AlertCircle } from "lucide-react";
-import { C, EMOJI } from "../../data/menu";
 import ItemCard from "../../components/ItemCard";
 import useMenuStore from "../../store/menuStore";
 import useCartStore from "../../store/cartStore";
 
 function Menu() {
-  const { items, loading, error, fetchMenu, setCategory, activeCategory } = useMenuStore();
-  const { addItem } = useCartStore();
+  const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
   const [cat, setCat] = useState("all");
+  const { items, loading, error, fetchMenu, setCategory } = useMenuStore();
+  const { addItem, items: cart } = useCartStore();
 
   useEffect(() => {
     fetchMenu();
@@ -22,32 +24,24 @@ function Menu() {
 
   const filteredItems = cat === "all" ? items : items.filter(i => i.category === cat);
 
+  // Loading State
   if (loading) {
     return (
-      <div style={{ background: C.bg, minHeight: "100vh", padding: "24px 16px", display: "flex", alignItems: "center", justifyContent: "center" }}>
-        <div style={{ fontFamily: C.f2, color: C.mid }}>Loading menu...</div>
+      <div className="bg-[#FFF8F0] min-h-screen flex items-center justify-center p-6">
+        <div className="animate-pulse text-[#8B6A4F] font-medium">Loading menu...</div>
       </div>
     );
   }
 
+  // Error State
   if (error) {
     return (
-      <div style={{ background: C.bg, minHeight: "100vh", padding: "24px 16px", display: "flex", alignItems: "center", justifyContent: "center" }}>
-        <div style={{ color: C.red, fontFamily: C.f2, textAlign: "center" }}>
-          Error loading menu: {error}
-          <br />
+      <div className="bg-[#FFF8F0] min-h-screen flex items-center justify-center p-6">
+        <div className="text-center">
+          <p className="text-red-600 font-medium mb-4">Error loading menu: {error}</p>
           <button
             onClick={() => fetchMenu()}
-            style={{
-              marginTop: 16,
-              padding: "8px 16px",
-              background: C.red,
-              color: "white",
-              border: "none",
-              borderRadius: 6,
-              fontFamily: C.f2,
-              cursor: "pointer"
-            }}
+            className="px-6 py-2 bg-red-600 text-white rounded-lg font-bold shadow-sm active:scale-95 transition-transform"
           >
             Retry
           </button>
@@ -57,42 +51,62 @@ function Menu() {
   }
 
   return (
-    <div style={{ background: C.bg, minHeight: "100vh", padding: "24px 16px" }}>
-      <div style={{ maxWidth: 960, margin: "0 auto" }}>
-        <h2 style={{ fontFamily: C.f1, color: C.mid, fontSize: 28, fontWeight: 700, marginBottom: 18 }}>Our Menu</h2>
-        <div style={{ display: "flex", gap: 8, overflowX: "auto", paddingBottom: 12, marginBottom: 16 }}>
+    <div className="bg-[#FFF8F0] min-h-screen px-4 py-8">
+      <div className="max-w-6xl mx-auto">
+        
+        {/* Header */}
+        <h2 className="text-3xl font-black text-[#2D1400] mb-6 tracking-tight">Our Menu</h2>
+
+        {/* Category Scrollbar */}
+        <div className="flex gap-2 overflow-x-auto pb-4 mb-4 no-scrollbar snap-x">
           {[
             { k: "all", l: "All Items", e: "🍽️" },
             { k: "pizza", l: "Pizza", e: "🍕" },
-            { k: "bake", l: "Bakes", e: "🥐" },
             { k: "cake", l: "Cakes", e: "🎂" },
             { k: "bread", l: "Bread", e: "🍞" },
             { k: "toast", l: "Toast", e: "🥖" },
-            { k: "biscuit", l: "Biscuits", e: "🍪" },
-            { k: "ice", l: "Ice Cream", e: "🍦" },
+            { k: "cookie", l: "Cookies", e: "🍪" },
+            { k: "ice", l: "IceCream", e: "🍦" },
           ].map(c => (
-            <button key={c.k} onClick={() => handleCategoryChange(c.k)}
-              style={{ padding: "7px 15px", borderRadius: 20, fontFamily: C.f2, fontWeight: 500, fontSize: 12, whiteSpace: "nowrap", flexShrink: 0,
-                background: cat === c.k ? C.red : "white", color: cat === c.k ? "white" : C.mid,
-                border: cat === c.k ? "none" : `1px solid ${C.border}` }}>
-              {c.e} {c.l}
+            <button
+              key={c.k}
+              onClick={() => handleCategoryChange(c.k)}
+              className={`flex-shrink-0 snap-start px-4 py-2 rounded-full text-xs font-bold transition-all border ${
+                cat === c.k 
+                  ? "bg-[#D44B1A] text-white border-transparent shadow-md" 
+                  : "bg-white text-[#8B6A4F] border-[#E8D5C0] hover:border-[#D44B1A]"
+              }`}
+            >
+              <span className="mr-1">{c.e}</span> {c.l}
             </button>
           ))}
         </div>
-        <div style={{ background: "#FFF3E0", border: `1px solid ${C.gold}`, borderRadius: 8, padding: "10px 14px", marginBottom: 18, display: "flex", gap: 8, alignItems: "flex-start" }}>
-          <AlertCircle size={15} color={C.gold} style={{ flexShrink: 0, marginTop: 1 }} />
-          <p style={{ fontFamily: C.f2, fontSize: 12, color: "#5D3A00" }}>
-            <strong>Delivery (₹20):</strong> Pizza, Bakes & Cakes only. Ice Cream delivers only when ordered with Pizza/Bake/Cake. Bread, Toast & Biscuits are <strong>store pickup only</strong>. Cash on delivery.
+
+        {/* Policy Info Box */}
+        <div className="bg-[#FFF3E0] border border-[#E8D5C0] rounded-xl p-4 mb-8 flex gap-3 items-start shadow-sm">
+          <AlertCircle size={18} className="text-[#D44B1A] shrink-0 mt-0.5" />
+          <p className="text-xs text-[#5D3A00] leading-relaxed">
+            <span className="font-bold text-[#D44B1A]">Delivery (₹20):</span> Pizza & Cakes only. 
+            Ice Cream delivers only with main items. Bread & Toast are 
+            <span className="font-bold ml-1">store pickup only</span>. Cash on delivery.
           </p>
         </div>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(178px,1fr))", gap: 14 }}>
-          {filteredItems.map(i => <ItemCard key={i._id} item={i} add={addItem} />)}
+
+        {/* Menu Grid */}
+        <div className="grid grid-cols-2 md:grid-cols-4 sm:grid-cols-3 lg:grid-cols-5 gap-4">
+          {filteredItems.map(i => (
+            <ItemCard key={i._id || i.id} item={i} cart={cart} add={addItem} />
+          ))}
         </div>
+
+        {/* Empty State */}
         {filteredItems.length === 0 && (
-          <div style={{ padding: "60px 0", textAlign: "center", fontFamily: C.f2, color: C.muted, fontSize: 14 }}>
-            No items found in this category.
+          <div className="py-20 text-center">
+            <div className="text-4xl mb-2">🔍</div>
+            <p className="text-[#8B6A4F] font-medium italic">No items found in this category.</p>
           </div>
         )}
+
       </div>
     </div>
   );

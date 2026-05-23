@@ -15,7 +15,7 @@ import { devtools, persist } from "zustand/middleware";
 import api from "./api";
 import { endpoints } from "../utils/endpoints";
 
-const WA           = import.meta.env.VITE_WA_NUMBER || "919999999999";
+const WA = import.meta.env.VITE_WA_NUMBER || "919999999999";
 const DELIVERY_FEE = 20;
 
 // ── Delivery rule helpers ─────────────────────────────────────
@@ -23,15 +23,15 @@ const hasPCB = (items) =>
   items.some((i) => ["pizza", "cake", "bake"].includes(i.category));
 
 const isItemDeliverable = (item, allItems) => {
-  if (item.deliverable === true)     return true;
-  if (item.deliverable === false)    return false;
-  if (item.deliverable === "cond")   return hasPCB(allItems);
+  if (item.deliverable === true) return true;
+  if (item.deliverable === false) return false;
+  if (item.deliverable === "cond") return hasPCB(allItems);
   return false;
 };
 
 // ── WhatsApp message builder ──────────────────────────────────
 const buildWhatsAppMessage = (items, address) => {
-  const dlvItems = items.filter((i) =>  isItemDeliverable(i, items));
+  const dlvItems = items.filter((i) => isItemDeliverable(i, items));
   const pkpItems = items.filter((i) => !isItemDeliverable(i, items));
 
   let msg = "🛍️ VK BAKES & PIZZA — NEW ORDER!\n\n";
@@ -45,7 +45,7 @@ const buildWhatsAppMessage = (items, address) => {
     pkpItems.forEach((i) => (msg += `• ${i.qty}x ${i.name} — ₹${i.price * i.qty}\n`));
   }
 
-  const sub   = items.reduce((s, i) => s + i.price * i.qty, 0);
+  const sub = items.reduce((s, i) => s + i.price * i.qty, 0);
   const hasDlv = dlvItems.length > 0;
 
   msg += `\n📍 Address: ${address || "[Please type your address]"}\n`;
@@ -61,7 +61,7 @@ const useCartStore = create(
     persist(
       (set, get) => ({
         // ── State ─────────────────────────────────────────────
-        items:   [],   // { _id, name, category, price, deliverable, qty }
+        items: [],   // { _id, name, category, price, deliverable, qty }
         address: "",
 
         // ── Computed ──────────────────────────────────────────
@@ -90,24 +90,53 @@ const useCartStore = create(
         isDeliverable: (item) => isItemDeliverable(item, get().items),
 
         // ── Cart actions ──────────────────────────────────────
-        addItem: (item) => {
+        // ✅ accept delta, handle decrease and auto-remove at 0
+        addItem: (item, delta = 1) => {
           set((s) => {
-            const exists = s.items.find((i) => i._id === item._id);
+            // Normalize ID: support both _id (from DB) and id (from static data)
+            const itemId = item?._id || item?.id;
+            const exists = s.items.find((i) => (i?._id || i?.id) === itemId);
+
             if (exists) {
-              return { items: s.items.map((i) => i._id === item._id ? { ...i, qty: i.qty + 1 } : i) };
+              const newQty = exists.qty + delta;
+
+              // remove item when qty hits 0
+              if (newQty <= 0) {
+                return { items: s.items.filter((i) => (i?._id || i?.id) !== itemId) };
+              }
+
+              return {
+                items: s.items.map((i) =>
+                  (i?._id || i?.id) === itemId ? { ...i, qty: newQty } : i
+                ),
+              };
             }
-            return { items: [...s.items, { ...item, qty: 1 }] };
+
+            // only add new item if delta is positive
+            if (delta > 0) {
+              // Normalize category and deliverable fields
+              const normalized = {
+                ...item,
+                _id: itemId,
+                category: item?.category || item?.cat,
+                deliverable: item?.deliverable !== undefined ? item?.deliverable : item?.dlv,
+                qty: delta
+              };
+              return { items: [...s.items, normalized] };
+            }
+
+            return s;
           });
         },
 
         removeItem: (id) => {
-          set((s) => ({ items: s.items.filter((i) => i._id !== id) }));
+          set((s) => ({ items: s.items.filter((i) => (i?._id || i?.id) !== id) }));
         },
 
         updateQty: (id, delta) => {
           set((s) => {
             const updated = s.items
-              .map((i) => i._id === id ? { ...i, qty: i.qty + delta } : i)
+              .map((i) => (i?._id || i?.id) === id ? { ...i, qty: i.qty + delta } : i)
               .filter((i) => i.qty > 0);
             return { items: updated };
           });
@@ -129,15 +158,15 @@ const useCartStore = create(
         // Called alongside openWhatsApp so order is recorded in DB
         logOrder: async (customerName, customerPhone) => {
           const { items, address } = get();
-          const dlvItems = items.filter((i) =>  isItemDeliverable(i, items));
+          const dlvItems = items.filter((i) => isItemDeliverable(i, items));
 
           const payload = {
             customer: { name: customerName, phone: customerPhone, address },
-            items:    items.map((i) => ({ name: i.name, price: i.price, qty: i.qty })),
-            orderType:      dlvItems.length > 0 ? "delivery" : "pickup",
-            subtotal:       get().subtotal(),
+            items: items.map((i) => ({ name: i.name, price: i.price, qty: i.qty })),
+            orderType: dlvItems.length > 0 ? "delivery" : "pickup",
+            subtotal: get().subtotal(),
             deliveryCharge: get().deliveryTotal(),
-            total:          get().grandTotal(),
+            total: get().grandTotal(),
           };
 
           try {
@@ -151,7 +180,7 @@ const useCartStore = create(
         },
       }),
       {
-        name:    "vk-cart",          // key in localStorage
+        name: "vk-cart",          // key in localStorage
         partialize: (s) => ({ items: s.items, address: s.address }),
       }
     ),

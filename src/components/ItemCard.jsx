@@ -1,113 +1,132 @@
+// src/components/ItemCard.jsx
+import { useState } from "react";
 import { Plus, Minus } from "lucide-react";
-import { C } from "../data/menu";
-import { EMOJI as EMOJIS } from "../data/menu";
+import { C, EMOJI as EMOJIS } from "../data/menu";
+import OrderNowModal from "../section/oderNow";
+import {isDlv} from "../config/index";
 
 function ItemCard({ item, cart, add }) {
-  const imageUrl    = item.imageUrl || item.image || "";          // ✅ resolved once
-  const category    = item.category || item.cat || "";
-  const description = item.description || item.desc || "";
-  const deliverable = item.deliverable !== undefined ? item.deliverable : item.dlv;
-  const tag         = item.tag || "";
+  const [showModal, setShowModal] = useState(false);
 
+  // ── Normalise field names (DB: category/deliverable, legacy: cat/dlv) ──
+  const imageUrl = item?.imageUrl || item?.image || "";
+  const category = item?.category || item?.cat || "";
+  const description = item?.description || item?.desc || "";
+  const deliverable = item?.deliverable !== undefined ? item?.deliverable : item?.dlv;
+  const tag = item?.tag || "";
+
+  // ── Delivery badge ────────────────────────────────────────────
   const dlvLabel =
-    deliverable === true    ? "🚚 Delivers"
-    : deliverable === "cond" ? "🍕+🎂 only"
-    : "🏪 Pickup only";
+    deliverable === true ? "🚚 Delivers"
+      : deliverable === "cond" ? "🍕+🎂 only"
+        : "🏪 Pickup only";
 
-  const dlvColor =
-    deliverable === true    ? { bg: "#DCFCE7", color: "#166534" }
-    : deliverable === "cond" ? { bg: "#FEF9C3", color: "#854D0E" }
-    : { bg: "#F3F4F6", color: "#6B7280" };
+  const dlvClass =
+    deliverable === true ? "bg-green-100 text-green-800"
+      : deliverable === "cond" ? "bg-yellow-100 text-yellow-800"
+        : "bg-gray-100 text-gray-500";
 
-  const itemId = item._id || item.id;
-  const qty    = cart?.find((c) => (c._id || c.id) === itemId)?.qty || 0;
+  // ── Cart qty (supports both _id and id) ──────────────────────
+  const itemId = item?._id || item?.id;
+  const qty = cart?.find?.((c) => (c?._id || c?.id) === itemId)?.qty || 0;
+  const totalPrice = item?.price * qty;
 
   return (
-    <div
-      className="rounded-xl overflow-hidden border flex flex-col"
-      style={{ background: C.card, borderColor: C.border }}
-    >
+    <div className="bg-white border border-[#E8D5C0] rounded-2xl overflow-hidden flex flex-col shadow-xs hover:shadow-md transition-all duration-200">
+
+      {/* Image */}
       <div className="relative h-40 overflow-hidden bg-[#FFF3E0]">
         {imageUrl ? (
           <img
-            src={imageUrl}              // ✅ FIX 1 — use resolved variable, not item.imageUrl
-            alt={item.name}
-            className="w-full h-full object-cover"
+            src={imageUrl}
+            alt={item?.name || "Item"}
+            className="w-full h-full object-cover transform hover:scale-105 transition-transform duration-300"
           />
         ) : (
-          <div
-            className="h-full flex items-center justify-center text-6xl"
-            style={{ background: "linear-gradient(135deg,#FFF0E0,#FFE8CC)" }}
-          >
+          <div className="h-full flex items-center justify-center text-5xl bg-gradient-to-br from-[#FFF0E0] to-[#FFE8CC]">
             {EMOJIS[category] || "🍽️"}
           </div>
         )}
 
-        <div className="absolute top-2 left-2">
-          {tag ? (
-            <span
-              className="bg-red-600 text-white text-xs font-bold px-2 py-0.5 rounded-full"
-              style={{ fontFamily: C.f2 }}
-            >
+        {/* Tag badge */}
+        {tag && (
+          <div className="absolute top-2.5 left-2.5">
+            <span className="bg-red-600 text-white text-[10px] font-extrabold px-2.5 py-0.5 rounded-full uppercase tracking-wider shadow-sm">
               {tag}
             </span>
-          ) : null}
-        </div>
+          </div>
+        )}
 
-        <span
-          className="absolute top-2 right-2 text-xs font-semibold px-2 py-0.5 rounded-full"
-          style={{ background: dlvColor.bg, color: dlvColor.color, fontFamily: C.f2 }}
-        >
+        {/* Delivery badge */}
+        <span className={`absolute top-2.5 right-2.5 text-[11px] font-bold px-2.5 py-0.5 rounded-full shadow-xs ${dlvClass}`}>
           {dlvLabel}
         </span>
       </div>
 
-      <div className="p-3.5 flex-1 flex flex-col gap-2" style={{ fontFamily: C.f2 }}>
-        <div className="font-semibold text-sm" style={{ color: C.mid }}>
-          {item.name}
+      {/* Details */}
+      <div className="p-4 flex-1 flex flex-col gap-2">
+        <div className="font-sans font-bold text-[#2D1400] text-sm">
+          {item?.name || "Item"}
         </div>
-        <div className="text-xs flex-1" style={{ color: C.muted }}>
+        <div className="font-sans text-[#8B6A4F] text-xs flex-1 line-clamp-2 leading-relaxed">
           {description}
         </div>
-        <div className="flex items-center justify-between">
-          <span className="font-bold text-base" style={{ color: C.red }}>
-            ₹{item.price}
+
+        {/* Delivery Status */}
+        <div className="text-xs" style={{ color: isDlv(item, cart) ? "#16A34A" : C.muted, fontFamily: C.f2 }}>
+          {isDlv(item, cart) ? "✅ Will be delivered" : "🏪 Store pickup only"}
+        </div>
+
+        {/* Price + Add/Remove */}
+        <div className="flex items-center justify-between pt-2 border-t border-[#FFF8F0]">
+          <span className="font-sans font-black text-base text-[#D44B1A]">
+            ₹{item?.price || 0}
           </span>
 
           {qty === 0 ? (
             <button
-              onClick={() => add(item)}
-              className="px-3.5 py-1.5 rounded text-white text-xs font-semibold"
-              style={{ background: C.red, fontFamily: C.f2 }}
+              onClick={() => add(item, 1)}
+              className="px-4 py-1.5 bg-[#D44B1A] hover:bg-[#b83d13] text-white text-xs font-bold rounded-xl shadow-xs transition-colors"
             >
               Add
             </button>
           ) : (
-            <div className="flex items-center gap-1.5">
+            <div className="flex items-center gap-2">
               <button
                 onClick={() => add(item, -1)}
-                className="w-6 h-6 rounded flex items-center justify-center"
-                style={{ background: "#F0E0D0" }}
+                className="w-7 h-7 rounded-lg bg-[#E8D5C0]/40 hover:bg-[#E8D5C0]/70 flex items-center justify-center transition-colors"
               >
-                <Minus size={12} style={{ color: C.red }} />
+                <Minus size={12} className="text-[#D44B1A]" />
               </button>
-              <span
-                className="font-bold text-xs w-4 text-center"
-                style={{ color: C.mid }}
-              >
+              <span className="font-sans font-bold text-xs w-4 text-center text-[#2D1400]">
                 {qty}
               </span>
               <button
                 onClick={() => add(item, 1)}
-                className="w-6 h-6 rounded flex items-center justify-center"
-                style={{ background: C.red }}
+                className="w-7 h-7 rounded-lg bg-[#D44B1A] hover:bg-[#b83d13] flex items-center justify-center transition-colors"
               >
-                <Plus size={12} color="white" />
+                <Plus size={12} className="text-white" />
               </button>
             </div>
           )}
         </div>
+
+        {/* Cart Total */}
+        {qty > 0 && (
+          <div className="text-xs font-bold text-right" style={{ color: C.red, fontFamily: C.f2 }}>
+            Subtotal: ₹{totalPrice}
+          </div>
+        )}
       </div>
+
+      {/* Address modal — shown when Order Now is clicked */}
+      {showModal && (
+        <OrderNowModal
+          item={item}
+          cart={cart}
+          onClose={() => setShowModal(false)}
+        />
+      )}
     </div>
   );
 }

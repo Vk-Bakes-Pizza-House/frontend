@@ -8,9 +8,13 @@ import { toast } from "sonner";
 //                     after a successful upload
 //   currentImage    → existing URL to preview (for edit mode)
 // ─────────────────────────────────────────────────────────────
+
+const cloud_name =  import.meta.env.VITE_CLOUDINARY_CLOUD_NAME
+
 function ImageUploader({ onUpload, currentImage = "" }) {
   const [loading,  setLoading]  = useState(false);
   const [preview,  setPreview]  = useState(currentImage);
+
 
   const handleUpload = async (e) => {
     const file = e.target.files[0];
@@ -26,7 +30,7 @@ function ImageUploader({ onUpload, currentImage = "" }) {
     setPreview(URL.createObjectURL(file));
 
     toast.promise(
-      fetch("https://api.cloudinary.com/v1_1/dd76a9rlc/image/upload", {
+      fetch(`https://api.cloudinary.com/v1_1/${cloud_name}/image/upload`, {
         method: "POST",
         body: formData,
       })

@@ -1,28 +1,40 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Star, AlertCircle, Plus, Minus } from 'lucide-react';
 import { C, ITEMS, REVIEWS, FRESH_BOARD } from '../../data/menu';
 import Footer from '../../components/Footer';
 import ReviewsSection from '../../section/reviewSection';
+import { useStoreStore } from '../../store';
+import ItemCard from "../../components/ItemCard"
 
 // ── HELPERS ────────────────────────────────────────────────────────────────
-const hasPCB = (cart) => cart.some(i => ["pizza", "cake", "bake"].includes(i.cat));
+const hasPCB = (cart) => cart.some(i => ["Pizza", "Cake", "IceCream"].includes(i.cat));
 const isDlv = (item, cart) => item.dlv === true || (item.dlv === "cond" && hasPCB(cart));
 
-const EMOJI = { pizza: "🍕", bake: "🥐", bread: "🍞", toast: "🥖", biscuit: "🍪", cake: "🎂", ice: "🍦" };
-
+const EMOJI = { Pizza : "🍕", Bun: "🥐", Bread: "🍞", Rusk: "🥖", Cookies: "🍪", Cake: "🎂", IceCream: "🍦", CupCake: "🧁" };
 const Home = ({ go, cart, add }) => {
   const featured = ITEMS.filter(i => i.tag === "Bestseller");
+  const { store, fetchStore } = useStoreStore();
+  const [loading, setLoading] = useState(true);
+
+  
+
+  useEffect(() => {
+  fetchStore(); // Updates the cache in the background
+}, []);
+
+
   return (
     <div style={{ background: C.bg }}>
 
       {/* Hero */}
       <div style={{ background: `linear-gradient(135deg,${C.dark} 0%,${C.mid} 70%)`, padding: "64px 16px 52px", textAlign: "center" }}>
-        <div style={{ fontFamily: C.f2, color: C.gold, fontSize: 12, letterSpacing: 3, marginBottom: 12 }}>🍕 FRESH · LOCAL · DELIVERED</div>
+        <div style={{ fontFamily: C.f2, color: C.gold, fontSize: 12, letterSpacing: 3, marginBottom: 12 }}>🍕 {store?.tagline?.toUpperCase()}</div>
         <h1 style={{ fontFamily: C.f1, color: "#FFF8F0", fontSize: "clamp(34px,7vw,60px)", fontWeight: 700, lineHeight: 1.1, marginBottom: 14 }}>
-          VK Bakes &<br /><span style={{ color: C.red }}>Pizza House</span>
+          {store?.storeName?.split('&')[0].trim()}<br /><span style={{ color: C.red }}>{store?.storeName?.includes('&') ? store?.storeName?.split('&')[1].trim() : ''}</span>
         </h1>
         <p style={{ fontFamily: C.f2, color: "#C8A882", fontSize: 15, maxWidth: 440, margin: "0 auto 28px" }}>
-          Fresh-baked breads, artisan cakes, and hot pizzas — delivered right to your door.
+          {/* Fresh-baked breads, artisan cakes, and hot pizzas — delivered right to your door. */}
+          {store?.discription}
         </p>
         <div style={{ display: "flex", gap: 12, justifyContent: "center", flexWrap: "wrap" }}>
           <button onClick={() => go("menu")} style={{ background: C.red, color: "white", padding: "13px 28px", borderRadius: 8, fontFamily: C.f2, fontWeight: 700, fontSize: 14 }}>Order Now 🛒</button>
@@ -85,74 +97,53 @@ const Home = ({ go, cart, add }) => {
         </div>
       </div>
 
-      {/* Reviews */}
-      {/* <div style={{ background: C.mid, padding: "36px 16px" }}>
-        <div style={{ maxWidth: 960, margin: "0 auto" }}>
-          <div style={{ fontFamily: C.f2, color: C.gold, fontSize: 11, letterSpacing: 3, marginBottom: 6 }}>WHAT LOCALS SAY</div>
-          <h2 style={{ fontFamily: C.f1, color: "#FFF8F0", fontSize: 26, fontWeight: 700, marginBottom: 20 }}>Customer Reviews</h2>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(230px,1fr))", gap: 14 }}>
-            {REVIEWS.map((r, i) => (
-              <div key={i} style={{ background: "white", borderRadius: 12, padding: "18px", border: `1px solid ${C.border}` }}>
-                <div style={{ display: "flex", gap: 2, marginBottom: 8 }}>
-                  {[...Array(5)].map((_, j) => <Star key={j} size={13} fill={j < r.rating ? C.gold : "none"} color={j < r.rating ? C.gold : "#D0C0B0"} />)}
-                </div>
-                <p style={{ fontFamily: C.f2, color: "#3D2B1A", fontSize: 13, lineHeight: 1.6, marginBottom: 10 }}>"{r.text}"</p>
-                <div style={{ display: "flex", justifyContent: "space-between" }}>
-                  <span style={{ fontFamily: C.f2, fontWeight: 600, color: C.red, fontSize: 12 }}>{r.name}</span>
-                  <span style={{ fontFamily: C.f2, color: C.muted, fontSize: 11 }}>{r.ago}</span>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div> */}
       <ReviewsSection/>
     </div>
   );
 };
 
 // ── ITEM CARD ──────────────────────────────────────────────────────────────
-function ItemCard({ item, cart, add }) {
-  const qty = cart.find(c => c.id === item.id)?.qty || 0;
-  const deliverable = isDlv(item, cart);
-  return (
-    <div style={{ background: C.card, borderRadius: 12, overflow: "hidden", border: `1px solid ${C.border}`, display: "flex", flexDirection: "column" }}>
-      <div style={{ height: 90, background: "linear-gradient(135deg,#FFF0E0,#FFE8CC)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 34, position: "relative" }}>
-        {EMOJI[item.cat]}
-        {item.tag && (
-          <span style={{ position: "absolute", top: 7, left: 7, background: C.red, color: "white", fontSize: 10, padding: "2px 7px", borderRadius: 10, fontFamily: C.f2, fontWeight: 700 }}>
-            {item.tag}
-          </span>
-        )}
-        <span style={{ position: "absolute", top: 7, right: 7, background: deliverable ? "#DCFCE7" : item.dlv === "cond" ? "#FEF9C3" : "#F3F4F6", color: deliverable ? "#166534" : item.dlv === "cond" ? "#854D0E" : "#6B7280", fontSize: 10, padding: "2px 7px", borderRadius: 10, fontFamily: C.f2, fontWeight: 600 }}>
-          {item.dlv === true ? "🚚 Delivers" : item.dlv === "cond" ? "🍕+🎂 only" : "🏪 Pickup only"}
-        </span>
-      </div>
-      <div style={{ padding: "12px 14px", flex: 1, display: "flex", flexDirection: "column", gap: 8 }}>
-        <div style={{ fontFamily: C.f2, fontWeight: 600, color: C.mid, fontSize: 14 }}>{item.name}</div>
-        <div style={{ fontFamily: C.f2, color: C.muted, fontSize: 12, flex: 1 }}>{item.desc}</div>
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-          <span style={{ fontFamily: C.f2, fontWeight: 700, color: C.red, fontSize: 17 }}>₹{item.price}</span>
-          {qty === 0 ? (
-            <button onClick={() => add(item)}
-              style={{ background: C.red, color: "white", padding: "6px 14px", borderRadius: 6, fontFamily: C.f2, fontWeight: 600, fontSize: 12 }}>
-              Add
-            </button>
-          ) : (
-            <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-              <button onClick={() => add(item, -1)} style={{ width: 26, height: 26, borderRadius: 5, background: "#F0E0D0", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                <Minus size={12} color={C.red} />
-              </button>
-              <span style={{ fontFamily: C.f2, fontWeight: 700, color: C.mid, minWidth: 18, textAlign: "center" }}>{qty}</span>
-              <button onClick={() => add(item, 1)} style={{ width: 26, height: 26, borderRadius: 5, background: C.red, display: "flex", alignItems: "center", justifyContent: "center" }}>
-                <Plus size={12} color="white" />
-              </button>
-            </div>
-          )}
-        </div>
-      </div>
-    </div>
-  );
-}
+// function ItemCard({ item, cart, add }) {
+//   const qty = cart.find(c => c.id === item.id)?.qty || 0;
+//   const deliverable = isDlv(item, cart);
+//   return (
+//     <div style={{ background: C.card, borderRadius: 12, overflow: "hidden", border: `1px solid ${C.border}`, display: "flex", flexDirection: "column" }}>
+//       <div style={{ height: 90, background: "linear-gradient(135deg,#FFF0E0,#FFE8CC)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 34, position: "relative" }}>
+//         {EMOJI[item.cat]}
+//         {item.tag && (
+//           <span style={{ position: "absolute", top: 7, left: 7, background: C.red, color: "white", fontSize: 10, padding: "2px 7px", borderRadius: 10, fontFamily: C.f2, fontWeight: 700 }}>
+//             {item.tag}
+//           </span>
+//         )}
+//         <span style={{ position: "absolute", top: 7, right: 7, background: deliverable ? "#DCFCE7" : item.dlv === "cond" ? "#FEF9C3" : "#F3F4F6", color: deliverable ? "#166534" : item.dlv === "cond" ? "#854D0E" : "#6B7280", fontSize: 10, padding: "2px 7px", borderRadius: 10, fontFamily: C.f2, fontWeight: 600 }}>
+//           {item.dlv === true ? "🚚 Delivers" : item.dlv === "cond" ? "🍕+🎂 only" : "🏪 Pickup only"}
+//         </span>
+//       </div>
+//       <div style={{ padding: "12px 14px", flex: 1, display: "flex", flexDirection: "column", gap: 8 }}>
+//         <div style={{ fontFamily: C.f2, fontWeight: 600, color: C.mid, fontSize: 14 }}>{item.name}</div>
+//         <div style={{ fontFamily: C.f2, color: C.muted, fontSize: 12, flex: 1 }}>{item.desc}</div>
+//         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+//           <span style={{ fontFamily: C.f2, fontWeight: 700, color: C.red, fontSize: 17 }}>₹{item.price}</span>
+//           {qty === 0 ? (
+//             <button onClick={() => add(item)}
+//               style={{ background: C.red, color: "white", padding: "6px 14px", borderRadius: 6, fontFamily: C.f2, fontWeight: 600, fontSize: 12 }}>
+//               Add
+//             </button>
+//           ) : (
+//             <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+//               <button onClick={() => add(item, -1)} style={{ width: 26, height: 26, borderRadius: 5, background: "#F0E0D0", display: "flex", alignItems: "center", justifyContent: "center" }}>
+//                 <Minus size={12} color={C.red} />
+//               </button>
+//               <span style={{ fontFamily: C.f2, fontWeight: 700, color: C.mid, minWidth: 18, textAlign: "center" }}>{qty}</span>
+//               <button onClick={() => add(item, 1)} style={{ width: 26, height: 26, borderRadius: 5, background: C.red, display: "flex", alignItems: "center", justifyContent: "center" }}>
+//                 <Plus size={12} color="white" />
+//               </button>
+//             </div>
+//           )}
+//         </div>
+//       </div>
+//     </div>
+//   );
+// }
 
 export default Home;

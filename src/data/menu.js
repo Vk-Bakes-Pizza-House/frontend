@@ -39,13 +39,14 @@ export const ITEMS = [
 export const CATS = [
   { k: "all", l: "All Items", e: "🍽️" },
   { k: "pizza", l: "Pizza", e: "🍕" },
-  { k: "bake", l: "Bakes", e: "🥐" },
+  { k: "ice", l: "IceCream", e: "🍦" },
   { k: "cake", l: "Cakes", e: "🎂" },
+  { k: "biscuit", l: "Cookies", e: "🍪" },
+  { k: "bake", l: "Buns", e: "🥐" },
   { k: "bread", l: "Bread", e: "🍞" },
-  { k: "toast", l: "Toast", e: "🥖" },
-  { k: "biscuit", l: "Biscuits", e: "🍪" },
-  { k: "ice", l: "Ice Cream", e: "🍦" },
-];
+  { k: "toast", l: "Rusk", e: "🥖" },
+  { k: "toast", l: "CupCakes", e: "🥖" },
+]
 
 export const REVIEWS = [
   { name: "Priya S.", rating: 5, text: "Best pizza in the neighborhood! Always fresh and hot.", ago: "2 days ago" },
@@ -55,8 +56,8 @@ export const REVIEWS = [
 ];
 
 export const FRESH_BOARD = [
-  { name: "White Bread", up: true, note: "8AM & 4PM daily" },
-  { name: "Biscuits", up: true, note: "Available all day" },
-  { name: "Chocolate Cake", up: true, note: "Ready to order" },
-  { name: "Mango Ice Cream", up: true, note: "Today's flavour" },
+  { name: "Paneer Pizza", up: true, note: "8AM & 4PM daily" },
+  { name: "Butter Cookies", up: true, note: "Available all day" },
+  { name: "Chocolate Truffle Cake", up: true, note: "Ready to order" },
+  { name: "Mango IceCream", up: true, note: "Today's flavour" },
 ];
