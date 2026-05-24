@@ -43,6 +43,7 @@ export default function ManageMenu() {
     description: form.description || "",
     deliverable: form.deliverable,
     tag:         form.tag || "",
+    size:       form.size,
     image:       form.image || form.imageUrl || "",   // preserve existing image URL if unchanged
   });
 

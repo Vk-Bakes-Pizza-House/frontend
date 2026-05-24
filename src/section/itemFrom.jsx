@@ -8,8 +8,8 @@ import ImageUploader from "../components/uploadToCloudinary";
 // const inpClasses = "...";
 // const Field = ({ label, children }) => (...);
 const CATS  = ["all","pizza","bake","bread","toast","biscuit","cake","ice"];
-const EMOJI = { pizza:"🍕", bake:"🥐", bread:"🍞", toast:"🥖", biscuit:"🍪", cake:"🎂", ice:"🍦" };
-const PIZZA_SIZES = ["regular", "medium", "large"];
+const EMOJI = { Pizza:"🍕", Bread:"🍞", Toast:"🥖", Cookies:"🍪", Cake:"🎂", IceCream:"🍦" };
+const PIZZA_SIZE = ["Regular", "Medium", "Large"];
 const BLANK = { name:"", category:"pizza", price:"", description:"", deliverable:true, tag:"", available:true, sizes:"" };
 const inpClasses = "w-full px-3 py-2 border border-gray-200 rounded-lg font-sans text-sm text-gray-800 bg-white focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500 transition-colors";
 
@@ -136,14 +136,14 @@ function ItemForm({ initial, onSave, onCancel, saving = false }) {
             <div className="col-span-2 p-2">
               <Field label="Pizza Sizes">
                 <div className="flex gap-2">
-                  {PIZZA_SIZES.map(size => (
+                  {PIZZA_SIZE.map(size => (
                     <label key={size} className="flex items-center gap-2 cursor-pointer">
                       <input
                         type="radio"
                         name="pizzaSize"
                         value={size}
-                        checked={f.sizes === size}
-                        onChange={e => setField("sizes", e.target.value)}
+                        checked={f.size === size}
+                        onChange={e => setField("size", e.target.value)}
                         className="w-4 h-4 rounded border-gray-300 text-red-500 cursor-pointer"
                       />
                       <span className="text-sm text-gray-700 capitalize">{size}</span>

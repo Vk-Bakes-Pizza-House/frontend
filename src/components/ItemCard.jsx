@@ -1,6 +1,6 @@
 // src/components/ItemCard.jsx
 import { useState } from "react";
-import { Plus, Minus } from "lucide-react";
+import { Plus, Minus,ShoppingBag } from "lucide-react";
 import { C, EMOJI as EMOJIS } from "../data/menu";
 import OrderNowModal from "../section/oderNow";
 import {isDlv} from "../config/index";
@@ -14,6 +14,8 @@ function ItemCard({ item, cart, add }) {
   const description = item?.description || item?.desc || "";
   const deliverable = item?.deliverable !== undefined ? item?.deliverable : item?.dlv;
   const tag = item?.tag || "";
+
+  console.log("data",item)
 
   // ── Delivery badge ────────────────────────────────────────────
   const dlvLabel =
@@ -58,8 +60,8 @@ function ItemCard({ item, cart, add }) {
         )}
 
         {/* Delivery badge */}
-        <span className={`absolute top-2.5 right-2.5 text-[11px] font-bold px-2.5 py-0.5 rounded-full shadow-xs ${dlvClass}`}>
-          {dlvLabel}
+        <span className={`absolute top-2.5 right-2.5 text-[14px] font-bold px-2.5 py-0.5 rounded-full shadow-xs ${dlvClass}`}>
+          {item?.size}
         </span>
       </div>
 
@@ -73,7 +75,7 @@ function ItemCard({ item, cart, add }) {
         </div>
 
         {/* Delivery Status */}
-        <div className="text-xs" style={{ color: isDlv(item, cart) ? "#16A34A" : C.muted, fontFamily: C.f2 }}>
+        <div className="text-xs text-[11px] font-bold  rounded-full shadow-xs" style={{ color: isDlv(item, cart) ? "#16A34A" : C.muted, fontFamily: C.f2 }}>
           {isDlv(item, cart) ? "✅ Will be delivered" : "🏪 Store pickup only"}
         </div>
 
@@ -111,12 +113,25 @@ function ItemCard({ item, cart, add }) {
           )}
         </div>
 
+        <div className="mt-2 pt-1">
+  <button
+    onClick={() => setShowModal(true)}
+    disabled={deliverable !== true && deliverable !== "cond"} // Disables the button if it's pickup only
+    className="w-full flex items-center justify-center gap-1.5 py-2 border border-[#D44B1A]/20 bg-[#FFF8F0] font-sans text-xs font-bold text-[#D44B1A] rounded-xl transition-all
+      enabled:hover:border-[#D44B1A] enabled:hover:bg-[#D44B1A] enabled:hover:text-white
+      disabled:opacity-50 disabled:cursor-not-allowed disabled:border-gray-200 disabled:bg-gray-50 disabled:text-gray-400"
+  >
+    <ShoppingBag size={13} />
+    <span>{deliverable !== true && deliverable !== "cond" ? "Pickup Only" : "Order Now"}</span>
+  </button>
+</div>
+
         {/* Cart Total */}
-        {qty > 0 && (
+        {/* {qty > 0 && (
           <div className="text-xs font-bold text-right" style={{ color: C.red, fontFamily: C.f2 }}>
             Subtotal: ₹{totalPrice}
           </div>
-        )}
+        )} */}
       </div>
 
       {/* Address modal — shown when Order Now is clicked */}
