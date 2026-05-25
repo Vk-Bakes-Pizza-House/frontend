@@ -1,67 +1,283 @@
 import { create } from "zustand";
-import { devtools, persist, createJSONStorage } from "zustand/middleware";
+import {
+  devtools,
+  persist,
+  createJSONStorage,
+} from "zustand/middleware";
+
 import { toast } from "sonner";
 import api from "./api";
 
+
+// ─────────────────────────────────────────────
+// Cache Duration
+// 10 Minutes
+// ─────────────────────────────────────────────
+
+const CACHE_DURATION =
+  1000 * 60 * 10;
+
+
+// ─────────────────────────────────────────────
+// Store
+// ─────────────────────────────────────────────
+
 const useStoreStore = create(
+
   devtools(
+
     persist(
+
       (set, get) => ({
+
+        // ── State ─────────────────────────
+
         store: null,
+
         loading: false,
+
         error: null,
 
-        // ── Fetch store info (public) ────────────────────────────
-        fetchStore: async () => {
-          // If we already have data in the store (from cache), 
-          // we don't set loading to true to avoid jarring UI flickers.
-          const isInitialFetch = !get().store;
-          if (isInitialFetch) set({ loading: true });
-          
+        lastFetched: null,
+
+
+        // ─────────────────────────────────
+        // Fetch Store
+        // ─────────────────────────────────
+
+        fetchStore: async (
+          forceRefresh = false
+        ) => {
+
+          const {
+            store,
+            lastFetched,
+          } = get();
+
+          const now = Date.now();
+
+          // ── Cache Check ────────────────
+
+          const isCacheValid =
+            store &&
+            lastFetched &&
+            now - lastFetched <
+              CACHE_DURATION;
+
+          // Return Cached Data
+          if (
+            isCacheValid &&
+            !forceRefresh
+          ) {
+
+            console.log(
+              "Using cached store data"
+            );
+
+            return store;
+          }
+
+          // ── Loading ───────────────────
+
+          const isInitialFetch =
+            !store;
+
+          if (isInitialFetch) {
+            set({ loading: true });
+          }
+
           set({ error: null });
 
           try {
-            const { data } = await api.get("/store");
-            set({ store: data.data, loading: false });
+
+            const { data } =
+              await api.get("/store");
+
+            set({
+
+              store: data.data,
+
+              loading: false,
+
+              lastFetched: Date.now(),
+
+            });
+
             return data.data;
+
           } catch (err) {
-            set({ error: err.message, loading: false });
-            console.error("Failed to fetch store:", err.message);
-            return get().store; // Return cached data even on error
+
+            console.error(
+              "Fetch store failed:",
+              err.message
+            );
+
+            set({
+
+              error: err.message,
+
+              loading: false,
+
+            });
+
+            // Return Old Cache
+            return store;
           }
         },
 
-        // ── Update store info (admin only) ────────────────────────
-        updateStore: async (updateData) => {
-          set({ loading: true, error: null });
+
+        // ─────────────────────────────────
+        // Update Store
+        // ─────────────────────────────────
+
+        updateStore: async (
+          updateData
+        ) => {
+
+          set({
+            loading: true,
+            error: null,
+          });
+
           try {
-            const { data } = await api.put("/store/update", updateData);
-            set({ store: data.data, loading: false });
-            toast.success(data.message || "Store updated successfully");
+
+            const { data } =
+              await api.put(
+                "/store/update",
+                updateData
+              );
+
+            set({
+
+              store: data.data,
+
+              loading: false,
+
+              lastFetched:
+                Date.now(),
+
+            });
+
+            toast.success(
+              data.message ||
+              "Store updated successfully"
+            );
+
             return data.data;
+
           } catch (err) {
-            set({ error: err.message, loading: false });
-            toast.error(err.message);
+
+            set({
+
+              error: err.message,
+
+              loading: false,
+
+            });
+
+            toast.error(
+              err.message
+            );
+
             return null;
           }
         },
 
-        // ── Toggle store status (admin only) ─────────────────────
+
+        // ─────────────────────────────────
+        // Toggle Store Status
+        // ─────────────────────────────────
+
         toggleStatus: async () => {
-          set({ loading: true, error: null });
+
+          set({
+            loading: true,
+            error: null,
+          });
+
           try {
-            const { data } = await api.patch("/store/toggle-status");
-            set({ store: data.data, loading: false });
-            toast.success(data.message || "Store status updated");
+
+            const { data } =
+              await api.patch(
+                "/store/toggle-status"
+              );
+
+            set({
+
+              store: data.data,
+
+              loading: false,
+
+              lastFetched:
+                Date.now(),
+
+            });
+
+            toast.success(
+              data.message ||
+              "Store status updated"
+            );
+
             return data.data;
+
           } catch (err) {
-            set({ error: err.message, loading: false });
-            toast.error(err.message);
+
+            set({
+
+              error: err.message,
+
+              loading: false,
+
+            });
+
+            toast.error(
+              err.message
+            );
+
             return null;
           }
         },
-    })
-))
 
-)
- export default useStoreStore
+
+        // ─────────────────────────────────
+        // Clear Cache
+        // ─────────────────────────────────
+
+        clearStoreCache: () => {
+
+          set({
+
+            store: null,
+
+            lastFetched: null,
+
+          });
+
+        },
+
+      }),
+
+      {
+        name: "vk-store-cache",
+
+        storage: createJSONStorage(
+          () => localStorage
+        ),
+
+        partialize: (state) => ({
+
+          store: state.store,
+
+          lastFetched:
+            state.lastFetched,
+
+        }),
+      }
+
+    )
+
+  )
+
+);
+
+export default useStoreStore;

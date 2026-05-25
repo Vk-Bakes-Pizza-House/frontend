@@ -145,7 +145,7 @@ export default function LayoutWrapper({
       {!isAdminPage && (
         <>
           <WhatsAppButton />
-          <Footer />
+          <Footer onNavigate={handleNavigation} />
         </>
       )}
 

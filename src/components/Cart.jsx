@@ -5,11 +5,14 @@ import { isDlv, hasPCB, buildMsg } from "../config";
 import { WA, DELIVERY_FEE } from "../config";
 import { AddressBox, CartSummary } from "../section/order/CheckoutComponents"
 
+const  FREE_DELIVERY_ABOVE =300
+
 function Cart({ cart, add }) {
   const [addr, setAddr] = useState("");
   const sub = cart.reduce((s, i) => s + i.price * i.qty, 0);
   const hasDlv = cart.some(i => isDlv(i, cart));
   const iceWarn = cart.some(i => i.cat === "ice") && !hasPCB(cart);
+  const remaining   = Math.max(0, FREE_DELIVERY_ABOVE - sub);
 
   const order = () => {
     if (!cart.length) return;
@@ -69,7 +72,9 @@ function Cart({ cart, add }) {
             <CartSummary
               subtotal={sub}
               deliveryFee={DELIVERY_FEE}
-              total={sub + DELIVERY_FEE}
+              remaining={remaining}
+              total={sub + (hasDlv ? DELIVERY_FEE : 0)}
+              
             />
 
 

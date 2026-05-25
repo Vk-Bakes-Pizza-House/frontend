@@ -80,3 +80,125 @@ export  function QtyControl({
     </div>
   );
 }
+
+// hooks/useCart.js
+
+import { useState, useCallback, useMemo } from "react";
+
+export default function useCart() {
+
+  const [cart, setCart] = useState([]);
+
+  // ─────────────────────────────────────
+  // Add / Remove Item
+  // ─────────────────────────────────────
+  const add = useCallback((item, delta = 1) => {
+
+    setCart((prev) => {
+
+      const itemId =
+        item?.id || item?._id;
+
+      if (!itemId) return prev;
+
+      const existing =
+        prev.find(
+          (i) =>
+            (i?.id || i?._id) === itemId
+        );
+
+      // Add New Item
+      if (!existing && delta > 0) {
+
+        return [
+          ...prev,
+          {
+            ...item,
+
+            _id: itemId,
+
+            category:
+              item?.category ||
+              item?.cat,
+
+            deliverable:
+              item?.deliverable ??
+              item?.dlv,
+
+            qty: delta,
+          },
+        ];
+      }
+
+      // Update Existing Item
+      if (existing) {
+
+        const updatedQty =
+          existing.qty + delta;
+
+        // Remove Item
+        if (updatedQty <= 0) {
+
+          return prev.filter(
+            (i) =>
+              (i?.id || i?._id) !== itemId
+          );
+        }
+
+        // Update Qty
+        return prev.map((i) =>
+          (i?.id || i?._id) === itemId
+            ? {
+                ...i,
+                qty: updatedQty,
+              }
+            : i
+        );
+      }
+
+      return prev;
+    });
+
+  }, []);
+
+  // ─────────────────────────────────────
+  // Clear Cart
+  // ─────────────────────────────────────
+  const clearCart = useCallback(() => {
+    setCart([]);
+  }, []);
+
+  // ─────────────────────────────────────
+  // Total Quantity
+  // ─────────────────────────────────────
+  const cartQty = useMemo(() => {
+
+    return cart.reduce(
+      (sum, item) =>
+        sum + item.qty,
+      0
+    );
+
+  }, [cart]);
+
+  // ─────────────────────────────────────
+  // Total Price
+  // ─────────────────────────────────────
+  const cartTotal = useMemo(() => {
+
+    return cart.reduce(
+      (sum, item) =>
+        sum + item.price * item.qty,
+      0
+    );
+
+  }, [cart]);
+
+  return {
+    cart,
+    add,
+    clearCart,
+    cartQty,
+    cartTotal,
+  };
+}

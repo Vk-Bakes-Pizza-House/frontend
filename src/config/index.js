@@ -24,7 +24,7 @@ export const getDeliverable = (item) => {
 // ── Delivery rule helpers ─────────────────────────────────────
 // Does the cart contain at least one pizza / cake / bake item?
 export const hasPCB = (cart) =>
-  cart.some((i) => ["pizza", "cake", "bake"].includes(getCategory(i)));
+  cart.some((i) => ["pizza", "cake"].includes(getCategory(i)));
 
 // Is this specific item deliverable given the current cart?
 export const isDlv = (item, cart) => {

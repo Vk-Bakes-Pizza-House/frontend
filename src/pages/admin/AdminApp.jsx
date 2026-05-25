@@ -14,7 +14,9 @@ import ManageMenu                   from "./ManageMenu";
 import ManageOrders                 from "./ManageOrders";
 import ManageReviews                from "./ManageReviews";
 import AdminProfile                 from "./AdminProfile";
+import MenuUpdates from "../../section/admin/MenuUpdate";
 import useAuthStore                 from "../../store/authStore";
+import StoreManagementPanel from "./ManageStore";
 
 export default function AdminApp() {
   const { isLoggedIn, fetchMe } = useAuthStore();
@@ -41,6 +43,8 @@ export default function AdminApp() {
     menu:      <ManageMenu />,
     orders:    <ManageOrders />,
     reviews:   <ManageReviews />,
+    menuUpdates: <MenuUpdates />,
+    store:       <StoreManagementPanel />,
     profile:   <AdminProfile onLogout={logout} />,
   };
 
@@ -50,3 +54,4 @@ export default function AdminApp() {
     </AdminShell>
   );
 }
+

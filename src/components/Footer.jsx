@@ -1,5 +1,6 @@
 // Footer.jsx
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
 import {
   MapPin,
   Clock,
@@ -10,8 +11,9 @@ import {
   Heart,
 } from "lucide-react";
 import { FaInstagram, FaFacebook } from "react-icons/fa";
+import { useStoreStore } from "../store";
 
-const WA = "919999999999";
+const WA_DEFAULT = "919999999999";
 
 const NAV_LINKS = [
   { label: "Home", href: "/home" },
@@ -60,10 +62,27 @@ function StarPicker({ value, onChange }) {
 }
 
 export default function Footer({ onNavigate }) {
+  const { store, fetchStore } = useStoreStore();
+  const [storeData, setStoreData] = useState(null);
+
+  useEffect(() => {
+    fetchStore().then((data) => {
+      if (data) setStoreData(data);
+    });
+  }, [fetchStore]);
+
   const navigate = (href) => {
     if (onNavigate) onNavigate(href.replace("/", ""));
     else window.location.hash = href;
   };
+
+  // Use store data or fallback
+  const storeName = storeData?.storeName || "VK Bakes";
+  const storeAddress = storeData?.address || "Your Locality, City — 000000";
+  const deliveryFee = storeData?.deliveryFee || 20;
+  const whatsapp = storeData?.whatsapp || WA_DEFAULT;
+  const timings = storeData?.timings || {};
+  const deliveryZone = storeData?.deliveryZone || "Within 5 km" ;
 
   return (
     <footer className="bg-[#120600] text-[#E8D5C0] font-sans">
@@ -75,11 +94,11 @@ export default function Footer({ onNavigate }) {
           <div>
             <div className="mb-4">
               <h2 className="text-3xl font-bold text-[#F5A623]">
-                VK Bakes
+                Vk Bakes  &
               </h2>
 
-              <p className="text-[10px] tracking-[4px] text-[#D44B1A] mt-1">
-                & PIZZA HOUSE
+              <p className="text-3xl font-bold text-[#D44B1A] mt-1">
+               PIZZA HOUSE
               </p>
             </div>
 
@@ -90,40 +109,7 @@ export default function Footer({ onNavigate }) {
             </p>
 
             {/* Social */}
-            <div className="flex gap-3">
-              {[
-                {
-                  icon: <FaInstagram size={16} className="text-pink-500" />,
-                  href: "/",
-                },
-                {
-                  icon: <FaFacebook size={16} className="text-sky-500" />,
-                  href: "/",
-                },
-                {
-                  icon: <MessageCircle size={16} className="text-green-600" />,
-                  href: `https://wa.me/${WA}`,
-                },
-              ].map((item, index) => (
-                <a
-                  key={index}
-                  href={item.href}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="w-9 h-9 rounded-lg border border-white/10 bg-white/5 flex items-center justify-center hover:bg-white/10 transition"
-                >
-                  {item.icon}
-                </a>
-              ))}
-            </div>
-
-            {/* Badge */}
-            <div className="inline-flex items-center gap-2 mt-5 px-3 py-1 rounded-full border border-green-500/20 bg-green-500/10">
-              <div className="w-2 h-2 rounded-full bg-green-500" />
-              <span className="text-xs font-semibold text-green-500">
-                Delivering locally
-              </span>
-            </div>
+            
           </div>
 
           {/* Quick Links */}
@@ -135,13 +121,13 @@ export default function Footer({ onNavigate }) {
             <ul className="space-y-3">
               {NAV_LINKS.map((link) => (
                 <li key={link.label}>
-                  <button
-                    onClick={() => navigate(link.href)}
+                  <Link
+                    to={link.href === "/home" ? "/" : link.href}
                     className="flex items-center gap-2 text-sm text-[#eab869] hover:text-[#eba205] transition"
                   >
                     <ChevronRight size={14} className="text-[#D44B1A]" />
                     {link.label}
-                  </button>
+                  </Link>
                 </li>
               ))}
             </ul>
@@ -156,17 +142,15 @@ export default function Footer({ onNavigate }) {
             <ul className="space-y-3">
               {CATEGORIES.map((item) => (
                 <li key={item.label}>
-                  <button
-                    onClick={() => navigate(item.href)}
+                  <Link
+                    to={item.href}
                     className="text-sm text-[#eab869] hover:text-[#eba205] transition"
                   >
                     {item.label}
-                  </button>
+                  </Link>
                 </li>
               ))}
             </ul>
-
-            <div className="border-t border-white/10 mt-5 pt-5" />
           </div>
 
           {/* Contact */}
@@ -179,11 +163,11 @@ export default function Footer({ onNavigate }) {
               {[
                 {
                   icon: <MapPin size={14} className="text-[#D44B1A]" />,
-                  text: "VK Bakes & Pizza House\nYour Locality, City — 000000",
+                  text: `${storeName}\n${storeAddress}`,
                 },
                 {
                   icon: <Phone size={14} className="text-[#D44B1A]" />,
-                  text: "+91 99999 99999",
+                  text: whatsapp ? `+${whatsapp.replace(/^91/, "")}` : "+91 99999 99999",
                 },
                 {
                   icon: <Clock size={14} className="text-[#D44B1A]" />,
@@ -200,6 +184,41 @@ export default function Footer({ onNavigate }) {
                   </p>
                 </div>
               ))}
+              <div className="flex gap-3">
+              {[
+                {
+                  icon: <FaInstagram size={16} className="text-pink-500" />,
+                  href: "/",
+                },
+                {
+                  icon: <FaFacebook size={16} className="text-sky-500" />,
+                  href: "/",
+                },
+                {
+                  icon: <MessageCircle size={16} className="text-green-600" />,
+                  href: `https://wa.me/${whatsapp}`,
+                },
+              ].map((item, index) => (
+                <a
+                  key={index}
+                  href={item.href}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="w-9 h-9 rounded-lg border border-white/10 bg-white/5 flex items-center justify-center hover:bg-white/10 transition"
+                >
+                  {item.icon}
+                </a>
+              ))}
+            </div>
+
+            {/* Badge */}
+            
+            <div className="inline-flex items-center gap-2 mt-5 px-3 py-1 rounded-full border border-green-500/20 bg-green-500/10">
+              <div className="w-2 h-2 rounded-full bg-green-500" />
+              <span className="text-sm font-semibold text-green-500">
+                {`${ deliveryZone }`}
+              </span>
+            </div>
             </div>
           </div>
         </div>
@@ -212,7 +231,7 @@ export default function Footer({ onNavigate }) {
             "🚚 Pizza, Bakes & Cakes — Home Delivery",
             "🍦 Ice Cream — With Pizza/Cake/Bake only",
             "🏪 Bread, Toast & Biscuits — Pickup only",
-            "💵 Cash on Delivery · ₹20 delivery fee",
+            `💵 Cash on Delivery · ₹${deliveryFee} delivery fee`,
           ].map((item) => (
             <div key={item} className="flex items-center gap-2">
               <span>{item}</span>

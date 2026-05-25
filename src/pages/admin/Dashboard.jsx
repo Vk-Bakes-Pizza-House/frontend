@@ -3,6 +3,8 @@ import {
   LayoutDashboard, UtensilsCrossed, ShoppingBag,
   Star, LogOut, Menu as MenuIcon, X,
 } from "lucide-react";
+
+import { NAV } from "../../section/admin/Nav";
 import useOrderStore from "../../store/orderStore";
 import useReviewStore from "../../store/reviewStore";
 import { useNavigate } from "react-router-dom";
@@ -18,13 +20,6 @@ export const C = {
   card: "bg-white",
   sidebar: "bg-[#1A0A00]",
 };
-
-export const NAV = [
-  { key: "dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { key: "menu", label: "Manage Menu", icon: UtensilsCrossed },
-  { key: "orders", label: "Manage Orders", icon: ShoppingBag },
-  { key: "reviews", label: "Manage Reviews", icon: Star },
-];
 
 const STATUS_CLASSES = {
   Delivered: "bg-green-100 text-green-800",

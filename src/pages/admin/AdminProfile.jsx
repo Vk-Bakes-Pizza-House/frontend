@@ -7,14 +7,14 @@ import {
   ChevronRight, Activity, Key, Globe, Volume2, Mail,
 } from "lucide-react";
 
-import { StoreTab } from "../../section/admin/storeInfo";
+// import { StoreTab } from "./ManageStore";
 import { Input,SaveButton,Alert,ToggleRow,StrengthMeter,PasswordInput } from "../../components/From";
 
 // ── Tabs config ───────────────────────────────────────────────
 const TABS = [
   { key: "profile",       label: "Profile",       icon: User,          color: "text-orange-400"  },
   { key: "security",      label: "Security",      icon: Shield,        color: "text-blue-400"    },
-  { key: "store",         label: "Store Info",    icon: Store,         color: "text-emerald-400" },
+  // { key: "store",         label: "Store Info",    icon: Store,         color: "text-emerald-400" },
   { key: "notifications", label: "Notifications", icon: Bell,          color: "text-yellow-400"  },
   { key: "danger",        label: "Danger Zone",   icon: AlertTriangle, color: "text-red-400"     },
 ];

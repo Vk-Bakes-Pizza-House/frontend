@@ -1,56 +1,105 @@
-import React, { useEffect, useState } from 'react';
-import { Star, AlertCircle, Plus, Minus } from 'lucide-react';
-import { C, ITEMS, REVIEWS, FRESH_BOARD } from '../../data/menu';
-import Footer from '../../components/Footer';
-import ReviewsSection from '../../section/reviewSection';
-import { useStoreStore } from '../../store';
-import ItemCard from "../../components/ItemCard"
+// src/pages/Home.jsx
+import { useEffect, useState } from "react";
+import { C, REVIEWS, FRESH_BOARD } from "../../data/menu";
+import Footer from "../../components/Footer";
+import ReviewsSection from "../../section/reviewSection";
+import { useStoreStore } from "../../store";
+import ItemCard from "../../components/ItemCard";
+import useMenuStore from "../../store/menuStore";
 
-// ── HELPERS ────────────────────────────────────────────────────────────────
-const hasPCB = (cart) => cart.some(i => ["Pizza", "Cake", "IceCream"].includes(i.cat));
-const isDlv = (item, cart) => item.dlv === true || (item.dlv === "cond" && hasPCB(cart));
+// ── Category config ───────────────────────────────────────────
+const CATS = [
+  { key: "pizza",   label: "Pizza",       emoji: "🍕" },
+  { key: "cake",    label: "Cake",        emoji: "🎂" },
+  { key: "cookies", label: "Cookies",     emoji: "🍪" },
+  { key: "ice",     label: "Ice Cream",   emoji: "🍦" },
+];
 
-const EMOJI = { Pizza : "🍕", Bun: "🥐", Bread: "🍞", Rusk: "🥖", Cookies: "🍪", Cake: "🎂", IceCream: "🍦", CupCake: "🧁" };
+// ─────────────────────────────────────────────────────────────
 const Home = ({ go, cart, add }) => {
-  const featured = ITEMS.filter(i => i.tag === "Bestseller");
   const { store, fetchStore } = useStoreStore();
-  const [loading, setLoading] = useState(true);
 
-  
+  const {
+    items,
+    loading,
+    fetchMenu,
+    setCategory,
+  } = useMenuStore();
 
+  const [cat, setCat] = useState("pizza");
+
+  // ── Fetch store info once ─────────────────────────────────
   useEffect(() => {
-  fetchStore(); // Updates the cache in the background
-}, []);
+    fetchStore();
+  }, []);
 
+  // ── Fetch menu on mount and when category changes ─────────
+  useEffect(() => {
+    fetchMenu({ category: cat === "Pizza" ? null : cat });
+  }, [fetchMenu, cat]);
 
+  const handleCategoryChange = (category) => {
+    setCat(category);
+    setCategory(category);
+    fetchMenu({ category: category === "Pizza" ? null : category });
+  };
+
+  // Featured = Bestseller tag, or first 6 if none tagged
+  const featured = items.filter((i) => i.tag === "Bestseller").slice(0, 6);
+const displayItems = items.slice(0, 4);
   return (
     <div style={{ background: C.bg }}>
 
-      {/* Hero */}
-      <div style={{ background: `linear-gradient(135deg,${C.dark} 0%,${C.mid} 70%)`, padding: "64px 16px 52px", textAlign: "center" }}>
-        <div style={{ fontFamily: C.f2, color: C.gold, fontSize: 12, letterSpacing: 3, marginBottom: 12 }}>🍕 {store?.tagline?.toUpperCase()}</div>
-        <h1 style={{ fontFamily: C.f1, color: "#FFF8F0", fontSize: "clamp(34px,7vw,60px)", fontWeight: 700, lineHeight: 1.1, marginBottom: 14 }}>
-          {store?.storeName?.split('&')[0].trim()}<br /><span style={{ color: C.red }}>{store?.storeName?.includes('&') ? store?.storeName?.split('&')[1].trim() : ''}</span>
+      {/* ── Hero ───────────────────────────────────────────── */}
+      <div style={{
+        background: `linear-gradient(135deg,${C.dark} 0%,${C.mid} 70%)`,
+        padding: "64px 16px 52px",
+        textAlign: "center",
+      }}>
+        <div style={{ fontFamily: C.f2, color: C.gold, fontSize: 12, letterSpacing: 3, marginBottom: 12 }}>
+          🍕 {store?.tagline?.toUpperCase()}
+        </div>
+        <h1 style={{
+          fontFamily: C.f1, color: "#FFF8F0",
+          fontSize: "clamp(34px,7vw,60px)", fontWeight: 700,
+          lineHeight: 1.1, marginBottom: 14,
+        }}>
+          VK Bakes &<br /><span style={{ color: C.red }}>Pizza House</span>
         </h1>
         <p style={{ fontFamily: C.f2, color: "#C8A882", fontSize: 15, maxWidth: 440, margin: "0 auto 28px" }}>
-          {/* Fresh-baked breads, artisan cakes, and hot pizzas — delivered right to your door. */}
           {store?.discription}
         </p>
         <div style={{ display: "flex", gap: 12, justifyContent: "center", flexWrap: "wrap" }}>
-          <button onClick={() => go("menu")} style={{ background: C.red, color: "white", padding: "13px 28px", borderRadius: 8, fontFamily: C.f2, fontWeight: 700, fontSize: 14 }}>Order Now 🛒</button>
-          <button onClick={() => go("cake")} style={{ background: "transparent", color: C.gold, border: `2px solid ${C.gold}`, padding: "13px 28px", borderRadius: 8, fontFamily: C.f2, fontWeight: 700, fontSize: 14 }}>Custom Cake 🎂</button>
+          <button
+            onClick={() => go("menu")}
+            style={{ background: C.red, color: "white", padding: "13px 28px", borderRadius: 8, fontFamily: C.f2, fontWeight: 700, fontSize: 14 }}
+          >
+            Order Now 🛒
+          </button>
+          <button
+            onClick={() => go("cake")}
+            style={{ background: "transparent", color: C.gold, border: `2px solid ${C.gold}`, padding: "13px 28px", borderRadius: 8, fontFamily: C.f2, fontWeight: 700, fontSize: 14 }}
+          >
+            Custom Cake 🎂
+          </button>
         </div>
       </div>
 
-      {/* Fresh Board */}
+      {/* ── Fresh Board ─────────────────────────────────────── */}
       <div style={{ padding: "24px 16px", background: "#FFF0E8" }}>
         <div style={{ maxWidth: 960, margin: "0 auto", border: `2px solid ${C.red}`, borderRadius: 10, overflow: "hidden" }}>
           <div style={{ background: C.red, padding: "9px 16px" }}>
-            <span style={{ fontFamily: C.f2, fontWeight: 700, color: "white", fontSize: 13, letterSpacing: 1 }}>🟢 TODAY'S FRESH BOARD</span>
+            <span style={{ fontFamily: C.f2, fontWeight: 700, color: "white", fontSize: 13, letterSpacing: 1 }}>
+              🟢 TODAY'S FRESH BOARD
+            </span>
           </div>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)" }}>
             {FRESH_BOARD.map((f, i) => (
-              <div key={i} style={{ padding: "12px 14px", borderRight: i < 3 ? `1px solid ${C.border}` : undefined, background: i % 2 ? "white" : "#FFF8F4" }}>
+              <div key={i} style={{
+                padding: "12px 14px",
+                borderRight: i < 3 ? `1px solid ${C.border}` : undefined,
+                background: i % 2 ? "white" : "#FFF8F4",
+              }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 2 }}>
                   <div style={{ width: 7, height: 7, borderRadius: "50%", background: f.up ? "#22C55E" : "#EF4444" }} />
                   <span style={{ fontFamily: C.f2, fontWeight: 600, fontSize: 13, color: C.mid }}>{f.name}</span>
@@ -62,16 +111,22 @@ const Home = ({ go, cart, add }) => {
         </div>
       </div>
 
-      {/* Specials */}
+      {/* ── Specials ────────────────────────────────────────── */}
       <div style={{ background: C.mid, padding: "24px 16px" }}>
         <div style={{ maxWidth: 960, margin: "0 auto" }}>
-          <div style={{ fontFamily: C.f2, color: C.gold, fontSize: 11, letterSpacing: 3, marginBottom: 12, textAlign: "center" }}>🔥 TODAY'S SPECIALS</div>
+          <div style={{ fontFamily: C.f2, color: C.gold, fontSize: 11, letterSpacing: 3, marginBottom: 12, textAlign: "center" }}>
+            🔥 TODAY'S SPECIALS
+          </div>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(260px,1fr))", gap: 12 }}>
             {[
               { e: "🔥", t: "Buy 2 Pizzas, Get 1 Bake Free!", d: "Valid today only" },
-              { e: "🎉", t: "Cake + Ice Cream Combo", d: "Any cake + 2 scoops at ₹50 off" },
+              { e: "🎉", t: "Cake + Ice Cream Combo",          d: "Any cake + 2 scoops at ₹50 off" },
             ].map((s, i) => (
-              <div key={i} style={{ background: "#3D1A00", borderLeft: `4px solid ${C.red}`, borderRadius: 8, padding: "14px 18px", display: "flex", gap: 12, alignItems: "center" }}>
+              <div key={i} style={{
+                background: "#3D1A00", borderLeft: `4px solid ${C.red}`,
+                borderRadius: 8, padding: "14px 18px",
+                display: "flex", gap: 12, alignItems: "center",
+              }}>
                 <span style={{ fontSize: 24 }}>{s.e}</span>
                 <div>
                   <div style={{ fontFamily: C.f2, fontWeight: 700, color: "#FFF8F0", fontSize: 14 }}>{s.t}</div>
@@ -83,67 +138,80 @@ const Home = ({ go, cart, add }) => {
         </div>
       </div>
 
-      {/* Featured */}
+      {/* ── Category filter + Items grid ─────────────────────── */}
       <div style={{ padding: "36px 16px" }}>
         <div style={{ maxWidth: 960, margin: "0 auto" }}>
-          <div style={{ fontFamily: C.f2, color: C.muted, fontSize: 11, letterSpacing: 3, marginBottom: 6 }}>POPULAR PICKS</div>
-          <h2 style={{ fontFamily: C.f1, color: C.mid, fontSize: 26, fontWeight: 700, marginBottom: 20 }}>Customer Favourites</h2>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(200px,1fr))", gap: 14, marginBottom: 20 }}>
-            {featured.map(i => <ItemCard key={i.id} item={i} cart={cart} add={add} />)}
+
+          {/* Section heading */}
+          <div style={{ fontFamily: C.f2, color: C.muted, fontSize: 11, letterSpacing: 3, marginBottom: 6 }}>
+            {cat === "pizza" ? "POPULAR PICKS" : "BROWSE CATEGORY"}
           </div>
-          <button onClick={() => go("menu")} style={{ background: C.red, color: "white", padding: "11px 24px", borderRadius: 8, fontFamily: C.f2, fontWeight: 600, fontSize: 14 }}>
+          <h2 style={{ fontFamily: C.f1, color: C.mid, fontSize: 26, fontWeight: 700, marginBottom: 20 }}>
+{`${CATS.find(c => c.key === cat)?.emoji} ${CATS.find(c => c.key === cat)?.label}`} </h2>
+
+          {/* ── Category tabs ─────────────────────────────── */}
+          <div className="flex gap-2 flex-wrap mb-6">
+            {CATS.map((c) => (
+              <button
+                key={c.key}
+                onClick={() => handleCategoryChange(c.key)}
+                style={{
+                  padding: "7px 14px",
+                  borderRadius: 999,
+                  fontFamily: C.f2,
+                  fontSize: 13,
+                  fontWeight: 600,
+                  cursor: "pointer",
+                  transition: "all 0.15s",
+                  border: cat === c.key ? "none" : `1px solid ${C.border}`,
+                  background: cat === c.key ? C.red : "white",
+                  color: cat === c.key ? "white" : C.mid,
+                  boxShadow: cat === c.key ? "0 2px 8px rgba(212,75,26,0.25)" : "none",
+                }}
+              >
+                {c.emoji} {c.label}
+              </button>
+            ))}
+          </div>
+
+          {/* ── Items grid ────────────────────────────────── */}
+          {loading ? (
+            // Skeleton loader
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(200px,1fr))", gap: 14, marginBottom: 20 }}>
+              {[...Array(4)].map((_, i) => (
+                <div
+                  key={i}
+                  style={{ height: 280, borderRadius: 16, background: "#F0E0D0", opacity: 0.5 }}
+                  className="animate-pulse"
+                />
+              ))}
+            </div>
+          ) : displayItems.length === 0 ? (
+            <div style={{ textAlign: "center", padding: "48px 0", color: C.muted, fontFamily: C.f2 }}>
+              <div style={{ fontSize: 48, marginBottom: 12 }}>🍽️</div>
+              <p style={{ fontSize: 15, fontWeight: 600 }}>No items in this category yet</p>
+              <p style={{ fontSize: 13, marginTop: 4 }}>Check back soon!</p>
+            </div>
+          ) : (
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(200px,1fr))", gap: 14, marginBottom: 20 }}>
+              {displayItems.map((item) => (
+                <ItemCard key={item._id || item.id} item={item} cart={cart} add={add} />
+              ))}
+            </div>
+          )}
+
+          <button
+            onClick={() => go("menu")}
+            style={{ background: C.red, color: "white", padding: "11px 24px", borderRadius: 8, fontFamily: C.f2, fontWeight: 600, fontSize: 14 }}
+          >
             View Full Menu →
           </button>
         </div>
       </div>
 
-      <ReviewsSection/>
+      <ReviewsSection />
     </div>
   );
 };
-
-// ── ITEM CARD ──────────────────────────────────────────────────────────────
-// function ItemCard({ item, cart, add }) {
-//   const qty = cart.find(c => c.id === item.id)?.qty || 0;
-//   const deliverable = isDlv(item, cart);
-//   return (
-//     <div style={{ background: C.card, borderRadius: 12, overflow: "hidden", border: `1px solid ${C.border}`, display: "flex", flexDirection: "column" }}>
-//       <div style={{ height: 90, background: "linear-gradient(135deg,#FFF0E0,#FFE8CC)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 34, position: "relative" }}>
-//         {EMOJI[item.cat]}
-//         {item.tag && (
-//           <span style={{ position: "absolute", top: 7, left: 7, background: C.red, color: "white", fontSize: 10, padding: "2px 7px", borderRadius: 10, fontFamily: C.f2, fontWeight: 700 }}>
-//             {item.tag}
-//           </span>
-//         )}
-//         <span style={{ position: "absolute", top: 7, right: 7, background: deliverable ? "#DCFCE7" : item.dlv === "cond" ? "#FEF9C3" : "#F3F4F6", color: deliverable ? "#166534" : item.dlv === "cond" ? "#854D0E" : "#6B7280", fontSize: 10, padding: "2px 7px", borderRadius: 10, fontFamily: C.f2, fontWeight: 600 }}>
-//           {item.dlv === true ? "🚚 Delivers" : item.dlv === "cond" ? "🍕+🎂 only" : "🏪 Pickup only"}
-//         </span>
-//       </div>
-//       <div style={{ padding: "12px 14px", flex: 1, display: "flex", flexDirection: "column", gap: 8 }}>
-//         <div style={{ fontFamily: C.f2, fontWeight: 600, color: C.mid, fontSize: 14 }}>{item.name}</div>
-//         <div style={{ fontFamily: C.f2, color: C.muted, fontSize: 12, flex: 1 }}>{item.desc}</div>
-//         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-//           <span style={{ fontFamily: C.f2, fontWeight: 700, color: C.red, fontSize: 17 }}>₹{item.price}</span>
-//           {qty === 0 ? (
-//             <button onClick={() => add(item)}
-//               style={{ background: C.red, color: "white", padding: "6px 14px", borderRadius: 6, fontFamily: C.f2, fontWeight: 600, fontSize: 12 }}>
-//               Add
-//             </button>
-//           ) : (
-//             <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-//               <button onClick={() => add(item, -1)} style={{ width: 26, height: 26, borderRadius: 5, background: "#F0E0D0", display: "flex", alignItems: "center", justifyContent: "center" }}>
-//                 <Minus size={12} color={C.red} />
-//               </button>
-//               <span style={{ fontFamily: C.f2, fontWeight: 700, color: C.mid, minWidth: 18, textAlign: "center" }}>{qty}</span>
-//               <button onClick={() => add(item, 1)} style={{ width: 26, height: 26, borderRadius: 5, background: C.red, display: "flex", alignItems: "center", justifyContent: "center" }}>
-//                 <Plus size={12} color="white" />
-//               </button>
-//             </div>
-//           )}
-//         </div>
-//       </div>
-//     </div>
-//   );
-// }
 
 export default Home;

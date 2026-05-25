@@ -1,148 +1,177 @@
 // src/components/ItemCard.jsx
+// ─────────────────────────────────────────────────────────────
+// Displays one menu item.
+//
+// Pizza items  → "Add" opens the OrderNowModal (customise size/
+//                cheese before adding to cart).
+// Other items  → "Add" adds directly to cart.
+// "Order Now"  → always opens OrderNowModal (disabled for pickup-
+//                only items).
+// ─────────────────────────────────────────────────────────────
 import { useState } from "react";
-import { Plus, Minus,ShoppingBag } from "lucide-react";
+import { Plus, Minus, ShoppingBag } from "lucide-react";
 import { C, EMOJI as EMOJIS } from "../data/menu";
+import { isDlv, getCategory } from "../config";
 import OrderNowModal from "../section/oderNow";
-import {isDlv} from "../config/index";
+import { QtyControl } from "./Order";
 
 function ItemCard({ item, cart, add }) {
   const [showModal, setShowModal] = useState(false);
 
-  // ── Normalise field names (DB: category/deliverable, legacy: cat/dlv) ──
-  const imageUrl = item?.imageUrl || item?.image || "";
-  const category = item?.category || item?.cat || "";
-  const description = item?.description || item?.desc || "";
-  const deliverable = item?.deliverable !== undefined ? item?.deliverable : item?.dlv;
-  const tag = item?.tag || "";
+  // ── Normalise DB / legacy field names ─────────────────────
+  const imageUrl    = item?.imageUrl || item?.image    || "";
+  const category    = getCategory(item);
+  const description = item?.description || item?.desc  || "";
+  const deliverable = item?.deliverable !== undefined
+                        ? item?.deliverable
+                        : item?.dlv;
+  const tag         = item?.tag || "";
+  const isPizza     = category === "pizza";
 
-  console.log("data",item)
-
-  // ── Delivery badge ────────────────────────────────────────────
+  // ── Delivery badge ─────────────────────────────────────────
   const dlvLabel =
-    deliverable === true ? "🚚 Delivers"
-      : deliverable === "cond" ? "🍕+🎂 only"
-        : "🏪 Pickup only";
+    deliverable === true   ? "🚚 Delivers"
+    : deliverable === "cond" ? "🍕+🎂 only"
+    : "🏪 Pickup only";
 
   const dlvClass =
-    deliverable === true ? "bg-green-100 text-green-800"
-      : deliverable === "cond" ? "bg-yellow-100 text-yellow-800"
-        : "bg-gray-100 text-gray-500";
+    deliverable === true   ? "bg-green-100 text-green-800"
+    : deliverable === "cond" ? "bg-yellow-100 text-yellow-800"
+    : "bg-gray-100 text-gray-500";
 
-  // ── Cart qty (supports both _id and id) ──────────────────────
+  // ── Cart qty ───────────────────────────────────────────────
   const itemId = item?._id || item?.id;
-  const qty = cart?.find?.((c) => (c?._id || c?.id) === itemId)?.qty || 0;
-  const totalPrice = item?.price * qty;
+  const qty    = cart?.find?.((c) => (c?._id || c?.id) === itemId)?.qty || 0;
+
+  // ── Deliverable check for "Order Now" button ───────────────
+  const canOrderNow = deliverable === true || deliverable === "cond";
+
+  // ── Add button handler ─────────────────────────────────────
+  // Pizza → open modal so user can pick size first
+  // Others → add directly to cart
+  const handleAdd = () => {
+    if (isPizza) {
+      setShowModal(true);
+    } else {
+      add(item, 1);
+    }
+  };
 
   return (
-    <div className="bg-white border border-[#E8D5C0] rounded-2xl overflow-hidden flex flex-col shadow-xs hover:shadow-md transition-all duration-200">
+    <>
+      <div className="bg-white border border-[#E8D5C0] rounded-2xl overflow-hidden flex flex-col shadow-sm hover:shadow-md transition-all duration-200">
 
-      {/* Image */}
-      <div className="relative h-40 overflow-hidden bg-[#FFF3E0]">
-        {imageUrl ? (
-          <img
-            src={imageUrl}
-            alt={item?.name || "Item"}
-            className="w-full h-full object-cover transform hover:scale-105 transition-transform duration-300"
-          />
-        ) : (
-          <div className="h-full flex items-center justify-center text-5xl bg-gradient-to-br from-[#FFF0E0] to-[#FFE8CC]">
-            {EMOJIS[category] || "🍽️"}
-          </div>
-        )}
-
-        {/* Tag badge */}
-        {tag && (
-          <div className="absolute top-2.5 left-2.5">
-            <span className="bg-red-600 text-white text-[10px] font-extrabold px-2.5 py-0.5 rounded-full uppercase tracking-wider shadow-sm">
-              {tag}
-            </span>
-          </div>
-        )}
-
-        {/* Delivery badge */}
-        <span className={`absolute top-2.5 right-2.5 text-[14px] font-bold px-2.5 py-0.5 rounded-full shadow-xs ${dlvClass}`}>
-          {item?.size}
-        </span>
-      </div>
-
-      {/* Details */}
-      <div className="p-4 flex-1 flex flex-col gap-2">
-        <div className="font-sans font-bold text-[#2D1400] text-sm">
-          {item?.name || "Item"}
-        </div>
-        <div className="font-sans text-[#8B6A4F] text-xs flex-1 line-clamp-2 leading-relaxed">
-          {description}
-        </div>
-
-        {/* Delivery Status */}
-        <div className="text-xs text-[11px] font-bold  rounded-full shadow-xs" style={{ color: isDlv(item, cart) ? "#16A34A" : C.muted, fontFamily: C.f2 }}>
-          {isDlv(item, cart) ? "✅ Will be delivered" : "🏪 Store pickup only"}
-        </div>
-
-        {/* Price + Add/Remove */}
-        <div className="flex items-center justify-between pt-2 border-t border-[#FFF8F0]">
-          <span className="font-sans font-black text-base text-[#D44B1A]">
-            ₹{item?.price || 0}
-          </span>
-
-          {qty === 0 ? (
-            <button
-              onClick={() => add(item, 1)}
-              className="px-4 py-1.5 bg-[#D44B1A] hover:bg-[#b83d13] text-white text-xs font-bold rounded-xl shadow-xs transition-colors"
-            >
-              Add
-            </button>
+        {/* ── Image ────────────────────────────────────────── */}
+        <div className="relative h-40 overflow-hidden bg-[#FFF3E0]">
+          {imageUrl ? (
+            <img
+              src={imageUrl}
+              alt={item?.name || "Item"}
+              className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+            />
           ) : (
-            <div className="flex items-center gap-2">
-              <button
-                onClick={() => add(item, -1)}
-                className="w-7 h-7 rounded-lg bg-[#E8D5C0]/40 hover:bg-[#E8D5C0]/70 flex items-center justify-center transition-colors"
-              >
-                <Minus size={12} className="text-[#D44B1A]" />
-              </button>
-              <span className="font-sans font-bold text-xs w-4 text-center text-[#2D1400]">
-                {qty}
-              </span>
-              <button
-                onClick={() => add(item, 1)}
-                className="w-7 h-7 rounded-lg bg-[#D44B1A] hover:bg-[#b83d13] flex items-center justify-center transition-colors"
-              >
-                <Plus size={12} className="text-white" />
-              </button>
+            <div className="h-full flex items-center justify-center text-5xl bg-gradient-to-br from-[#FFF0E0] to-[#FFE8CC]">
+              {EMOJIS[category] || "🍽️"}
             </div>
           )}
+
+          {/* Promo tag */}
+          {tag && (
+            <span className="absolute top-2.5 left-2.5 bg-red-600 text-white text-[10px]
+                             font-extrabold px-2.5 py-0.5 rounded-full uppercase tracking-wider shadow-sm">
+              {tag}
+            </span>
+          )}
+
+          {/* Delivery badge */}
+          <span className={`absolute top-2.5 right-2.5 text-[11px] font-bold
+                            px-2.5 py-0.5 rounded-full shadow-sm ${dlvClass}`}>
+            {dlvLabel}
+          </span>
         </div>
 
-        <div className="mt-2 pt-1">
-  <button
-    onClick={() => setShowModal(true)}
-    disabled={deliverable !== true && deliverable !== "cond"} // Disables the button if it's pickup only
-    className="w-full flex items-center justify-center gap-1.5 py-2 border border-[#D44B1A]/20 bg-[#FFF8F0] font-sans text-xs font-bold text-[#D44B1A] rounded-xl transition-all
-      enabled:hover:border-[#D44B1A] enabled:hover:bg-[#D44B1A] enabled:hover:text-white
-      disabled:opacity-50 disabled:cursor-not-allowed disabled:border-gray-200 disabled:bg-gray-50 disabled:text-gray-400"
-  >
-    <ShoppingBag size={13} />
-    <span>{deliverable !== true && deliverable !== "cond" ? "Pickup Only" : "Order Now"}</span>
-  </button>
-</div>
+        {/* ── Details ──────────────────────────────────────── */}
+        <div className="p-4 flex-1 flex flex-col gap-2">
+          <p className="font-sans font-bold text-[#2D1400] text-sm leading-snug">
+            {item?.name || "Item"}
+          </p>
+          <p className="font-sans text-[#8B6A4F] text-xs flex-1 line-clamp-2 leading-relaxed">
+            {description}
+          </p>
 
-        {/* Cart Total */}
-        {/* {qty > 0 && (
-          <div className="text-xs font-bold text-right" style={{ color: C.red, fontFamily: C.f2 }}>
-            Subtotal: ₹{totalPrice}
+          {/* Delivery status */}
+          <p className="font-sans text-xs font-semibold"
+             style={{ color: isDlv(item, cart || []) ? "#16A34A" : C.muted }}>
+            {isDlv(item, cart || []) ? "✅ Will be delivered" : "🏪 Store pickup only"}
+          </p>
+
+          {/* Pizza hint */}
+          {isPizza && (
+            <p className="font-sans text-[10px] text-amber-600 font-medium">
+              🍕 Tap Add to choose your size
+            </p>
+          )}
+
+          {/* Price + qty controls */}
+          <div className="flex items-center justify-between pt-2 border-t border-[#FFF8F0]">
+            <span className="font-sans font-black text-base text-[#D44B1A]">
+              ₹{item?.price || 0}
+            </span>
+
+            {/* For pizza: always show Add (opens modal) */}
+            {/* For others: show stepper when qty > 0 */}
+            {isPizza ? (
+              <button
+                onClick={handleAdd}
+                className="px-4 py-1.5 bg-[#D44B1A] hover:bg-[#b83d13] text-white
+                           text-xs font-bold rounded-xl shadow-sm transition-colors"
+              >
+                {qty > 0 ? `${qty} added ✓` : "Add"}
+              </button>
+            ) : qty === 0 ? (
+              <button
+                onClick={handleAdd}
+                className="px-4 py-1.5 bg-[#D44B1A] hover:bg-[#b83d13] text-white
+                           text-xs font-bold rounded-xl shadow-sm transition-colors"
+              >
+                Add
+              </button>
+            ) : (
+              <QtyControl
+                qty={qty}
+                onInc={() => add(item, 1)}
+                onDec={() => add(item, -1)}
+              />
+            )}
           </div>
-        )} */}
+
+          {/* Order Now button */}
+          <button
+            onClick={() => setShowModal(true)}
+            disabled={!canOrderNow}
+            className={`w-full flex items-center justify-center gap-1.5 py-2 rounded-xl
+                        font-sans text-xs font-bold border transition-all
+                        ${canOrderNow
+                          ? "border-[#D44B1A]/20 bg-[#FFF8F0] text-[#D44B1A] hover:border-[#D44B1A] hover:bg-[#D44B1A] hover:text-white"
+                          : "border-gray-200 bg-gray-50 text-gray-400 cursor-not-allowed opacity-60"
+                        }`}
+          >
+            <ShoppingBag size={13} />
+            <span>{canOrderNow ? "Order Now" : "Pickup Only"}</span>
+          </button>
+        </div>
       </div>
 
-      {/* Address modal — shown when Order Now is clicked */}
+      {/* ── Modal ─────────────────────────────────────────── */}
       {showModal && (
         <OrderNowModal
           item={item}
           cart={cart}
+          add={add}
           onClose={() => setShowModal(false)}
         />
       )}
-    </div>
+    </>
   );
 }
 

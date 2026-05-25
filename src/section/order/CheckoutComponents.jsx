@@ -21,7 +21,7 @@ export  function AddressBox({
       </label>
 
       <textarea
-        rows={3}
+        rows={1}
         value={value}
         onChange={(e) =>
           onChange(e.target.value)
@@ -44,6 +44,7 @@ export  function CartSummary({
   subtotal,
   deliveryFee,
   total,
+  remaining,
 }) {
   return (
     <div className="
@@ -67,10 +68,18 @@ export  function CartSummary({
           Delivery Fee
         </span>
 
-        <span className="font-semibold">
-          ₹{deliveryFee}
-        </span>
+         {deliveryFee === 0 ? (
+          <span className="text-green-600 font-bold text-xs">FREE 🎉</span>
+        ) : (
+          <span className="text-[#8B6A4F]">₹{deliveryFee}</span>
+        )}
       </div>
+      {remaining > 0 && (
+        <p className="mt-2 text-center font-sans text-[10px] font-semibold
+                      text-[#D44B1A] bg-[#FFF3EE] rounded-lg py-1.5 px-2">
+          🎉 Add ₹{remaining} more for FREE delivery
+        </p>
+      )}
 
       <div className="
         border-t border-[#E8D5C0]
