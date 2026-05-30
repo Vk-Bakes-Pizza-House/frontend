@@ -7,15 +7,15 @@
 //   e.g. using react-router-dom:
 //     <Route path="/admin/*" element={<AdminApp />} />
 // ─────────────────────────────────────────────────────────────
-import { useState ,useEffect } from "react";
-import AdminLogin                   from "./AdminLogin";
-import Dashboard, { AdminShell }    from "./Dashboard";
-import ManageMenu                   from "./ManageMenu";
-import ManageOrders                 from "./ManageOrders";
-import ManageReviews                from "./ManageReviews";
-import AdminProfile                 from "./AdminProfile";
-import MenuUpdates from "../../section/admin/MenuUpdate";
-import useAuthStore                 from "../../store/authStore";
+import { useState, useEffect } from "react";
+import AdminLogin from "./AdminLogin";
+import Dashboard, { AdminShell } from "./Dashboard";
+import ManageMenu from "./ManageMenu";
+import ManageOrders from "./ManageOrders";
+import ManageReviews from "./ManageReviews";
+import AdminProfile from "./AdminProfile";
+import ManageItemDetail from "../../section/admin/ManageItemDetail";
+import useAuthStore from "../../store/authStore"
 import StoreManagementPanel from "./ManageStore";
 
 export default function AdminApp() {
@@ -35,17 +35,17 @@ export default function AdminApp() {
   };
 
   if (!isLoggedIn()) {
-    return <AdminLogin onLogin={() => {}} />;
+    return <AdminLogin onLogin={() => { }} />;
   }
 
   const PAGE = {
     dashboard: <Dashboard />,
-    menu:      <ManageMenu />,
-    orders:    <ManageOrders />,
-    reviews:   <ManageReviews />,
-    menuUpdates: <MenuUpdates />,
-    store:       <StoreManagementPanel />,
-    profile:   <AdminProfile onLogout={logout} />,
+    menu: <ManageMenu />,
+    orders: <ManageOrders />,
+    reviews: <ManageReviews />,
+    itemDetail: <ManageItemDetail />,
+    store: <StoreManagementPanel />,
+    profile: <AdminProfile onLogout={logout} />,
   };
 
   return (

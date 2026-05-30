@@ -6,13 +6,14 @@ import ReviewsSection from "../../section/reviewSection";
 import { useStoreStore } from "../../store";
 import ItemCard from "../../components/ItemCard";
 import useMenuStore from "../../store/menuStore";
+import Reviews from "./Reviews";
 
 // ── Category config ───────────────────────────────────────────
 const CATS = [
-  { key: "pizza",   label: "Pizza",       emoji: "🍕" },
-  { key: "cake",    label: "Cake",        emoji: "🎂" },
-  { key: "cookies", label: "Cookies",     emoji: "🍪" },
-  { key: "ice",     label: "Ice Cream",   emoji: "🍦" },
+  { key: "pizza", label: "Pizza", emoji: "🍕" },
+  { key: "cake", label: "Cake", emoji: "🎂" },
+  { key: "cookies", label: "Cookies", emoji: "🍪" },
+  { key: "ice", label: "Ice Cream", emoji: "🍦" },
 ];
 
 // ─────────────────────────────────────────────────────────────
@@ -46,7 +47,7 @@ const Home = ({ go, cart, add }) => {
 
   // Featured = Bestseller tag, or first 6 if none tagged
   const featured = items.filter((i) => i.tag === "Bestseller").slice(0, 6);
-const displayItems = items.slice(0, 4);
+  const displayItems = items.slice(0, 4);
   return (
     <div style={{ background: C.bg }}>
 
@@ -120,7 +121,7 @@ const displayItems = items.slice(0, 4);
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(260px,1fr))", gap: 12 }}>
             {[
               { e: "🔥", t: "Buy 2 Pizzas, Get 1 Bake Free!", d: "Valid today only" },
-              { e: "🎉", t: "Cake + Ice Cream Combo",          d: "Any cake + 2 scoops at ₹50 off" },
+              { e: "🎉", t: "Cake + Ice Cream Combo", d: "Any cake + 2 scoops at ₹50 off" },
             ].map((s, i) => (
               <div key={i} style={{
                 background: "#3D1A00", borderLeft: `4px solid ${C.red}`,
@@ -147,7 +148,7 @@ const displayItems = items.slice(0, 4);
             {cat === "pizza" ? "POPULAR PICKS" : "BROWSE CATEGORY"}
           </div>
           <h2 style={{ fontFamily: C.f1, color: C.mid, fontSize: 26, fontWeight: 700, marginBottom: 20 }}>
-{`${CATS.find(c => c.key === cat)?.emoji} ${CATS.find(c => c.key === cat)?.label}`} </h2>
+            {`${CATS.find(c => c.key === cat)?.emoji} ${CATS.find(c => c.key === cat)?.label}`} </h2>
 
           {/* ── Category tabs ─────────────────────────────── */}
           <div className="flex gap-2 flex-wrap mb-6">
@@ -208,7 +209,7 @@ const displayItems = items.slice(0, 4);
           </button>
         </div>
       </div>
-
+      {/* <Reviews /> */}
       <ReviewsSection />
     </div>
   );

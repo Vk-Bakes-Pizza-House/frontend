@@ -4,7 +4,6 @@
 
 import { useState, useCallback } from "react";
 import {
-  BrowserRouter as Router,
   Routes,
   Route,
   useNavigate,
@@ -23,16 +22,13 @@ import MenuApp from "../components/MenuApp";
 import CustomCake from "../pages/website/CustomCake";
 import ContactPage from "../pages/website/Contact";
 import Cart from "../components/Cart";
+import PizzaDetail from "../pages/website/DetailsPizza";
 
 // Admin
 import AdminApp from "../pages/admin/AdminApp";
 
 
-export default function LayoutWrapper({
-  cart,
-  add,
-  cartQty,
-}) {
+export default function LayoutWrapper() {
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -75,7 +71,6 @@ export default function LayoutWrapper({
         <Navbar
           page={currentPage}
           go={handleNavigation}
-          cartQty={cartQty}
         />
       )}
 
@@ -90,8 +85,6 @@ export default function LayoutWrapper({
             element={
               <Home
                 go={handleNavigation}
-                cart={cart}
-                add={add}
               />
             }
           />
@@ -99,10 +92,7 @@ export default function LayoutWrapper({
           <Route
             path="/menu"
             element={
-              <Menu
-                cart={cart}
-                add={add}
-              />
+              <Menu />
             }
           />
 
@@ -123,13 +113,14 @@ export default function LayoutWrapper({
 
           <Route
             path="/cart"
-            element={
-              <Cart
-                cart={cart}
-                add={add}
-              />
-            }
+            element={<Cart />}
           />
+
+              <Route 
+              path="/menu/pizza/details"
+              element={<PizzaDetail />}
+              />
+
 
           {/* Admin */}
           <Route

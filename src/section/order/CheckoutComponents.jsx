@@ -74,12 +74,7 @@ export  function CartSummary({
           <span className="text-[#8B6A4F]">₹{deliveryFee}</span>
         )}
       </div>
-      {remaining > 0 && (
-        <p className="mt-2 text-center font-sans text-[10px] font-semibold
-                      text-[#D44B1A] bg-[#FFF3EE] rounded-lg py-1.5 px-2">
-          🎉 Add ₹{remaining} more for FREE delivery
-        </p>
-      )}
+      
 
       <div className="
         border-t border-[#E8D5C0]

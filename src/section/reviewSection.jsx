@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
-import { Star } from "lucide-react";
+import { Star,MessageCircle, ThumbsUp  } from "lucide-react";
 import { toast } from "sonner";
+import { C } from "../data/menu";
 
 import useReviewStore from "../store/reviewStore";
 
@@ -22,12 +23,8 @@ const ReviewsSection = () => {
   // ─────────────────────────────
   // FORM STATE
   // ─────────────────────────────
-
-  const [form, setForm] = useState({
-    name: "",
-    rating: 5,
-    text: "",
-  });
+  const [showForm, setShowForm] = useState(false);
+  const [formData, setFormData] = useState({ name: "", phone: "", rating: 5, text: "" });
 
   // ─────────────────────────────
   // FETCH REVIEWS
@@ -57,46 +54,17 @@ const ReviewsSection = () => {
   // SUBMIT REVIEW
   // ─────────────────────────────
 
-  const handleSubmit = async (e) => {
-
+ const handleSubmit = async (e) => {
     e.preventDefault();
-
-    const payload = {
-      name: form.name,
-      rating: Number(form.rating),
-      text: form.text,
-    };
-
-    const promise =
-      submitReview(payload);
-
-    toast.promise(promise, {
-
-      loading:
-        "Submitting review...",
-
-      success: (res) => {
-
-        if (res.success) {
-
-          setForm({
-            name: "",
-            rating: 5,
-            text: "",
-          });
-
-          return "Review submitted successfully!";
-        }
-
-        throw new Error(
-          res.message
-        );
-      },
-
-      error: (err) =>
-        err.message ||
-        "Failed to submit review",
-    });
+    setSubmitLoading(true);
+    const result = await useReviewStore.getState().submitReview(formData);
+    setSubmitLoading(false);
+    if (result.success) {
+      setFormData({ name: "", phone: "", rating: 5, text: "" });
+      setShowForm(false);
+      // Refresh reviews
+      fetchApprovedReviews();
+    }
   };
 
   return (
@@ -118,92 +86,148 @@ const ReviewsSection = () => {
           </h2>
         </div>
 
-        {/* REVIEW FORM */}
-
-        <div className="bg-white rounded-3xl p-6 md:p-8 mb-12 shadow-xl">
-
-          <h3 className="text-2xl font-bold text-[#3D1A00] mb-6">
-            Give Your Review ⭐
-          </h3>
-
-          <form
-            onSubmit={handleSubmit}
-            className="space-y-5"
+ <div style={{ textAlign: "center", marginBottom: 24 }}>
+          <button
+            onClick={() => setShowForm(!showForm)}
+            style={{
+              padding: "10px 20px",
+              background: C.red,
+              color: "white",
+              border: "none",
+              borderRadius: 8,
+              fontFamily: C.f2,
+              fontSize: 14,
+              fontWeight: 600,
+              cursor: "pointer",
+              display: "flex",
+              alignItems: "center",
+              gap: 8,
+              margin: "0 auto"
+            }}
           >
-
-            {/* NAME */}
-
-            <input
-              type="text"
-              name="name"
-              value={form.name}
-              onChange={handleChange}
-              placeholder="Your Name"
-              required
-              className="w-full border border-gray-200 rounded-xl px-4 py-3 outline-none focus:border-red-500"
-            />
-
-            {/* REVIEW */}
-
-            <textarea
-              name="text"
-              value={form.text}
-              onChange={handleChange}
-              placeholder="Write your review..."
-              rows={4}
-              required
-              className="w-full border border-gray-200 rounded-xl px-4 py-3 outline-none focus:border-red-500 resize-none"
-            />
-
-            {/* RATING */}
-
-            <div className="flex items-center gap-4">
-
-              <label className="font-semibold text-gray-700">
-                Rating:
-              </label>
-
-              <select
-                name="rating"
-                value={form.rating}
-                onChange={handleChange}
-                className="border border-gray-200 rounded-lg px-3 py-2"
-              >
-                <option value="5">
-                  ⭐⭐⭐⭐⭐
-                </option>
-
-                <option value="4">
-                  ⭐⭐⭐⭐
-                </option>
-
-                <option value="3">
-                  ⭐⭐⭐
-                </option>
-
-                <option value="2">
-                  ⭐⭐
-                </option>
-
-                <option value="1">
-                  ⭐
-                </option>
-              </select>
-            </div>
-
-            {/* BUTTON */}
-
-            <button
-              type="submit"
-              disabled={submitLoading}
-              className="bg-red-500 hover:bg-red-600 text-white font-semibold px-6 py-3 rounded-xl transition"
-            >
-              {submitLoading
-                ? "Submitting..."
-                : "Submit Review"}
-            </button>
-          </form>
+            <MessageCircle size={16} />
+            {showForm ? "Cancel Review" : "Write a Review"}
+          </button>
         </div>
+        {/* REVIEW FORM */}
+  {showForm && (
+          <div style={{
+            background: "white",
+            border: `1px solid ${C.border}`,
+            borderRadius: 12,
+            padding: 24,
+            marginBottom: 24
+          }}>
+            <h3 style={{ fontFamily: C.f1, color: C.mid, fontSize: 20, marginBottom: 16 }}>
+              Share Your Experience
+            </h3>
+            <form onSubmit={handleSubmit}>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 16 }}>
+                <div>
+                  <label style={{ display: "block", fontFamily: C.f2, fontSize: 14, fontWeight: 600, color: C.mid, marginBottom: 6 }}>
+                    Name *
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.name}
+                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                    required
+                    style={{
+                      width: "100%",
+                      padding: "10px 12px",
+                      border: `1px solid ${C.border}`,
+                      borderRadius: 6,
+                      fontFamily: C.f2,
+                      fontSize: 14
+                    }}
+                  />
+                </div>
+                <div>
+                  <label style={{ display: "block", fontFamily: C.f2, fontSize: 14, fontWeight: 600, color: C.mid, marginBottom: 6 }}>
+                    Phone (optional)
+                  </label>
+                  <input
+                    type="tel"
+                    value={formData.phone}
+                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                    style={{
+                      width: "100%",
+                      padding: "10px 12px",
+                      border: `1px solid ${C.border}`,
+                      borderRadius: 6,
+                      fontFamily: C.f2,
+                      fontSize: 14
+                    }}
+                  />
+                </div>
+              </div>
+              <div style={{ marginBottom: 16 }}>
+                <label style={{ display: "block", fontFamily: C.f2, fontSize: 14, fontWeight: 600, color: C.mid, marginBottom: 6 }}>
+                  Rating *
+                </label>
+                <div style={{ display: "flex", gap: 4 }}>
+                  {[1, 2, 3, 4, 5].map((star) => (
+                    <button
+                      key={star}
+                      type="button"
+                      onClick={() => setFormData({ ...formData, rating: star })}
+                      style={{
+                        background: "none",
+                        border: "none",
+                        cursor: "pointer",
+                        padding: 2
+                      }}
+                    >
+                      <Star
+                        size={24}
+                        fill={star <= formData.rating ? C.gold : "transparent"}
+                        color={star <= formData.rating ? C.gold : C.border}
+                      />
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <div style={{ marginBottom: 20 }}>
+                <label style={{ display: "block", fontFamily: C.f2, fontSize: 14, fontWeight: 600, color: C.mid, marginBottom: 6 }}>
+                  Your Review *
+                </label>
+                <textarea
+                  value={formData.text}
+                  onChange={(e) => setFormData({ ...formData, text: e.target.value })}
+                  required
+                  rows={4}
+                  style={{
+                    width: "100%",
+                    padding: "10px 12px",
+                    border: `1px solid ${C.border}`,
+                    borderRadius: 6,
+                    fontFamily: C.f2,
+                    fontSize: 14,
+                    resize: "vertical"
+                  }}
+                />
+              </div>
+              <button
+                type="submit"
+                disabled={submitLoading}
+                style={{
+                  padding: "12px 24px",
+                  background: C.red,
+                  color: "white",
+                  border: "none",
+                  borderRadius: 8,
+                  fontFamily: C.f2,
+                  fontSize: 14,
+                  fontWeight: 600,
+                  cursor: submitLoading ? "not-allowed" : "pointer",
+                  opacity: submitLoading ? 0.7 : 1
+                }}
+              >
+                {submitLoading ? "Submitting..." : "Submit Review"}
+              </button>
+            </form>
+          </div>
+        )}
 
         {/* REVIEWS */}
 
@@ -255,7 +279,9 @@ const ReviewsSection = () => {
                 <p className="text-gray-700 leading-relaxed mb-4">
                   "{r.text}"
                 </p>
-
+ <span style={{ fontFamily: C.f2, fontSize: 12, color: C.muted }}>
+                      {new Date(r.createdAt).toLocaleDateString()}
+                    </span>
                 {/* NAME */}
 
                 <div className="font-semibold text-red-500">

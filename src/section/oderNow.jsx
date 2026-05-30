@@ -23,6 +23,7 @@ import {
   AddonSection,
   OrderSummary,
 } from "../components/Order";
+import useCartStore from "../store/cartStore";
 
 // ─────────────────────────────────────────────────────────────
 const FREE_DELIVERY_ABOVE = 300;
@@ -35,8 +36,9 @@ const PIZZA_SIZES = [
 
 // ─────────────────────────────────────────────────────────────
 
-export default function OrderNowModal({ item, cart = [], add, onClose }) {
+export default function OrderNowModal({ item, onClose }) {
   const category = getCategory(item);
+  const { addItem: add } = useCartStore();
   const isPizza  = category === "pizza";
 
   // ── State ────────────────────────────────────────────────
@@ -113,21 +115,24 @@ export default function OrderNowModal({ item, cart = [], add, onClose }) {
   const buildMainItem = () => {
     const sizeLabel   = isPizza && sizeObj?.priceAdd > 0 ? ` (${sizeObj.label})` : "";
     const cheeseLabel = isPizza && extraCheese ? " + Extra Cheese" : "";
+    const itemId = item?._id || item?.id;
+    const variantId = `${itemId}-${selectedSize}-${extraCheese ? "cheese" : "no-cheese"}`;
+
     return {
       ...item,
-      name:  `${item.name}${sizeLabel}${cheeseLabel}`,
+      _id: variantId,
+      id: itemId,
+      name: `${item.name}${sizeLabel}${cheeseLabel}`,
       price: itemPrice,
-      qty:   mainQty,
+      qty: mainQty,
     };
   };
 
   // ── Add to cart ───────────────────────────────────────────
   const handleAddToCart = () => {
     const main = buildMainItem();
-    // add main item — qty times
-    for (let i = 0; i < mainQty; i++) add(main, 1);
+    add(main, mainQty);
 
-    // add each addon
     activeAddons.forEach(([id, q]) => {
       const found = allAddonItems.find((a) => (a._id || a.id) === id);
       if (found) add({ ...found, qty: 1, deliverable: true }, q);

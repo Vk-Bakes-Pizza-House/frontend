@@ -1,8 +1,10 @@
 import React, { useState } from "react";
 import { ShoppingCart, Menu, X } from "lucide-react";
+import useCartStore from "../store/cartStore";
 
-function Navbar({ page, go, cartQty }) {
+function Navbar({ page, go }) {
   const [isOpen, setIsOpen] = useState(false); // Controls mobile drawer visibility
+  const cartQty = useCartStore((state) => state.items.reduce((sum, item) => sum + (item.qty || 0), 0));
 
   const links = [
     ["home", "Home"],

@@ -3,15 +3,12 @@ import { useSearchParams, useNavigate } from "react-router-dom";
 import { AlertCircle, Search } from "lucide-react";
 import ItemCard from "../../components/ItemCard";
 import useMenuStore from "../../store/menuStore";
-import useCartStore from "../../store/cartStore";
-
 function Menu() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const [cat, setCat] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
   const { items, loading, error, fetchMenu, setCategory } = useMenuStore();
-  const { addItem, items: cart } = useCartStore();
 
   useEffect(() => {
     fetchMenu();
@@ -148,7 +145,7 @@ function Menu() {
               </div>
               <div className="grid grid-cols-2 md:grid-cols-4 sm:grid-cols-3 lg:grid-cols-5 gap-4">
                 {groupedBySize[size].map((i) => (
-                  <ItemCard key={i._id || i.id} item={i} cart={cart} add={addItem} />
+                  <ItemCard key={i._id || i.id} item={i} />
                 ))}
               </div>
             </div>
@@ -168,7 +165,7 @@ function Menu() {
             </div>
             <div className="grid grid-cols-2 md:grid-cols-4 sm:grid-cols-3 lg:grid-cols-5 gap-4">
               {otherItems.map((i) => (
-                <ItemCard key={i._id || i.id} item={i} cart={cart} add={addItem} />
+                <ItemCard key={i._id || i.id} item={i} />
               ))}
             </div>
           </div>

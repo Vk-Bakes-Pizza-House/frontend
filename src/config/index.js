@@ -54,11 +54,12 @@ export const buildMsg = (cart, addr) => {
 
   const sub    = cart.reduce((s, i) => s + i.price * i.qty, 0);
   const hasDlv = dlv.length > 0;
+  const deliveryFee = hasDlv && sub < 300 ? DELIVERY_FEE : 0;
 
   m += `\n📍 Address: ${addr?.trim() || "[Please add your address]"}\n`;
   m += `💵 Payment: Cash on Delivery\n`;
-  if (hasDlv) m += `🚚 Delivery Charge: ₹${DELIVERY_FEE}\n`;
-  m += `💰 Total: ₹${sub + (hasDlv ? DELIVERY_FEE : 0)}`;
+  if (deliveryFee > 0) m += `🚚 Delivery Charge: ₹${DELIVERY_FEE}\n`;
+  m += `💰 Total: ₹${sub + deliveryFee}`;
 
   return encodeURIComponent(m);
 };

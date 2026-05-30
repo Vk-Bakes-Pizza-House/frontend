@@ -88,7 +88,7 @@ export default function Footer({ onNavigate }) {
     <footer className="bg-[#120600] text-[#E8D5C0] font-sans">
       {/* Main Footer */}
       <div className="max-w-7xl mx-auto px-5 py-14">
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-10">
+        <div className="grid grid-cols-1  sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-10">
           
           {/* Brand */}
           <div>
@@ -113,7 +113,7 @@ export default function Footer({ onNavigate }) {
           </div>
 
           {/* Quick Links */}
-          <div>
+          <div >
             <h3 className="text-sm font-bold tracking-[2px] mb-5 text-[#D44B1A] ">
               QUICK LINKS
             </h3>

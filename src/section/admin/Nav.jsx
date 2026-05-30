@@ -24,8 +24,8 @@ export const NAV = [
   },
 
   {
-    key: "menuUpdates",
-    label: "Menu Updates",
+    key: "itemDetail",
+    label: "Manage Menu Detail",
     icon: Settings,
   },
 

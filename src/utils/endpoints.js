@@ -13,6 +13,7 @@ const endpointsPathsDev = {
     seed: `${API_BASE}/admin/seed`,
     me: `${API_BASE}/admin/me`,
     changePassword: `${API_BASE}/admin/change-password`,
+    updateProfile: `${API_BASE}/admin/profile`,
   },
 
   menu: {
@@ -58,6 +59,7 @@ const endpointsPathsProd = {
     seed: `/api/admin/seed`,
     me: `/api/admin/me`,
     changePassword: `/api/admin/change-password`,
+    updateProfile: `/api/admin/profile`,
   },
 
   menu: {
