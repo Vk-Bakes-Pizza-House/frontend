@@ -14,6 +14,9 @@ const endpointsPathsDev = {
     me: `${API_BASE}/admin/me`,
     changePassword: `${API_BASE}/admin/change-password`,
     updateProfile: `${API_BASE}/admin/profile`,
+    notifications: `${API_BASE}/admin/notifications`,
+    sessions: `${API_BASE}/admin/security/sessions`,
+    session: (id) => `${API_BASE}/admin/security/sessions/${id}`,
   },
 
   menu: {
@@ -60,6 +63,9 @@ const endpointsPathsProd = {
     me: `/api/admin/me`,
     changePassword: `/api/admin/change-password`,
     updateProfile: `/api/admin/profile`,
+    notifications: `/api/admin/notifications`,
+    sessions: `/api/admin/security/sessions`,
+    session: (id) => `/api/admin/security/sessions/${id}`,
   },
 
   menu: {

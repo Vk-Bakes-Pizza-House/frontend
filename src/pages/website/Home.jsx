@@ -6,7 +6,6 @@ import ReviewsSection from "../../section/reviewSection";
 import { useStoreStore } from "../../store";
 import ItemCard from "../../components/ItemCard";
 import useMenuStore from "../../store/menuStore";
-import Reviews from "./Reviews";
 
 // ── Category config ───────────────────────────────────────────
 const CATS = [

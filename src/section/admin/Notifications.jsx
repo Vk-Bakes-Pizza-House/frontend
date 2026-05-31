@@ -1,13 +1,6 @@
-import { useState, useRef, useEffect } from "react";
-import {
-  User, Lock, Store, Bell, AlertTriangle, Eye, EyeOff,
-  Check, Camera, Phone, MapPin, Clock, Save, LogOut,
-  Shield, ToggleLeft, ToggleRight, Edit3, Copy,
-  CheckCircle, X, Trash2, RefreshCw, Smartphone,
-  ChevronRight, Activity, Key, Globe, Volume2, Mail,
-} from "lucide-react";
+import { useState, useEffect } from "react";
 import { useProfileStore } from "../../store";
-import { Input,SaveButton,Alert,ToggleRow,StrengthMeter,PasswordInput } from "../../components/From";///////////
+import { SaveButton,Alert,ToggleRow } from "../../components/From";
 // // Within Notifications tab configuration layout:
 // const { profile, updateNotifications } = useProfileStore();
 // const [settings, setSettings] = useState(profile?.notifications || {});
@@ -31,22 +24,33 @@ export default function NotificationsTab() {
 //   });
   const [loading, setLoading] = useState(false);
   const [saved,   setSaved]   = useState(false);
+  const [error,   setError]   = useState(null);
 
-// Within Notifications tab configuration layout:
-const { profile, updateNotifications } = useProfileStore();
-const [settings, setSettings] = useState(profile?.notifications || {});
+  const { profile, updateNotifications } = useProfileStore();
+  const [settings, setSettings] = useState(profile?.notifications || {});
 
-const toggle = async (key) => {
-  const updated = { ...settings, [key]: !settings[key] };
-  setSettings(updated);
-  await updateNotifications(updated);
-};
+  useEffect(() => {
+    if (profile?.notifications) setSettings(profile.notifications);
+  }, [profile?.notifications]);
+
+  const toggle = (key) => {
+    setSettings((prev) => ({ ...prev, [key]: !prev[key] }));
+    setSaved(false);
+  };
 
   const save = async () => {
     setLoading(true);
-    await new Promise(r => setTimeout(r, 800));
-    setLoading(false); setSaved(true);
-    setTimeout(() => setSaved(false), 3000);
+    setError(null);
+    try {
+      const success = await updateNotifications(settings);
+      if (!success) throw new Error("Unable to save notification settings");
+      setSaved(true);
+      setTimeout(() => setSaved(false), 3000);
+    } catch (err) {
+      setError(err.message || "Could not save changes.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const GROUPS = [
@@ -103,6 +107,9 @@ const toggle = async (key) => {
         WhatsApp notifications use your store's WhatsApp number. Make sure it's set correctly in Store Info.
       </Alert>
 
+      {error && (
+        <Alert type="error">{error}</Alert>
+      )}
       <div className="flex justify-end">
         <SaveButton onClick={save} loading={loading} saved={saved} />
       </div>

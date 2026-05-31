@@ -16,8 +16,7 @@ function ContactPage() {
   const whatsapp = store?.whatsapp || "919999999999";
   const timings = store?.timings || {
     monFri: { open: "08:00", close: "21:00" },
-    saturday: { open: "08:00", close: "21:30" },
-    sunday: { open: "09:00", close: "20:00" },
+    
   };
 
   const formatTime = (time24) => {

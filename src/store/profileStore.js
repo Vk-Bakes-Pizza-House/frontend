@@ -1,62 +1,7 @@
-// import { create } from "zustand";
-// import { devtools } from "zustand/middleware";
-// import { toast } from "sonner";
-// import api from "./api";
-// import { endpoints } from "../utils/endpoints";
-
-// const useProfileStore = create(
-//   devtools(
-//     (set) => ({
-//       profile: null,
-//       loading: false,
-//       error: null,
-
-//       fetchProfile: async () => {
-//         set({ loading: true, error: null });
-//         try {
-//           const { data } = await api.get(endpoints.auth.me);
-//           set({ profile: data.admin, loading: false });
-//           return data.admin;
-//         } catch (err) {
-//           console.error("Fetch profile failed:", err.message);
-//           set({ error: err.message, loading: false });
-//           toast.error(err.message);
-//           return null;
-//         }
-//       },
-
-//       updateProfile: async (updateData) => {
-//         set({ loading: true, error: null });
-//         try {
-//           const { data } = await api.put(endpoints.auth.updateProfile, updateData);
-//           set({ profile: data.admin, loading: false });
-//           sessionStorage.setItem("vk_admin", JSON.stringify(data.admin));
-//           toast.success(data.message || "Profile saved successfully");
-//           return data.admin;
-//         } catch (err) {
-//           console.error("Update profile failed:", err.message);
-//           set({ error: err.message, loading: false });
-//           toast.error(err.message);
-//           return null;
-//         }
-//       },
-
-//       clearError: () => set({ error: null }),
-//     }),
-//     { name: "ProfileStore" }
-//   )
-// );
-
-// export default useProfileStore;
-
-
-
-
 import { create } from "zustand";
-import axios from "axios";
+import api from "./api";
+import { endpoints } from "../utils/endpoints";
 
-// Setup dynamic client adapter defaults using pre-configured axios interceptor wrappers
-const api = axios.create({ baseURL: "/api/admin", headers: { "Content-Type": "application/json" } });
 
 export const useProfileStore = create((set, get) => ({
   profile: null,
@@ -64,39 +9,44 @@ export const useProfileStore = create((set, get) => ({
   error: null,
 
   fetchProfile: async () => {
-    set({ loading: true });
+    set({ loading: true, error: null });
     try {
-      const res = await api.get("/profile");
-      set({ profile: res.data, loading: false });
-      return res.data;
+      const res = await api.get(endpoints.auth.me);
+      const profile = res.data?.admin || res.data;
+      set({ profile, loading: false });
+      return profile;
     } catch (err) {
-      set({ error: err.response?.data?.message || "Failed loading data matrices", loading: false });
+      const message = err.response?.data?.message || "Failed loading profile";
+      set({ error: message, loading: false });
       return null;
     }
   },
 
   updateProfile: async (payload) => {
+    set({ loading: true, error: null });
     try {
-      const res = await api.put("/profile", payload);
-      set({ profile: res.data.profile });
-      return res.data.profile;
+      const res = await api.put(endpoints.auth.updateProfile, payload);
+      const profile = res.data?.admin || res.data?.profile || res.data;
+      set({ profile, loading: false });
+      return profile;
     } catch (err) {
+      set({ error: err.response?.data?.message || "Failed updating profile", loading: false });
       return null;
     }
   },
 
   changePassword: async (currentPassword, nextPassword) => {
     try {
-      await api.put("/security/password", { currentPassword, nextPassword });
+      await api.put(endpoints.auth.changePassword, { currentPassword, nextPassword });
       return true;
     } catch (err) {
-      throw new Error(err.response?.data?.message || "Password execution failed");
+      throw new Error(err.response?.data?.message || "Password update failed");
     }
   },
 
   revokeSession: async (id) => {
     try {
-      const res = await api.delete(`/security/sessions/${id}`);
+      const res = await api.delete(endpoints.auth.session(id));
       set((state) => ({ profile: { ...state.profile, sessions: res.data.sessions } }));
       return true;
     } catch (err) {
@@ -106,7 +56,7 @@ export const useProfileStore = create((set, get) => ({
 
   revokeAllSessions: async () => {
     try {
-      const res = await api.delete("/security/sessions");
+      const res = await api.delete(endpoints.auth.sessions);
       set((state) => ({ profile: { ...state.profile, sessions: res.data.sessions } }));
       return true;
     } catch (err) {
@@ -116,7 +66,7 @@ export const useProfileStore = create((set, get) => ({
 
   updateNotifications: async (notificationPayload) => {
     try {
-      const res = await api.put("/notifications", { notifications: notificationPayload });
+      const res = await api.put(endpoints.auth.notifications, { notifications: notificationPayload });
       set((state) => ({ profile: { ...state.profile, notifications: res.data.notifications } }));
       return true;
     } catch (err) {
@@ -126,7 +76,7 @@ export const useProfileStore = create((set, get) => ({
 
   clearOrderHistory: async () => {
     try {
-      await api.post("/danger/clear-history");
+      await api.post("/admin/danger/clear-history");
       return true;
     } catch (err) {
       return false;
@@ -135,7 +85,7 @@ export const useProfileStore = create((set, get) => ({
 
   resetAllSettings: async () => {
     try {
-      const res = await api.post("/danger/reset-defaults");
+      const res = await api.post("/admin/danger/reset-defaults");
       set({ profile: res.data.admin });
       return true;
     } catch (err) {

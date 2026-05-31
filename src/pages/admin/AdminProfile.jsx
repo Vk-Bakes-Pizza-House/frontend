@@ -14,7 +14,7 @@ import  NotificationsTab  from "../../section/admin/Notifications";
 import  DangerTab  from "../../section/admin/DangerZone";
 
 import { Input,SaveButton,Alert,ToggleRow,StrengthMeter,PasswordInput } from "../../components/From";
-import useProfileStore from "../../store/profileStore";
+import { useProfileStore } from "../../store";
 
 // ── Tabs config ───────────────────────────────────────────────
 const TABS = [
@@ -33,6 +33,11 @@ const TABS = [
 // ─────────────────────────────────────────────────────────────
 export default function AdminProfile({ onLogout }) {
   const [tab, setTab] = useState("profile");
+  const { profile, fetchProfile } = useProfileStore();
+
+  useEffect(() => {
+    if (!profile) fetchProfile();
+  }, [profile, fetchProfile]);
 
   return (
     <>

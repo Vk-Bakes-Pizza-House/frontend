@@ -16,6 +16,7 @@ export default function DangerTab({ onLogout }) {
   const [modal,   setModal]   = useState(null); // "logout" | "clear" | "reset"
   const [loading, setLoading] = useState(false);
   const [done,    setDone]    = useState(false);
+  const [error,   setError]   = useState("");
 
   const ACTIONS = [
     {
@@ -58,18 +59,41 @@ export default function DangerTab({ onLogout }) {
 
   const { clearOrderHistory, resetAllSettings, revokeAllSessions } = useProfileStore();
 
+const ACTION_ERROR_LABELS = {
+  logout: "sign out all sessions",
+  clear: "clear order history",
+  reset: "reset all settings",
+};
+
 const execute = async () => {
+  if (!modal) return;
+
   setLoading(true);
+  setError("");
+
   let success = false;
-  if (modal === "logout") success = await revokeAllSessions();
-  if (modal === "clear") success = await clearOrderHistory();
-  if (modal === "reset") success = await resetAllSettings();
-  
+  let errorMessage = "";
+
+  try {
+    if (modal === "logout") success = await revokeAllSessions();
+    if (modal === "clear") success = await clearOrderHistory();
+    if (modal === "reset") success = await resetAllSettings();
+  } catch (err) {
+    success = false;
+    errorMessage = `Unable to ${ACTION_ERROR_LABELS[modal]}: ${err?.message || "Please try again."}`;
+  }
+
   setLoading(false);
+
   if (success) {
     setDone(true);
     if (modal === "logout" && onLogout) onLogout();
-    setTimeout(() => { setDone(false); setModal(null); setConfirm(""); }, 1500);
+    setTimeout(() => { setDone(false); setModal(null); setConfirm(""); setError(""); }, 1500);
+    return;
+  }
+
+  if (!success) {
+    setError(errorMessage || `Unable to ${ACTION_ERROR_LABELS[modal] || "complete this action"}. Please try again.`);
   }
 };
 
@@ -94,7 +118,7 @@ const execute = async () => {
               </div>
             </div>
             <button
-              onClick={() => { setModal(action.key); setConfirm(""); }}
+              onClick={() => { setModal(action.key); setConfirm(""); setError(""); }}
               className={`px-4 py-2 rounded-lg text-xs font-bold text-white ${action.btnCls} transition-colors flex-shrink-0 flex items-center gap-1.5`}
             >
               <action.icon size={12} /> {action.label}
@@ -127,9 +151,15 @@ const execute = async () => {
               </div>
             )}
 
+            {error && (
+              <div className="mb-4 rounded-xl border border-red-500/20 bg-red-500/10 p-3 text-sm text-red-200">
+                {error}
+              </div>
+            )}
+
             <div className="flex gap-3">
               <button
-                onClick={() => { setModal(null); setConfirm(""); }}
+                onClick={() => { setModal(null); setConfirm(""); setError(""); }}
                 className="flex-1 py-2.5 rounded-lg border border-stone-700 text-stone-400 text-sm font-semibold hover:bg-stone-800 transition-colors"
               >
                 Cancel

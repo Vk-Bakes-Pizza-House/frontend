@@ -235,11 +235,10 @@ export default function ManageOrders() {
 
   const [q, setQ] = useState("");
 
-  // Fetch orders on mount and when filters change
+  // Fetch orders when filters change
   useEffect(() => {
     fetchOrders();
   }, [filters.status]);
-
   const handleStatusUpdate = async (id, status) => {
     await updateStatus(id, status);
     // Refresh the list to get updated data

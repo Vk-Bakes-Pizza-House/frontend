@@ -56,9 +56,7 @@ const ReviewsSection = () => {
 
  const handleSubmit = async (e) => {
     e.preventDefault();
-    setSubmitLoading(true);
-    const result = await useReviewStore.getState().submitReview(formData);
-    setSubmitLoading(false);
+    const result = await submitReview(formData);
     if (result.success) {
       setFormData({ name: "", phone: "", rating: 5, text: "" });
       setShowForm(false);
@@ -66,7 +64,6 @@ const ReviewsSection = () => {
       fetchApprovedReviews();
     }
   };
-
   return (
 
     <section className="bg-[#3D1A00] py-14 px-4">

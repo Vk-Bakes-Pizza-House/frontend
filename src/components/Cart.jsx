@@ -1,30 +1,54 @@
-import { useState } from "react";
-import { AlertCircle, Plus, Minus, Trash2 } from "lucide-react";
+import { useState,useEffect } from "react";
+import { AlertCircle, Plus, Minus, Trash2, X } from "lucide-react"; // X icon add kiya modal close karne ke liye
 import { C, EMOJI } from "../data/menu";
-import { isDlv, hasPCB, buildMsg } from "../config";
-import { WA, DELIVERY_FEE } from "../config";
-import { AddressBox, CartSummary } from "../section/order/CheckoutComponents"
+import {  isDlv, hasPCB, buildMsg } from "../config";
+import {  getWhatsApp,getDeliveryFees,getFreeDeliveryAbove} from "../config";
+import { AddressBox, CartSummary } from "../components/Order"
 import { Link } from "react-router-dom";
 import useCartStore from "../store/cartStore";
 
-const FREE_DELIVERY_ABOVE = 300
+import { toast } from "sonner";
+
 
 function Cart() {
-  const { items: cart, addItem: add } = useCartStore();
+  const { items: cart, addItem: add, logOrder } = useCartStore();
+  const [name, setName] = useState("");
+  const [phone, setPhone] = useState("");
   const [addr, setAddr] = useState("");
+  
+  // Popup modal ko open/close karne ki state
+  const [isOpen, setIsOpen] = useState(false);
+
   const sub = cart.reduce((s, i) => s + i.price * i.qty, 0);
   const hasDlv = cart.some(i => isDlv(i, cart));
-  const deliveryFee = hasDlv && sub < FREE_DELIVERY_ABOVE ? DELIVERY_FEE : 0;
-  const remaining = Math.max(0, FREE_DELIVERY_ABOVE - sub);
+  const deliveryFee = hasDlv && sub < getFreeDeliveryAbove() ? getDeliveryFees() : 0;
+  const remaining = Math.max(0, getFreeDeliveryAbove() - sub);
 
-  const order = () => {
+  // 1. Jab main WhatsApp button par click hoga
+  const handleWhatsAppClick = () => {
     if (!cart.length) return;
-    window.open(`https://wa.me/${WA}?text=${buildMsg(cart, addr)}`, "_blank");
+    setIsOpen(true); // Popup open karo
+  };
+
+  // 2. Jab Popup ke andar "Confirm Order" par click hoga
+  const confirmAndOrder = async () => {
+    if (!name.trim() || !phone.trim() || !addr.trim()) {
+      toast.warning("Please fill in all address details before confirming.");
+      return;
+    }
+
+    setIsOpen(false); // Modal close karo
+    const logResult = await logOrder(name.trim(), phone.trim());
+    if (logResult.success) {
+      toast.success("Order logged! Opening WhatsApp...");
+    }
+    window.open(`https://wa.me/${getWhatsApp()}?text=${buildMsg(cart, addr, name, phone)}`, "_blank");
   };
 
   const removeItem = (itemId) => {
     cart.filter(i => (i._id || i.id) === itemId).forEach(i => add(i, -i.qty));
   }
+
   return (
     <div className="min-h-screen py-6 px-4" style={{ background: C.bg }}>
       <div className="max-w-2xl mx-auto">
@@ -35,27 +59,17 @@ function Cart() {
             <div className="text-6xl mb-3">🛒</div>
             <div className="text-lg font-semibold mb-2">Your cart is empty</div>
             <div className="text-sm">Go to the menu and add some items!</div>
-           <Link to={"/menu"}>
-            <button
-              className="w-1/4 mt-3 py-3 rounded-xl text-sm font-bold text-white bg-[#d8582a] border border-[#D44B1A] hover:bg-[#D44B1A] transition-colors duration-200"
-              style={{ boxShadow: "0 8px 20px rgba(212, 75, 26, 0.15)" }}
-            >
-              Add Item
-            </button>
+            <Link to={"/menu"}>
+              <button
+                className="w-1/4 mt-3 py-3 rounded-xl text-sm font-bold text-white bg-[#d8582a] border border-[#D44B1A] hover:bg-[#D44B1A] transition-colors duration-200"
+                style={{ boxShadow: "0 8px 20px rgba(212, 75, 26, 0.15)" }}
+              >
+                Add Item
+              </button>
             </Link>    
-                  </div>
-
+          </div>
         ) : (
           <div className="flex flex-col gap-3">
-            {/* {iceWarn && (
-              <div className="flex gap-2 rounded-lg p-3" style={{ background: "#FFF3E0", border: `1px solid ${C.gold}` }}>
-                <AlertCircle size={15} className="flex-shrink-0 mt-0.5" style={{ color: C.gold }} />
-                <p className="text-xs" style={{ color: "#5D3A00", fontFamily: C.f2 }}>
-                  Ice cream delivers only when you also order a Pizza, Bake or Cake. Add one, or pick up ice cream from the store.
-                </p>
-              </div>
-            )} */}
-
             {cart.map(item => (
               <div key={item._id || item.id} className="flex items-center gap-3 rounded-lg p-3.5 bg-white border" style={{ borderColor: C.border }}>
                 <div className="text-2xl flex-shrink-0">{EMOJI[item.category || item.cat]}</div>
@@ -75,34 +89,27 @@ function Cart() {
                   </button>
                 </div>
                 <div className="font-bold text-sm text-right w-12" style={{ color: C.red, fontFamily: C.f2 }}>₹{item.price * item.qty}</div>
-               <button
-                          className="flex items-center gap-1 px-2.5 py-1.5 rounded-md border border-red-100 bg-red-50 font-sans text-xs font-semibold text-red-700 hover:bg-red-100 transition-colors"
-              style={{ boxShadow: "0 8px 20px rgba(212, 75, 26, 0.15)" }}
-            onClick={() => removeItem(item._id || item.id)}
-            >
-        <Trash2 size={14} />
-            </button>
+                <button
+                  className="flex items-center gap-1 px-2.5 py-1.5 rounded-md border border-red-100 bg-red-50 font-sans text-xs font-semibold text-red-700 hover:bg-red-100 transition-colors"
+                  style={{ boxShadow: "0 8px 20px rgba(212, 75, 26, 0.15)" }}
+                  onClick={() => removeItem(item._id || item.id)}
+                >
+                  <Trash2 size={14} />
+                </button>
               </div>
             ))}
-
-
-            <AddressBox
-              value={addr}
-              onChange={setAddr}
-            />
 
             <CartSummary
               subtotal={sub}
               deliveryFee={deliveryFee}
               remaining={remaining}
               total={sub + deliveryFee}
-
             />
 
-
+            {/* Main Action Button */}
             <button
-              onClick={order}
-              className="w-full py-3 rounded-lg font-bold text-sm text-white"
+              onClick={handleWhatsAppClick}
+              className="w-full py-3 rounded-lg font-bold text-sm text-white transition-all active:scale-95"
               style={{ background: C.green, fontFamily: C.f2 }}
             >
               📱 Order via WhatsApp
@@ -110,6 +117,57 @@ function Cart() {
           </div>
         )}
       </div>
+
+      {/* --- POPUP MODAL FOR ADDRESS DETAILS --- */}
+      {isOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-fade-in">
+          <div className="bg-white w-full max-w-md rounded-2xl p-6 shadow-2xl relative border animate-scale-up" style={{ borderColor: C.border }}>
+            
+            {/* Close Button */}
+            <button 
+              onClick={() => setIsOpen(false)}
+              className="absolute top-4 right-4 p-1 rounded-full hover:bg-stone-100 transition-colors text-stone-400 hover:text-stone-700"
+            >
+              <X size={20} />
+            </button>
+
+            {/* Modal Title */}
+            <h3 className="text-xl font-bold mb-4 pr-6" style={{ color: C.mid, fontFamily: C.f1 }}>
+              Enter Delivery Address
+            </h3>
+
+            {/* Address Form Component */}
+            <div className="mb-6 max-h-[60vh] overflow-y-auto pr-1">
+              <AddressBox
+                value={addr}
+                name={name}
+                phone={phone}
+                onChange={setAddr}
+                setName={setName}
+                setPhone={setPhone}
+              />
+            </div>
+
+            {/* Action Buttons inside Popup */}
+            <div className="flex gap-3">
+              <button
+                onClick={() => setIsOpen(false)}
+                className="flex-1 py-3 rounded-xl border border-stone-200 text-stone-600 font-bold text-sm hover:bg-stone-50 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmAndOrder}
+                className="flex-1 py-3 rounded-xl text-white font-bold text-sm transition-all active:scale-95"
+                style={{ background: C.green }}
+              >
+                Confirm Order
+              </button>
+            </div>
+
+          </div>
+        </div>
+      )}
     </div>
   );
 }

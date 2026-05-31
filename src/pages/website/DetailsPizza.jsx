@@ -139,7 +139,10 @@ export default function PizzaDetail({ onBack, onNavigate }) {
   const [addedAnim, setAddedAnim] = useState(false);
   const { addItem: add } = useCartStore();
 
-
+  useEffect(() => {
+    if (!item?.sizes?.length) return;
+    setSizeIdx((current) => Math.min(current, item.sizes.length - 1));
+  }, [item?.sizes?.length]);
 
   const selectedSize = (item.sizes && item.sizes[sizeIdx]) || { label: "", price: item.price || 0 };
   const extrasTotal = extras.reduce((s, e) => s + (e.price || 0), 0);
@@ -161,9 +164,10 @@ export default function PizzaDetail({ onBack, onNavigate }) {
       return;
     }
 
+    const itemId = item._id || item.id;
     const cartItem = {
-      _id: `${item.id}-${sizeIdx}-${extras.map((e) => e.label).join("-")}`,
-      id: item.id,
+      _id: `${itemId}-${sizeIdx}-${extras.map((e) => e.label).join("-")}`,
+      id: itemId,
       name: `${item.name} (${selectedSize.label})`,
       category: item.category,
       price: unitPrice,
@@ -196,7 +200,7 @@ export default function PizzaDetail({ onBack, onNavigate }) {
 
     return () => { mounted = false; };
   }, [itemId]);
-  const isCartDisabled = !item.available || (item.price < 100 && qty < 3);
+  const isCartDisabled = !item.available || (totalPrice < 100 && qty < 3);
 
   return (
     <>
@@ -330,7 +334,7 @@ export default function PizzaDetail({ onBack, onNavigate }) {
               <div>
                 <p className="text-xs font-bold text-stone-500 uppercase tracking-wider mb-2.5">Choose Size</p>
                 <div className="flex flex-col gap-2">
-                  {item.sizes.map((s, i) => (
+                  {item.sizes?.map((s, i) => (
                     <button
                       key={i}
                       onClick={() => setSizeIdx(i)}
@@ -369,7 +373,7 @@ export default function PizzaDetail({ onBack, onNavigate }) {
                   Add Extras <span className="text-stone-300 font-normal normal-case tracking-normal">(optional)</span>
                 </p>
                 <div className="flex flex-wrap gap-2">
-                  {item.extras.map(e => (
+                  {item.extras?.map(e => (
                     <ExtraChip
                       key={e.label}
                       extra={e}
@@ -484,7 +488,7 @@ export default function PizzaDetail({ onBack, onNavigate }) {
               <div className="bg-white rounded-3xl border border-stone-200 p-7">
                 <p className="text-xs font-bold text-stone-400 uppercase tracking-wider mb-4">What goes in</p>
                 <div className="flex flex-wrap gap-2">
-                  {item.ingredients.map(ing => (
+                  {item.ingredients?.map(ing => (
                     <span key={ing} className="bg-orange-50 border border-orange-200 text-orange-700 text-xs font-semibold px-3.5 py-2 rounded-full">
                       {ing}
                     </span>
@@ -517,7 +521,7 @@ export default function PizzaDetail({ onBack, onNavigate }) {
 
                 {/* Review cards */}
                 <div className="flex flex-col gap-4">
-                  {item.reviews.map((r, i) => (
+                  {item.reviews?.map((r, i) => (
                     <div key={i} className="border border-stone-100 rounded-2xl p-5">
                       <div className="flex items-center justify-between mb-2">
                         <div className="flex items-center gap-2.5">

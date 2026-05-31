@@ -127,8 +127,7 @@ function ItemCard({ item }) {
           <button
             onClick={() => setShowModal(true)}
             disabled={!canOrderNow}
-            className={`w-ful mt-2 flex items-center justify-center gap-1.5 py-2 rounded-xl
-                        font-sans text-xs font-bold border transition-all
+            className={`w-full mt-2 flex items-center justify-center gap-1.5 py-2 rounded-xl                        font-sans text-xs font-bold border transition-all
                         ${canOrderNow
                 ? "border-[#D44B1A]/20 bg-[#FFF8F0] text-[#D44B1A] hover:border-[#D44B1A] hover:bg-[#D44B1A] hover:text-white"
                 : "border-gray-200 bg-gray-50 text-gray-400 cursor-not-allowed opacity-60"

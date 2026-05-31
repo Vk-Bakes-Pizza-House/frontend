@@ -6,15 +6,31 @@ import {
   CheckCircle, X, Trash2, RefreshCw, Smartphone,
   ChevronRight, Activity, Key, Globe, Volume2, Mail,
 } from "lucide-react";
- import { useProfileStore } from "../../store";
-import { Input,SaveButton,Alert,ToggleRow,StrengthMeter,PasswordInput } from "../../components/From";
+import { useProfileStore } from "../../store";
+import { Input,SaveButton,Alert } from "../../components/From";
  export default function ProfileTab() {
-   const [form, setForm]       = useState({ displayName: "VK Admin", username: "vkadmin", email: "", bio: "" });
+   const [form, setForm]       = useState({ displayName: "", username: "", email: "", bio: "" });
    const [avatar, setAvatar]   = useState(null);
    const [loading, setLoading] = useState(false);
    const [saved,   setSaved]   = useState(false);
+   const [error,   setError]   = useState(null);
    const [copied,  setCopied]  = useState(false);
    const fileRef = useRef();
+   const { profile, updateProfile, fetchProfile } = useProfileStore();
+ 
+   useEffect(() => {
+     if (!profile) fetchProfile();
+   }, [profile, fetchProfile]);
+ 
+   useEffect(() => {
+     if (!profile) return;
+     setForm({
+       displayName: profile.displayName || profile.name || "",
+       username: profile.username || "vkadmin",
+       email: profile.email || "",
+       bio: profile.bio || "",
+     });
+   }, [profile]);
  
    const set = (k, v) => { setForm(p => ({ ...p, [k]: v })); setSaved(false); };
  
@@ -28,9 +44,17 @@ import { Input,SaveButton,Alert,ToggleRow,StrengthMeter,PasswordInput } from "..
  
    const save = async () => {
      setLoading(true);
-     await new Promise(r => setTimeout(r, 900));
-     setLoading(false); setSaved(true);
-     setTimeout(() => setSaved(false), 3000);
+     setError(null);
+     try {
+       const result = await updateProfile(form);
+       if (!result) throw new Error("Unable to save profile");
+       setSaved(true);
+       setTimeout(() => setSaved(false), 3000);
+     } catch (err) {
+       setError(err.message || "Unable to save profile.");
+     } finally {
+       setLoading(false);
+     }
    };
  
    const copyUsername = () => {
@@ -146,6 +170,7 @@ import { Input,SaveButton,Alert,ToggleRow,StrengthMeter,PasswordInput } from "..
          </div>
        </div>
  
+       {error && <Alert type="error">{error}</Alert>}
        <div className="flex justify-end">
          <SaveButton onClick={save} loading={loading} saved={saved} />
        </div>

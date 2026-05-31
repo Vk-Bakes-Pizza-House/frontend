@@ -23,8 +23,7 @@ export function StoreManagementPanel() {
     freeDeliveryFee:    "300", // Synchronized with frontend inputs
     timings: {
       monFri:   { open: "08:00", close: "21:00" },
-      saturday: { open: "08:00", close: "21:30" },
-      sunday:   { open: "09:00", close: "20:00" },
+     
     },
     closedDays: "",
   });

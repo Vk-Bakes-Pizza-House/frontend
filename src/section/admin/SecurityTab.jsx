@@ -15,6 +15,7 @@ export default function SecurityTab() {
   const [err,  setErr]  = useState({});
   const [loading, setLoading] = useState(false);
   const [saved,   setSaved]   = useState(false);
+  const [sessionLoading, setSessionLoading] = useState(null);
 //   const [sessions, setSessions] = useState([
 //     { device: "Chrome · Windows", location: "Lucknow, IN", time: "Now",          current: true  },
 //     { device: "Safari · iPhone",  location: "Lucknow, IN", time: "2 hrs ago",    current: false },
@@ -33,6 +34,20 @@ export default function SecurityTab() {
   };
 const { profile, changePassword, revokeSession, revokeAllSessions } = useProfileStore();
 const sessions = profile?.sessions || [];
+
+const handleRevokeSession = async (session) => {
+  const id = session.id || session._id || session.key || null;
+  if (!id) return;
+  setSessionLoading(id);
+  await revokeSession(id);
+  setSessionLoading(null);
+};
+
+const handleRevokeAll = async () => {
+  setSessionLoading("all");
+  await revokeAllSessions();
+  setSessionLoading(null);
+};
 
 const save = async () => {
   if (!validate()) return;
@@ -102,8 +117,12 @@ const save = async () => {
             </div>
             <p className="text-xs text-stone-500">Devices currently signed into your account</p>
           </div>
-          <button className="text-xs font-semibold text-red-400 hover:text-red-300 transition-colors flex items-center gap-1.5">
-            <LogOut size={12} /> Sign out all
+          <button
+            onClick={handleRevokeAll}
+            disabled={sessionLoading === "all"}
+            className="text-xs font-semibold text-red-400 hover:text-red-300 transition-colors flex items-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <LogOut size={12} /> {sessionLoading === "all" ? "Signing out..." : "Sign out all"}
           </button>
         </div>
 
@@ -120,7 +139,13 @@ const save = async () => {
               <div className="flex items-center gap-3">
                 {s.current
                   ? <span className="text-xs font-semibold text-emerald-400 bg-emerald-400/10 px-2.5 py-1 rounded-full">Current</span>
-                  : <button className="text-xs text-stone-500 hover:text-red-400 transition-colors font-medium">Revoke</button>}
+                  : <button
+                  onClick={() => handleRevokeSession(s)}
+                  disabled={sessionLoading === s.id || sessionLoading === s._id || sessionLoading === s.key}
+                  className="text-xs text-stone-500 hover:text-red-400 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {sessionLoading === s.id || sessionLoading === s._id || sessionLoading === s.key ? "Revoking..." : "Revoke"}
+                </button>}
               </div>
             </div>
           ))}

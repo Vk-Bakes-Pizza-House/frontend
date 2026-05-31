@@ -1,20 +1,10 @@
 // src/section/oderNow.jsx
-// ─────────────────────────────────────────────────────────────
-// "Customise & Order" modal — opened from ItemCard.
-//
-// Features:
-//  • Pizza size picker + upsell suggestion banner
-//  • Main item qty control
-//  • Extra cheese toggle (pizza only)
-//  • Add-ons: cold drinks & ice cream (fetched from API)
-//  • Address input
-//  • Order summary with free delivery ≥ ₹300
-//  • Two CTAs: "Add to Cart" and "Order on WhatsApp"
+
 // ─────────────────────────────────────────────────────────────
 import { useState, useEffect, useRef } from "react";
-import { MapPin, X, ArrowRight, ShoppingBag, ShoppingCart } from "lucide-react";
-import { WA, buildMsg, isDlv, DELIVERY_FEE, getCategory } from "../config";
-import { EMOJI } from "../data/menu";
+import { X, ArrowRight, ShoppingBag, ShoppingCart } from "lucide-react";
+import { buildMsg, isDlv, getWhatsApp, getDeliveryFees, getFreeDeliveryAbove, getCategory } from "../config";
+import { EMOJI,C } from "../data/menu";
 import api from "../store/api";
 import { endpoints } from "../utils/endpoints";
 import {
@@ -22,14 +12,16 @@ import {
   SizeUpsellBanner,
   AddonSection,
   OrderSummary,
+  AddressBox
 } from "../components/Order";
 import useCartStore from "../store/cartStore";
+import { toast } from "sonner";
 
 // ─────────────────────────────────────────────────────────────
-const FREE_DELIVERY_ABOVE = 300;
+// const getFreeDeliveryAbove ;
 
 const PIZZA_SIZES = [
-  { label: 'Regular (8")',  key: "rg", priceAdd:  0 },
+  { label: 'Regular (8")', key: "rg", priceAdd: 0 },
   { label: 'Medium  (10")', key: "md", priceAdd: 100 },
   { label: 'Large   (12")', key: "lg", priceAdd: 200 },
 ];
@@ -38,22 +30,26 @@ const PIZZA_SIZES = [
 
 export default function OrderNowModal({ item, onClose }) {
   const category = getCategory(item);
-  const { addItem: add } = useCartStore();
-  const isPizza  = category === "pizza";
+  const { addItem: add, logOrder } = useCartStore();
+  const isPizza = category === "pizza";
 
   // ── State ────────────────────────────────────────────────
-  const [mainQty,      setMainQty]      = useState(1);
-  const [selectedSize, setSize]         = useState("rg");
-  const [extraCheese,  setExtraCheese]  = useState(false);
-  const [addons,       setAddons]       = useState({});
-  const [address,      setAddress]      = useState("");
+  const [mainQty, setMainQty] = useState(1);
+  const [selectedSize, setSize] = useState("rg");
+  const [extraCheese, setExtraCheese] = useState(false);
+  const [addons, setAddons] = useState({});
+  const [name, setName] = useState("");
+  const [phone, setPhone] = useState("");
+  const [addr, setAddr] = useState("");
 
-  const [drinks,        setDrinks]        = useState([]);
-  const [iceCreams,     setIceCreams]     = useState([]);
+  const [isOpen, setIsOpen] = useState(false);
+
+  const [drinks, setDrinks] = useState([]);
+  const [iceCreams, setIceCreams] = useState([]);
   const [loadingAddons, setLoadingAddons] = useState(true);
-  const [addonError,    setAddonError]    = useState(null);
-  const [showDrinks,    setShowDrinks]    = useState(false);
-  const [showIce,       setShowIce]       = useState(false);
+  const [addonError, setAddonError] = useState(null);
+  const [showDrinks, setShowDrinks] = useState(false);
+  const [showIce, setShowIce] = useState(false);
 
   const inputRef = useRef(null);
 
@@ -72,9 +68,9 @@ export default function OrderNowModal({ item, onClose }) {
       try {
         const [dr, ic] = await Promise.all([
           api.get(endpoints.menu.getAll, { params: { category: "drink", all: "true" } }),
-          api.get(endpoints.menu.getAll, { params: { category: "ice",   all: "true" } }),
+          api.get(endpoints.menu.getAll, { params: { category: "ice", all: "true" } }),
         ]);
-        setDrinks(dr.data?.data   ?? []);
+        setDrinks(dr.data?.data ?? []);
         setIceCreams(ic.data?.data ?? []);
       } catch (e) {
         setAddonError("Could not load add-ons");
@@ -85,23 +81,23 @@ export default function OrderNowModal({ item, onClose }) {
   }, []);
 
   // ── Price calculations ────────────────────────────────────
-  const sizeObj    = PIZZA_SIZES.find((s) => s.key === selectedSize);
-  const sizeAdd    = isPizza ? (sizeObj?.priceAdd ?? 0) : 0;
-  const cheeseAdd  = isPizza && extraCheese ? 30 : 0;
-  const itemPrice  = item.price + sizeAdd + cheeseAdd;
+  const sizeObj = PIZZA_SIZES.find((s) => s.key === selectedSize);
+  const sizeAdd = isPizza ? (sizeObj?.priceAdd ?? 0) : 0;
+  const cheeseAdd = isPizza && extraCheese ? 30 : 0;
+  const itemPrice = item.price + sizeAdd + cheeseAdd;
 
-  const allAddonItems  = [...drinks, ...iceCreams];
-  const activeAddons   = Object.entries(addons).filter(([, q]) => q > 0);
+  const allAddonItems = [...drinks, ...iceCreams];
+  const activeAddons = Object.entries(addons).filter(([, q]) => q > 0);
 
-  const addonTotal  = activeAddons.reduce((s, [id, q]) => {
+  const addonTotal = activeAddons.reduce((s, [id, q]) => {
     const f = allAddonItems.find((a) => (a._id || a.id) === id);
     return s + (f ? f.price * q : 0);
   }, 0);
 
-  const subtotal    = itemPrice * mainQty + addonTotal;
-  const deliveryFee = subtotal >= FREE_DELIVERY_ABOVE ? 0 : DELIVERY_FEE;
-  const total       = subtotal + deliveryFee;
-  const remaining   = Math.max(0, FREE_DELIVERY_ABOVE - subtotal);
+  const subtotal = itemPrice * mainQty + addonTotal;
+  const deliveryFee = subtotal >= getFreeDeliveryAbove() ? 0 : getDeliveryFees();
+  const total = subtotal + deliveryFee;
+  const remaining = Math.max(0, getFreeDeliveryAbove() - subtotal);
 
   // ── Add-on qty helper ─────────────────────────────────────
   const setAddonQty = (id, delta) =>
@@ -121,6 +117,7 @@ export default function OrderNowModal({ item, onClose }) {
     return {
       ...item,
       _id: variantId,
+      menuItem: item._id || item.id,
       id: itemId,
       name: `${item.name}${sizeLabel}${cheeseLabel}`,
       price: itemPrice,
@@ -141,20 +138,74 @@ export default function OrderNowModal({ item, onClose }) {
     onClose();
   };
 
+
+
+
   // ── WhatsApp order ────────────────────────────────────────
-  const handleWhatsApp = () => {
-    if (!address.trim()) { inputRef.current?.focus(); return; }
+  const confirmAndOrder = async () => {
+    if (!name.trim() || !phone.trim() || !addr.trim()) {
+      toast.warning("Please fill in all address details before confirming.");
+      return;
+    }
 
     const addonLines = activeAddons.map(([id, q]) => {
       const f = allAddonItems.find((a) => (a._id || a.id) === id);
       return { ...f, qty: q, deliverable: true };
     });
 
-    const msg = buildMsg([buildMainItem(), ...addonLines], address);
-    window.open(`https://wa.me/${WA}?text=${msg}`, "_blank");
-    onClose();
-  };
+    const main = buildMainItem();
+    const itemsPayload = [main, ...addonLines]
+      .filter(Boolean)
+      .map(({ _id, menuItem, name, price, qty }) => {
+        const sourceId = menuItem || _id;
+        const item = {
+          name,
+          price: Number(price || 0),
+          qty: Number(qty || 0),
+        };
+        if (typeof sourceId === "string" && /^[0-9a-fA-F]{24}$/.test(sourceId)) {
+          item.menuItem = sourceId;
+        }
+        return item;
+      })
+      .filter((item) => item.qty > 0 && item.name);
 
+    if (itemsPayload.length === 0) {
+      toast.error("Order must have at least one item.");
+      return;
+    }
+
+    const payload = {
+      customer: {
+        name: name.trim(),
+        phone: phone.trim(),
+        address: addr.trim(),
+      },
+      items: itemsPayload,
+      orderType: isDlv(main, [main]) ? "delivery" : "pickup",
+      subtotal: Number(subtotal),
+      deliveryCharge: Number(deliveryFee || 0),
+      total: Number(total),
+      paymentMethod: "Cash on Delivery",
+    };
+
+    try {
+      await api.post(endpoints.orders.create, payload);
+      toast.success("Order saved to backend. Opening WhatsApp...");
+    } catch (e) {
+      console.warn("Failed to save order payload:", e.message || e);
+      toast.warning("Could not save order to backend. Opening WhatsApp anyway.");
+    }
+
+    setIsOpen(false);
+    const msg = buildMsg([main, ...addonLines], addr, name, phone);
+    window.open(`https://wa.me/${getWhatsApp()}?text=${msg}`, "_blank");
+    onClose();
+  }
+  const handleWhatsAppClick = () => {
+    // if (!mainQty.length) return;
+    setIsOpen(true); // Popup open karo
+  };
   // ─────────────────────────────────────────────────────────
   return (
     <div
@@ -200,9 +251,8 @@ export default function OrderNowModal({ item, onClose }) {
             <div className="flex-1 min-w-0">
               <p className="font-sans font-bold text-[#2D1400] text-sm truncate">{item.name}</p>
               <p className="font-sans text-xs text-[#8B6A4F] mt-0.5">Base ₹{item.price}</p>
-              <span className={`mt-1 inline-flex text-[10px] font-bold px-2 py-0.5 rounded-full ${
-                isDlv(item, [item]) ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-500"
-              }`}>
+              <span className={`mt-1 inline-flex text-[10px] font-bold px-2 py-0.5 rounded-full ${isDlv(item, [item]) ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-500"
+                }`}>
                 {isDlv(item, [item]) ? "🚚 Delivers" : "🏪 Pickup only"}
               </span>
             </div>
@@ -230,20 +280,17 @@ export default function OrderNowModal({ item, onClose }) {
                   <button
                     key={s.key}
                     onClick={() => setSize(s.key)}
-                    className={`flex flex-col items-center py-2.5 px-2 rounded-xl border-2 transition-all ${
-                      selectedSize === s.key
-                        ? "border-[#D44B1A] bg-[#FFF3EE]"
-                        : "border-[#E8D5C0] bg-white hover:bg-[#FFF8F3]"
-                    }`}
+                    className={`flex flex-col items-center py-2.5 px-2 rounded-xl border-2 transition-all ${selectedSize === s.key
+                      ? "border-[#D44B1A] bg-[#FFF3EE]"
+                      : "border-[#E8D5C0] bg-white hover:bg-[#FFF8F3]"
+                      }`}
                   >
-                    <span className={`font-sans text-xs font-semibold leading-snug ${
-                      selectedSize === s.key ? "text-[#D44B1A]" : "text-[#2D1400]"
-                    }`}>
+                    <span className={`font-sans text-xs font-semibold leading-snug ${selectedSize === s.key ? "text-[#D44B1A]" : "text-[#2D1400]"
+                      }`}>
                       {s.label}
                     </span>
-                    <span className={`font-sans text-[11px] font-bold mt-0.5 ${
-                      selectedSize === s.key ? "text-[#D44B1A]" : "text-[#8B6A4F]"
-                    }`}>
+                    <span className={`font-sans text-[11px] font-bold mt-0.5 ${selectedSize === s.key ? "text-[#D44B1A]" : "text-[#8B6A4F]"
+                      }`}>
                       {s.priceAdd === 0 ? "Base" : `+₹${s.priceAdd}`}
                     </span>
                   </button>
@@ -263,11 +310,10 @@ export default function OrderNowModal({ item, onClose }) {
           {isPizza && (
             <button
               onClick={() => setExtraCheese((v) => !v)}
-              className={`flex items-center justify-between w-full px-4 py-3 rounded-xl border-2 transition-all ${
-                extraCheese
-                  ? "border-[#D44B1A] bg-[#FFF3EE]"
-                  : "border-[#E8D5C0] bg-white hover:bg-[#FFF8F3]"
-              }`}
+              className={`flex items-center justify-between w-full px-4 py-3 rounded-xl border-2 transition-all ${extraCheese
+                ? "border-[#D44B1A] bg-[#FFF3EE]"
+                : "border-[#E8D5C0] bg-white hover:bg-[#FFF8F3]"
+                }`}
             >
               <div className="flex items-center gap-2.5">
                 <span className="text-xl">🧀</span>
@@ -280,9 +326,8 @@ export default function OrderNowModal({ item, onClose }) {
               </div>
               {/* Toggle pill */}
               <div className={`w-11 h-6 rounded-full relative transition-colors ${extraCheese ? "bg-[#D44B1A]" : "bg-[#E8D5C0]"}`}>
-                <div className={`absolute top-1 w-4 h-4 rounded-full bg-white shadow transition-transform ${
-                  extraCheese ? "translate-x-6" : "translate-x-1"
-                }`} />
+                <div className={`absolute top-1 w-4 h-4 rounded-full bg-white shadow transition-transform ${extraCheese ? "translate-x-6" : "translate-x-1"
+                  }`} />
               </div>
             </button>
           )}
@@ -314,27 +359,6 @@ export default function OrderNowModal({ item, onClose }) {
           />
 
           {/* 6 ── Address (needed for WhatsApp order) */}
-          <div className="flex flex-col gap-1.5">
-            <label className="font-sans text-sm font-bold text-[#2D1400] flex items-center gap-1.5">
-              <MapPin size={13} className="text-[#D44B1A]" />
-              Delivery Address
-              <span className="font-normal text-[#C4A882] text-xs">(for WhatsApp order)</span>
-            </label>
-            <textarea
-              ref={inputRef}
-              value={address}
-              onChange={(e) => setAddress(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleWhatsApp(); }
-              }}
-              placeholder="House no., street, area, landmark…"
-              rows={2}
-              className="w-full px-3 py-2.5 border-2 border-[#E8D5C0] focus:border-[#D44B1A]
-                         focus:ring-2 focus:ring-[#D44B1A]/10 rounded-xl font-sans text-sm
-                         text-[#2D1400] placeholder-[#C4A882] outline-none transition-all
-                         resize-none bg-white"
-            />
-          </div>
 
           {/* 7 ── Order summary */}
           <OrderSummary
@@ -375,20 +399,64 @@ export default function OrderNowModal({ item, onClose }) {
             </button>
           </div>
 
-          {/* Row 2: Order on WhatsApp (needs address) */}
+          {/* Row 2: Order on WhatsApp (needs addr) */}
           <button
-            onClick={handleWhatsApp}
-            disabled={!address.trim()}
-            className={`w-full flex items-center justify-center gap-2 py-3 rounded-xl
-                        font-sans text-sm font-bold text-white transition-all ${
-              address.trim()
-                ? "bg-[#D44B1A] hover:bg-[#b83d13] shadow-md shadow-[#D44B1A]/25"
-                : "bg-[#C4A882] cursor-not-allowed"
-            }`}
+            onClick={handleWhatsAppClick}
+            className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-[#D44B1A] hover:bg-[#b83d13] shadow-md shadow-[#D44B1A]/25 font-sans text-sm font-bold text-white transition-all"
           >
             <span>Order on WhatsApp</span>
             <ArrowRight size={15} />
           </button>
+          {/* --- POPUP MODAL FOR ADDRESS DETAILS --- */}
+          {isOpen && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-fade-in">
+              <div className="bg-white w-full max-w-md rounded-2xl p-6 shadow-2xl relative border animate-scale-up" style={{ borderColor: C.border }}>
+
+                {/* Close Button */}
+                <button
+                  onClick={() => setIsOpen(false)}
+                  className="absolute top-4 right-4 p-1 rounded-full hover:bg-stone-100 transition-colors text-stone-400 hover:text-stone-700"
+                >
+                  <X size={20} />
+                </button>
+
+                {/* Modal Title */}
+                <h3 className="text-xl font-bold mb-4 pr-6" style={{ color: C.mid, fontFamily: C.f1 }}>
+                  Enter Delivery Address
+                </h3>
+
+                {/* Address Form Component */}
+                <div className="mb-6 max-h-[60vh] overflow-y-auto pr-1">
+                  <AddressBox
+                    value={addr}
+                    name={name}
+                    phone={phone}
+                    onChange={setAddr}
+                    setName={setName}
+                    setPhone={setPhone}
+                  />
+                </div>
+
+                {/* Action Buttons inside Popup */}
+                <div className="flex gap-3">
+                  <button
+                    onClick={() => setIsOpen(false)}
+                    className="flex-1 py-3 rounded-xl border border-stone-200 text-stone-600 font-bold text-sm hover:bg-stone-50 transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={confirmAndOrder}
+                    className="flex-1 py-3 rounded-xl text-white font-bold text-sm transition-all active:scale-95"
+                    style={{ background: C.green }}
+                  >
+                    Confirm Order
+                  </button>
+                </div>
+
+              </div>
+            </div>
+          )}
         </div>
 
       </div>

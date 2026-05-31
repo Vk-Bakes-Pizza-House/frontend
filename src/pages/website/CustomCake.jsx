@@ -1,7 +1,6 @@
 import { useState } from "react";
 import WhatsAppButton from "../../components/WhatsAppButton";
 import { C } from "../../data/menu";
-import { WA } from "../../config";
 
 // ── Min delivery date = today + 2 days ───────────────────────
 const getMinDate = () => {
