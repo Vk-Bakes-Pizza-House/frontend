@@ -1,0 +1,79 @@
+import { create } from "zustand";
+import { devtools, persist } from "zustand/middleware";
+import api from "./api"; // Aapka axios wrapper instance
+import { endpoints } from "../utils/endpoints";
+
+  const useFQAStore = create(
+  devtools(
+    persist(
+      (set, get) => ({
+        // ── State ─────────────────────────────────────────────
+        FAQS: [],
+        loading: false,
+        error: null,
+
+        // ── Actions ───────────────────────────────────────────
+        
+        // 1. Fetch all FAQs (Home Page aur Manage Page par call karein)
+        fetchFaqs: async () => {
+          set({ loading: true, error: null });
+          try {
+            // Endpoints object se query link check karein (e.g., endpoints.faqs)
+            const response = await api.get(endpoints.faqs || "/faqs");
+            set({ FAQS: response.data, loading: false });
+          } catch (err) {
+            set({ 
+              error: err.response?.data?.message || "FAQs load nahi ho paye.", 
+              loading: false 
+            });
+          }
+        },
+
+        // 2. Add New FAQ (Manage form ke onSubmit par call karein)
+        addFaq: async (faqData) => {
+          set({ loading: true, error: null });
+          try {
+            const response = await api.post(endpoints.faqs || "/faqs", faqData);
+            // Naya FAQ direct state mein front par push karein
+            set((state) => ({
+              FAQS: [response.data, ...state.FAQS],
+              loading: false
+            }));
+            return { success: true };
+          } catch (err) {
+            set({ 
+              error: err.response?.data?.message || "FAQ add nahi ho paya.", 
+              loading: false 
+            });
+            return { success: false, message: get().error };
+          }
+        },
+
+        // 3. Delete FAQ (Trash icon ke onClick par _id pass karein)
+        deleteFaq: async (id) => {
+          set({ loading: true, error: null });
+          try {
+            await api.delete(`${endpoints.faqs || "/faqs"}/${id}`);
+            // Filter karke list se instantly remove karein
+            set((state) => ({
+              FAQS: state.FAQS.filter((faq) => faq._id !== id),
+              loading: false
+            }));
+            return { success: true };
+          } catch (err) {
+            set({ 
+              error: err.response?.data?.message || "FAQ delete nahi ho paya.", 
+              loading: false 
+            });
+            return { success: false, message: get().error };
+          }
+        }
+      }),
+      {
+        name: "faq-storage", // local storage identifier name
+        partialize: (state) => ({ FAQS: state.FAQS }), // Sirf FAQS data persist karein, loading/error nahi
+      }
+    )
+  )
+);
+export default useFQAStore

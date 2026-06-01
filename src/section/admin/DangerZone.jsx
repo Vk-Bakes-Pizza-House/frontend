@@ -9,6 +9,7 @@ import {
 
 import { Input,SaveButton,Alert,ToggleRow,StrengthMeter,PasswordInput } from "../../components/From";
 import { useProfileStore } from "../../store";
+import {useOrderStore} from "../../store/";
 // Within danger tab:
 
 export default function DangerTab({ onLogout }) {
@@ -57,7 +58,8 @@ export default function DangerTab({ onLogout }) {
     },
   ];
 
-  const { clearOrderHistory, resetAllSettings, revokeAllSessions } = useProfileStore();
+  const { resetAllSettings, revokeAllSessions } = useProfileStore();
+const {  clearOrderHistory } = useOrderStore();
 
 const ACTION_ERROR_LABELS = {
   logout: "sign out all sessions",

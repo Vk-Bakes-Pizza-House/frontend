@@ -11,6 +11,7 @@ function Navbar({ page, go }) {
     ["menu", "Menu"],
     ["cake", "Custom Cake"],
     ["contact", "Contact"],
+    ["how-to-order", "How to Order"],
     ["admin", "Admin"],
   ];
 

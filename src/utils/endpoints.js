@@ -20,13 +20,17 @@ const endpointsPathsDev = {
   },
 
   menu: {
-    getAll: `${API_BASE}/menu`,
-    getById: (id) => `${API_BASE}/menu/${id}`,
-    create: `${API_BASE}/menu`,
-    update: (id) => `${API_BASE}/menu/${id}`,
-    delete: (id) => `${API_BASE}/menu/${id}`,
+    getAll: `${API_BASE}/menu/item`,
+    getById: (id) => `${API_BASE}/menu/item/${id}`,
+    create: `${API_BASE}/menu/item`,
+    update: (id) => `${API_BASE}/menu/item/${id}`,
+    delete: (id) => `${API_BASE}/menu/item/${id}`,
     toggleAvailability: (id) =>
-      `${API_BASE}/menu/${id}/toggle`,
+      `${API_BASE}/menu/item/${id}/toggle`,
+    //category
+    getAllMenu: `${API_BASE}/menu`,
+    createMenu: `${API_BASE}/menu`,
+    deleteMenu: (id) => `${API_BASE}/menu/${id}`,
   },
 
   orders: {
@@ -37,6 +41,7 @@ const endpointsPathsDev = {
     updateStatus: (id) =>
       `${API_BASE}/orders/${id}/status`,
     delete: (id) => `${API_BASE}/orders/${id}`,
+    deleteAll: `${API_BASE}/orders`,
   },
 
   reviews: {
@@ -46,6 +51,12 @@ const endpointsPathsDev = {
     updateStatus: (id) =>
       `${API_BASE}/reviews/${id}`,
     delete: (id) => `${API_BASE}/reviews/${id}`,
+  },
+  fqa:{
+    getAll: `${API_BASE}/faqs`,
+    create: `${API_BASE}/faqs`,
+    update: (id) => `${API_BASE}/faqs/${id}`,
+    delete: (id) => `${API_BASE}/faqs/${id}`,
   },
 
   upload: {
@@ -69,13 +80,17 @@ const endpointsPathsProd = {
   },
 
   menu: {
-    getAll: `/api/menu`,
-    getById: (id) => `/api/menu/${id}`,
-    create: `/api/menu`,
-    update: (id) => `/api/menu/${id}`,
-    delete: (id) => `/api/menu/${id}`,
+    getAll: `/api/menu/item`,
+    getById: (id) => `/api/menu/item/${id}`,
+    create: `/api/menu/item`,
+    update: (id) => `/api/menu/item/${id}`,
+    delete: (id) => `/api/menu/item/${id}`,
     toggleAvailability: (id) =>
-      `/api/menu/${id}/toggle`,
+      `/api/menu/item/${id}/toggle`,
+    //category
+    getAllMenu: `/api/menu`,
+    createMenu: `/api/menu`,
+    deleteMenu: (id) => `/api/menu/${id}`,
   },
 
   orders: {
@@ -86,6 +101,7 @@ const endpointsPathsProd = {
     updateStatus: (id) =>
       `/api/orders/${id}/status`,
     delete: (id) => `/api/orders/${id}`,
+    deleteAll: `/api/orders`,
   },
 
   reviews: {
@@ -95,6 +111,12 @@ const endpointsPathsProd = {
     updateStatus: (id) =>
       `/api/reviews/${id}`,
     delete: (id) => `/api/reviews/${id}`,
+  },
+  fqa:{
+    getAll: `/api/faqs`,
+    create: `/api/faqs`,
+    update: (id) => `/api/faqs/${id}`,
+    delete: (id) => `/api/faqs/${id}`,
   },
 
   upload: {
@@ -175,5 +197,6 @@ export const API_ENDPOINTS = {
   MENU: endpoints.menu,
   ORDERS: endpoints.orders,
   REVIEWS: endpoints.reviews,
+  FQAs: endpoints.fqa,
   UPLOAD: endpoints.upload,
 };

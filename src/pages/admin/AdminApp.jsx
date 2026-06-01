@@ -14,6 +14,8 @@ import ManageMenu from "./ManageMenu";
 import ManageOrders from "./ManageOrders";
 import ManageReviews from "./ManageReviews";
 import AdminProfile from "./AdminProfile";
+import ManageHowToOrder from "./ManageHowtoOrder";
+import AddMenu from "./addMenu";
 import ManageItemDetail from "../../section/admin/ManageItemDetail";
 import useAuthStore from "../../store/authStore"
 import StoreManagementPanel from "./ManageStore";
@@ -40,11 +42,13 @@ export default function AdminApp() {
 
   const PAGE = {
     dashboard: <Dashboard />,
-    menu: <ManageMenu />,
+    addMenu: <AddMenu />,
+    addItem: <ManageMenu />,
     orders: <ManageOrders />,
     reviews: <ManageReviews />,
-    itemDetail: <ManageItemDetail />,
+    itemDetails: <ManageItemDetail />,
     store: <StoreManagementPanel />,
+    howToOrder: <ManageHowToOrder />,
     profile: <AdminProfile onLogout={logout} />,
   };
 

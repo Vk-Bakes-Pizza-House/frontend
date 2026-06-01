@@ -1,12 +1,11 @@
 import { useState, useEffect } from "react";
 import {
-  LayoutDashboard, UtensilsCrossed, ShoppingBag,
+  LayoutDashboard,ChevronDown, UtensilsCrossed, ShoppingBag,
   Star, LogOut, Menu as MenuIcon, X,
 } from "lucide-react";
 
 import { NAV } from "../../section/admin/Nav";
-import useOrderStore from "../../store/orderStore";
-import useReviewStore from "../../store/reviewStore";
+import {useReviewStore,useOrderStore} from "../../store";
 import { useNavigate } from "react-router-dom";
 
 // Design Token Color Configs mapped directly for structural lookup reference
@@ -50,22 +49,95 @@ function AdminProfile({ onProfileClick }) {
 export function AdminShell({ page, onNavigate, onLogout, onProfileClick, children }) {
   const [open, setOpen] = useState(false);
 
-  const SidebarContent = () => (
+
+
+const SidebarContent = () => {
+  // Dropdown open/close state handle karne ke liye (default closed)
+  const [menuDropdownOpen, setMenuDropdownOpen] = useState(false);
+
+  return (
     <div className="flex flex-col h-full bg-[#1A0A00]">
-      {/* Brand Header Header */}
+      {/* Brand Header */}
       <div className="p-6 border-b border-white/10">
         <div className="font-serif text-[#F5A623] text-xl font-bold tracking-wide">VK Bakes</div>
         <div className="font-sans text-[#D44B1A] text-[10px] font-extrabold tracking-[0.25em] mt-1">ADMIN PANEL</div>
       </div>
 
-      {/* Primary Context Links Nav Block */}
-      <nav className="flex-1 p-4 space-y-1">
-        {NAV.map(({ key, label, icon: Icon }) => {
-          const isActive = page === key;
+      {/* Primary Links Nav Block */}
+      <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
+        {NAV.map((item) => {
+          const Icon = item.icon;
+          
+          // Agar current loop item dropdown type hai (Manage Menu Group)
+          if (item.isDropdown) {
+            return (
+              <div key={item.key} className="space-y-1">
+                {/* Parent Dropdown Button */}
+                <button
+                  onClick={() => setMenuDropdownOpen(!menuDropdownOpen)}
+                  className={`w-full flex items-center justify-between px-4 py-3 rounded-xl font-sans text-sm font-semibold transition-all duration-150 text-left ${
+                    menuDropdownOpen
+                      ? "bg-white/10 text-[#FFF8F0]"
+                      : "text-[#C8A882] hover:bg-white/5 hover:text-[#FFF8F0]"
+                  }`}
+                >
+                  <div className="flex items-center gap-3">
+                    <Icon size={16} />
+                    <span>{item.label}</span>
+                  </div>
+                  {/* Smooth Rotating Arrow Icon */}
+                  <ChevronDown
+                    size={14}
+                    className={`transition-transform duration-200 ${
+                      menuDropdownOpen ? "rotate-180 text-[#F5A623]" : "text-[#C8A882]"
+                    }`}
+                  />
+                </button>
+
+                {/* Sub-menu Dropdown List Box Wrapper (Smooth Grid Transition) */}
+                <div
+                  className={`grid transition-all duration-200 ease-in-out ${
+                    menuDropdownOpen ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"
+                  }`}
+                >
+                  <div className="overflow-hidden pl-4 border-l border-white/10 ml-6 space-y-1 mt-1">
+                    {item.children.map((child) => {
+                      const ChildIcon = child.icon;
+                      const isChildActive = page === child.key;
+
+                      return (
+                        <button
+                          key={child.key}
+                          onClick={() => {
+                            onNavigate(child.key);
+                            setOpen(false); // Mobile responsive draw state collapse
+                          }}
+                          className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-lg font-sans text-xs font-semibold transition-all duration-150 text-left ${
+                            isChildActive
+                              ? "bg-[#F5A623] text-[#1A0A00] font-bold shadow-sm shadow-[#F5A623]/10"
+                              : "text-[#C8A882] hover:bg-white/5 hover:text-[#FFF8F0]"
+                          }`}
+                        >
+                          <ChildIcon size={14} />
+                          <span>{child.label}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              </div>
+            );
+          }
+
+          // Normal Single Buttons links (Dashboard, Orders, Reviews, etc.)
+          const isActive = page === item.key;
           return (
             <button
-              key={key}
-              onClick={() => { onNavigate(key); setOpen(false); }}
+              key={item.key}
+              onClick={() => {
+                onNavigate(item.key);
+                setOpen(false);
+              }}
               className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-sans text-sm font-semibold transition-all duration-150 text-left ${
                 isActive
                   ? "bg-[#F5A623] text-[#1A0A00] shadow-md shadow-[#F5A623]/10"
@@ -73,7 +145,7 @@ export function AdminShell({ page, onNavigate, onLogout, onProfileClick, childre
               }`}
             >
               <Icon size={16} />
-              <span>{label}</span>
+              <span>{item.label}</span>
             </button>
           );
         })}
@@ -93,6 +165,7 @@ export function AdminShell({ page, onNavigate, onLogout, onProfileClick, childre
       </div>
     </div>
   );
+};
 
   return (
     <div className="flex min-h-screen font-sans bg-[#FFF8F0] antialiased">

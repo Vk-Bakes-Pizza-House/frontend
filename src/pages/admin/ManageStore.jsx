@@ -3,27 +3,28 @@ import { Store, Globe, Clock, Phone, MapPin } from "lucide-react";
 import { Input, Alert, SaveButton } from "../../components/From";
 import { useStoreStore } from "../../store";
 import { C } from "./Dashboard";
+import ManageFaq from "../../section/admin/ManageFqa"
 
 export function StoreManagementPanel() {
   const { store, fetchStore, updateStore: apiUpdateStore, loading: apiLoading } = useStoreStore();
-  
+
   const [activeTab, setActiveTab] = useState("details"); // options: 'details' or 'delivery'
   const [loading, setLoading] = useState(false);
   const [saved, setSaved] = useState(false);
   const [initialLoading, setInitialLoading] = useState(true);
 
   const [form, setForm] = useState({
-    storeName:    "VK Bakes & Pizza House",
-    tagline:      "Fresh · Local · Delivered",
-    discription:  "Fresh-baked breads, artisan cakes, and hot pizzas — delivered right to your door.",
-    whatsapp:     "919999999999",
-    address:      "Your Locality, City — 000000",
+    storeName: "VK Bakes & Pizza House",
+    tagline: "Fresh · Local · Delivered",
+    discription: "Fresh-baked breads, artisan cakes, and hot pizzas — delivered right to your door.",
+    whatsapp: "919999999999",
+    address: "Your Locality, City — 000000",
     deliveryZone: "Within 5 km",
-    deliveryFee:  "20",
-    freeDeliveryFee:    "300", // Synchronized with frontend inputs
+    deliveryFee: "20",
+    freeDeliveryFee: "300", // Synchronized with frontend inputs
     timings: {
-      monFri:   { open: "08:00", close: "21:00" },
-     
+      monFri: { open: "08:00", close: "21:00" },
+
     },
     closedDays: "",
   });
@@ -49,11 +50,11 @@ export function StoreManagementPanel() {
     });
   }, [fetchStore]);
 
-  const set = (k, v) => { 
-    setForm(p => ({ ...p, [k]: v })); 
-    setSaved(false); 
+  const set = (k, v) => {
+    setForm(p => ({ ...p, [k]: v }));
+    setSaved(false);
   };
-  
+
   const setTiming = (day, field, v) =>
     setForm(p => ({ ...p, timings: { ...p.timings, [day]: { ...p.timings[day], [field]: v } } }));
 
@@ -71,7 +72,7 @@ export function StoreManagementPanel() {
       timings: form.timings,
       closedDays: form.closedDays,
     };
-    
+
     const result = await apiUpdateStore(updateData);
     setLoading(false);
     if (result) {
@@ -81,9 +82,9 @@ export function StoreManagementPanel() {
   };
 
   const DAYS = [
-    { key: "monFri",   label: "Mon – Fri"  },
-    { key: "saturday", label: "Saturday"   },
-    { key: "sunday",   label: "Sunday"     },
+    { key: "monFri", label: "Mon – Fri" },
+    { key: "saturday", label: "Saturday" },
+    { key: "sunday", label: "Sunday" },
   ];
 
   if (initialLoading) {
@@ -92,30 +93,38 @@ export function StoreManagementPanel() {
 
   return (
     <div className="space-y-6">
-      
+
       {/* Tab Navigation Menu */}
       <div className={`flex border-b ${C.border} gap-2`}>
         <button
           onClick={() => setActiveTab("details")}
-          className={`px-4 py-2.5 text-sm font-bold flex items-center gap-2 transition-all border-b-2 rounded-t-lg ${
-            activeTab === "details"
+          className={`px-4 py-2.5 text-sm font-bold flex items-center gap-2 transition-all border-b-2 rounded-t-lg ${activeTab === "details"
               ? `border-[#F5A623] ${C.dark} bg-[#F5A623]/10`
               : `border-transparent ${C.muted} hover:${C.dark}`
-          }`}
+            }`}
         >
           <Store size={15} />
           Bakery Info
         </button>
         <button
           onClick={() => setActiveTab("delivery")}
-          className={`px-4 py-2.5 text-sm font-bold flex items-center gap-2 transition-all border-b-2 rounded-t-lg ${
-            activeTab === "delivery"
+          className={`px-4 py-2.5 text-sm font-bold flex items-center gap-2 transition-all border-b-2 rounded-t-lg ${activeTab === "delivery"
               ? `border-[#F5A623] ${C.dark} bg-[#F5A623]/10`
               : `border-transparent ${C.muted} hover:${C.dark}`
-          }`}
+            }`}
         >
           <Globe size={15} />
           Delivery Logistics
+        </button>
+        <button
+          onClick={() => setActiveTab("fqa")}
+          className={`px-4 py-2.5 text-sm font-bold flex items-center gap-2 transition-all border-b-2 rounded-t-lg ${activeTab === "delivery"
+              ? `border-[#F5A623] ${C.dark} bg-[#F5A623]/10`
+              : `border-transparent ${C.muted} hover:${C.dark}`
+            }`}
+        >
+          <Globe size={15} />
+          FQA
         </button>
       </div>
 
@@ -139,7 +148,7 @@ export function StoreManagementPanel() {
                 placeholder="919999999999"
                 icon={Phone}
                 hint="Orders will be sent to this number via wa.me link"
-              
+
               />
               <Input
                 label="Store Address"
@@ -186,7 +195,7 @@ export function StoreManagementPanel() {
                 onChange={e => set("closedDays", e.target.value)}
                 placeholder="e.g. Holi, Diwali"
                 hint="Comma-separated. Store will show as closed on these days."
-                
+
               />
             </div>
           </div>
@@ -201,27 +210,27 @@ export function StoreManagementPanel() {
               <Globe size={16} className={C.red} />
               <p className={`text-sm font-bold ${C.dark}`}>Fees & Zones Settings</p>
             </div>
-            
+
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <Input 
-                label="Delivery Zone" 
-                value={form.deliveryZone} 
-                onChange={e => set("deliveryZone", e.target.value)} 
-                placeholder="e.g. Within 5 km" 
+              <Input
+                label="Delivery Zone"
+                value={form.deliveryZone}
+                onChange={e => set("deliveryZone", e.target.value)}
+                placeholder="e.g. Within 5 km"
               />
-              <Input 
-                label="Delivery Fee (₹)" 
-                value={form.deliveryFee} 
-                onChange={e => set("deliveryFee", e.target.value)} 
-                placeholder="20" 
-                type="number" 
+              <Input
+                label="Delivery Fee (₹)"
+                value={form.deliveryFee}
+                onChange={e => set("deliveryFee", e.target.value)}
+                placeholder="20"
+                type="number"
               />
-              <Input 
-                label="Free Delivery Above (₹)" 
-                value={form.freeDeliveryFee} 
-                onChange={e => set("freeDeliveryFee", e.target.value)} 
-                placeholder="300" 
-                type="number" 
+              <Input
+                label="Free Delivery Above (₹)"
+                value={form.freeDeliveryFee}
+                onChange={e => set("freeDeliveryFee", e.target.value)}
+                placeholder="300"
+                type="number"
               />
             </div>
 
@@ -231,6 +240,8 @@ export function StoreManagementPanel() {
           </div>
         </div>
       )}
+
+      {activeTab === "fqa" && (<ManageFaq />)}
 
       {/* Persisted Sticky Control Action Header */}
       <div className="flex justify-end pt-2">

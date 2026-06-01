@@ -1,11 +1,15 @@
 // src/pages/Home.jsx
 import { useEffect, useState } from "react";
 import { C, REVIEWS, FRESH_BOARD } from "../../data/menu";
+import { HelpCircle } from "lucide-react"
 import Footer from "../../components/Footer";
 import ReviewsSection from "../../section/reviewSection";
-import { useStoreStore } from "../../store";
+import { useFQAStore, useStoreStore,useMenuStore } from "../../store";
 import ItemCard from "../../components/ItemCard";
-import useMenuStore from "../../store/menuStore";
+// import  from "../../store/menuStore";
+import {FaqItem} from "../../section/FqaItem";
+import { toast } from "sonner";
+
 
 // ── Category config ───────────────────────────────────────────
 const CATS = [
@@ -15,9 +19,20 @@ const CATS = [
   { key: "ice", label: "Ice Cream", emoji: "🍦" },
 ];
 
+// const FAQS = [
+//   { q: "How long does delivery take?", a: "Usually 25–40 minutes depending on your location and order size. We'll give you an estimated time when we confirm your order." },
+//   { q: "Which areas do you deliver to?", a: "We deliver locally within our neighborhood. Message us on WhatsApp to check if your area is covered." },
+//   { q: "Can I change my order after placing it?", a: "Yes! Message us on WhatsApp before we start preparing. Once preparation begins, changes may not be possible." },
+//   { q: "Why can't I order ice cream alone?", a: "Ice cream melts quickly, so we only deliver it alongside a Pizza, Bake or Cake order to ensure it reaches you in good condition. You can always pick it up from our store!" },
+//   { q: "Can I order for pickup instead?", a: "Absolutely! Just mention 'store pickup' in your WhatsApp message and there's no delivery charge." },
+//   { q: "How do I order a custom cake?", a: "Go to the Custom Cake page, fill in the size, flavour, message and delivery date, then tap 'Send Order on WhatsApp'. We confirm the price and details with you directly." },
+//   { q: "What if I have a food allergy?", a: "Please mention your allergy clearly in the WhatsApp message. We'll do our best to accommodate and let you know if we can safely prepare your order." },
+// ];
+
 // ─────────────────────────────────────────────────────────────
 const Home = ({ go, cart, add }) => {
   const { store, fetchStore } = useStoreStore();
+  const { FAQS, fetchFaqs } = useFQAStore();
 
   const {
     items,
@@ -31,6 +46,7 @@ const Home = ({ go, cart, add }) => {
   // ── Fetch store info once ─────────────────────────────────
   useEffect(() => {
     fetchStore();
+    fetchFaqs();
   }, []);
 
   // ── Fetch menu on mount and when category changes ─────────
@@ -210,6 +226,21 @@ const Home = ({ go, cart, add }) => {
       </div>
       {/* <Reviews /> */}
       <ReviewsSection />
+
+      {/* FAQ Section */}
+      <div className="mt-12 px-5 mx-auto mb-4">
+        <div className="flex ml-3  items-center gap-2 mb-6">
+          <HelpCircle size={18} className="text-orange-500" />
+          <h2 className="text-xl font-bold text-stone-800" style={{ fontFamily: C.f1 }}>
+            Frequently Asked Questions
+          </h2>
+        </div>
+        <div className="bg-white rounded-3xl border border-stone-200 px-6">
+          {FAQS.map((faq, i) => (
+            <FaqItem key={i} q={faq.q} a={faq.a} last={i === FAQS.length - 1} />
+          ))}
+        </div>
+      </div>
     </div>
   );
 };

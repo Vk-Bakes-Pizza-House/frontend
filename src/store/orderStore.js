@@ -223,6 +223,24 @@ const useOrderStore = create(
           return { success: false, message };
         }
       },
+      clearOrderHistory: async () => {
+        set({ loading: true, error: null });
+        const toastId = toast.loading("Deleting all orders…");
+        try {
+          await api.delete(endpoints.orders.deleteAll);
+          set((s) => ({
+            orders: [],
+            loading: false,
+          }));
+          toast.success("All orders deleted", { id: toastId });
+          return { success: true };
+        } catch (err) {
+          const message = err?.response?.data?.message || err.message;
+          set({ error: message, loading: false });
+          toast.error(`Delete failed: ${message}`, { id: toastId });
+          return { success: false, message };
+        }
+      },
     }),
     { name: "OrderStore" }
   )

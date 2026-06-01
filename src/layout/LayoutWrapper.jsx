@@ -23,6 +23,7 @@ import CustomCake from "../pages/website/CustomCake";
 import ContactPage from "../pages/website/Contact";
 import Cart from "../components/Cart";
 import PizzaDetail from "../pages/website/DetailsPizza";
+import HowToOrder from "../pages/website/HowToOrder";
 
 // Admin
 import AdminApp from "../pages/admin/AdminApp";
@@ -116,11 +117,15 @@ export default function LayoutWrapper() {
             element={<Cart />}
           />
 
-              <Route 
-              path="/menu/pizza/details"
-              element={<PizzaDetail />}
-              />
+          <Route
+            path="/menu/pizza/details"
+            element={<PizzaDetail />}
+          />
 
+          <Route
+            path="/how-to-order"
+            element={<HowToOrder />}
+          />
 
           {/* Admin */}
           <Route
