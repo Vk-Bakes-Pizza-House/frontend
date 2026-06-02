@@ -12,4 +12,4 @@ export { default as useCartStore   } from "./cartStore";
 export { default as useOrderStore  } from "./orderStore";
 export { default as useReviewStore } from "./reviewStore";
 export { default as useStoreStore  } from "./storeStore";
-export { default as useFQAStore  } from "./FQAStore";
+export { default as useFQAStore  } from "./FAQStore";

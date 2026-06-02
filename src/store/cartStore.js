@@ -29,32 +29,7 @@ const isItemDeliverable = (item, allItems) => {
   return false;
 };
 
-// ── WhatsApp message builder ──────────────────────────────────
-const buildWhatsAppMessage = (items, address) => {
-  const dlvItems = items.filter((i) => isItemDeliverable(i, items));
-  const pkpItems = items.filter((i) => !isItemDeliverable(i, items));
 
-  let msg = "🛍️ VK BAKES & PIZZA — NEW ORDER!\n\n";
-
-  if (dlvItems.length) {
-    msg += "🚚 DELIVERY ITEMS:\n";
-    dlvItems.forEach((i) => (msg += `• ${i.qty}x ${i.name} — ₹${i.price * i.qty}\n`));
-  }
-  if (pkpItems.length) {
-    msg += "\n🏪 STORE PICKUP ITEMS:\n";
-    pkpItems.forEach((i) => (msg += `• ${i.qty}x ${i.name} — ₹${i.price * i.qty}\n`));
-  }
-
-  const sub = items.reduce((s, i) => s + i.price * i.qty, 0);
-  const hasDlv = dlvItems.length > 0;
-
-  msg += `\n📍 Address: ${address || "[Please type your address]"}\n`;
-  msg += `💵 Payment: Cash on Delivery\n`;
-  if (hasDlv) msg += `🚚 Delivery Charge: ₹${DELIVERY_FEE}\n`;
-  msg += `💰 Total: ₹${sub + (hasDlv ? DELIVERY_FEE : 0)}`;
-
-  return msg;
-};
 
 const useCartStore = create(
   devtools(

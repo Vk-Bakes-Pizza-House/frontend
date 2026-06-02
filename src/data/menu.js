@@ -61,3 +61,72 @@ export const FRESH_BOARD = [
   { name: "Chocolate Truffle Cake", up: true, note: "Ready to order" },
   { name: "Mango IceCream", up: true, note: "Today's flavour" },
 ];
+
+export const INIT_STEPS = [
+  { 
+    id: 1, 
+    emoji: "📸", 
+    title: "QR Scan Karein ya Menu Open Karein", 
+    desc: "Sabse pehle hamare page par aane ke liye QR code ko scan karein ya direct website menu open karein, jahan aapko hamari saari items dikhengi.", 
+    color: "from-orange-400 to-red-500", 
+    bgLight: "bg-orange-50", 
+    border: "border-orange-200", 
+    tips: ["QR code smoothly scan karein", "Browser mein link open karein", "Direct website se bhi open hoga"], 
+    active: true  
+  },
+  { 
+    id: 2, 
+    emoji: "🍕", 
+    title: "Apna Item aur Size Select Karein", 
+    desc: "Apna manpasand Pizza, Cake ya koi bhi bakes item select karein. Aap apna pasandida size, type aur cake ka flavor apne hisab se choose kar sakte hain.", 
+    color: "from-amber-400 to-orange-500", 
+    bgLight: "bg-amber-50", 
+    border: "border-amber-200", 
+    tips: ["Pizza ka size dhyan se chunein", "Cake ke flavors check karein", "Bestsellers check karna na bhoolna"], 
+    active: true 
+  },
+  { 
+    id: 3, 
+    emoji: "🧀", 
+    title: "Extra Cheese aur Quantity Add Karein", 
+    desc: "Agar aapko extra cheese chahiye toh option select karein. Iske baad jitne items chahiye, unka number (+) par click karke badha sakte hain aur fir 'Order Now' button dabayein.", 
+    color: "from-yellow-400 to-amber-600", 
+    bgLight: "bg-yellow-50", 
+    border: "border-yellow-200", 
+    tips: ["Aap multiple items add kar sakte hain", "Extra toppings ka maza lein", "Cart button se total check karein"], 
+    active: true 
+  },
+  { 
+    id: 4, 
+    emoji: "📝", 
+    title: "Cart Check karein aur Details Bharein", 
+    desc: "Aap alag-alag type ke items ko cart mein ek sath add kar sakte hain. Iske baad 'Order on WhatsApp' par click karein aur apna Name, Phone number aur Address enter karke confirm karein.", 
+    color: "from-blue-400 to-indigo-500", 
+    bgLight: "bg-blue-50", 
+    border: "border-blue-200", 
+    tips: ["Address bilkul sahi likhein", "Phone number active hona chahiye", "Cart mein items check kar lein"], 
+    active: true 
+  },
+  { 
+    id: 5, 
+    emoji: "📱", 
+    title: "WhatsApp par Message Send Karein", 
+    desc: "Confirm par click karte hi aapka WhatsApp open ho jayega. Wahan auto-filled message ko hume send kar dein. Jab aapko humari taraf se return text milega, tab aapka order final confirm ho jayega.", 
+    color: "from-green-400 to-emerald-600", 
+    bgLight: "bg-green-50", 
+    border: "border-green-200", 
+    tips: ["Message ko edit mat karein, direct send karein", "Return message ka wait karein", "Kuch hi minutes mein reply aayega"], 
+    active: true 
+  },
+  { 
+    id: 6, 
+    emoji: "💵", 
+    title: "Cash on Delivery Pay Karein", 
+    desc: "Koi online payment ka jhanjhat nahi hai! Jab rider aapka hot aur fresh order lekar aapke ghar pahuchega, tabhi aapko Cash on Delivery (COD) cash mein pay karna hai.", 
+    color: "from-teal-400 to-cyan-500", 
+    bgLight: "bg-teal-50", 
+    border: "border-teal-200", 
+    tips: ["Delivery ke waqt cash taiyar rakhein", "Change (chutte paise) paas rakhein", "No online UPI payment required"], 
+    active: true 
+  },
+]

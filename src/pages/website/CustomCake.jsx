@@ -120,6 +120,14 @@ function CustomCake() {
         <div style={{ fontFamily: C.f2, color: C.muted, fontSize: 11, letterSpacing: 3, marginBottom: 8 }}>
           MADE TO ORDER
         </div>
+        <div className="bg-gradient-to-r from-orange-50 to-amber-50 border border-orange-200 rounded-xl p-4">
+  <h1 className="text-orange-700 font-bold text-sm md:text-base">
+    🚀 Alert: Ye option jald hi open kar diya jayega!
+  </h1>
+  <p className="text-orange-600 text-xs mt-1">
+    Hum is feature par kaam kar rahe hain. Jaldi hi available hoga.
+  </p>
+</div>
         <h2 style={{ fontFamily: C.f1, color: C.mid, fontSize: 28, fontWeight: 700, marginBottom: 6 }}>
           Custom Cake Order
         </h2>
@@ -282,7 +290,8 @@ function CustomCake() {
           <WhatsAppButton
             variant="cake"
             cakeForm={f}
-            disabled={isDisabled}
+            // disabled={isDisabled}
+            disabled
           />
 
         </div>

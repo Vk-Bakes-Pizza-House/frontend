@@ -9,6 +9,7 @@ import {
   Truck, ArrowRight, ChevronDown, ChevronUp,
   Phone, MapPin, Clock, Star, HelpCircle,
 } from "lucide-react";
+import { INIT_STEPS } from "../../data/menu";
 
 // ── Design tokens ─────────────────────────────────────────────
 const C = {
@@ -25,92 +26,92 @@ const C = {
 };
 
 // ── Default steps (shown if no backend data) ──────────────────
-const DEFAULT_STEPS = [
-  {
-    id:      1,
-    emoji:   "🍕",
-    title:   "Browse Our Menu",
-    desc:    "Explore our full menu — Pizzas, Bakes, Cakes, Bread, Biscuits and Ice Cream. Filter by category to find exactly what you're craving.",
-    color:   "from-orange-400 to-red-500",
-    bgLight: "bg-orange-50",
-    border:  "border-orange-200",
-    tips: [
-      "Use category filters to quickly find items",
-      "Look for the ⭐ Bestseller badge for top picks",
-      "Check the 🟢 Fresh Board for today's availability",
-    ],
-  },
-  {
-    id:      2,
-    emoji:   "🛒",
-    title:   "Add Items to Cart",
-    desc:    "Tap 'Add' on any item. Your cart builds up automatically. You can adjust quantities any time before ordering.",
-    color:   "from-amber-400 to-orange-500",
-    bgLight: "bg-amber-50",
-    border:  "border-amber-200",
-    tips: [
-      "Ice Cream can only be delivered with a Pizza, Bake or Cake",
-      "Bread, Toast & Biscuits are store pickup only",
-      "No account or login needed — completely hassle-free",
-    ],
-  },
-  {
-    id:      3,
-    emoji:   "📱",
-    title:   "Tap 'Order on WhatsApp'",
-    desc:    "When you're ready, tap the green WhatsApp button. Your complete order — items, quantities, prices and delivery address — is auto-filled in a message to us.",
-    color:   "from-green-400 to-emerald-600",
-    bgLight: "bg-green-50",
-    border:  "border-green-200",
-    tips: [
-      "WhatsApp opens automatically on your phone",
-      "Your full order details are pre-filled — no typing needed",
-      "Add your delivery address in the message before sending",
-    ],
-  },
-  {
-    id:      4,
-    emoji:   "✅",
-    title:   "We Confirm Your Order",
-    desc:    "We'll reply on WhatsApp within a few minutes to confirm your order and give you an estimated delivery time.',",
-    color:   "from-blue-400 to-indigo-500",
-    bgLight: "bg-blue-50",
-    border:  "border-blue-200",
-    tips: [
-      "Confirmation usually takes 2–5 minutes",
-      "We'll let you know if any item is unavailable",
-      "You can modify the order before we start preparing",
-    ],
-  },
-  {
-    id:      5,
-    emoji:   "🛵",
-    title:   "We Deliver to Your Door",
-    desc:    "Sit back and relax! We prepare your order fresh and deliver it hot to your door. You'll get a WhatsApp update when it's on the way.',",
-    color:   "from-purple-400 to-pink-500",
-    bgLight: "bg-purple-50",
-    border:  "border-purple-200",
-    tips: [
-      "₹20 flat delivery charge for all home delivery orders",
-      "Delivery available within our local area",
-      "Track via WhatsApp updates from us",
-    ],
-  },
-  {
-    id:      6,
-    emoji:   "💵",
-    title:   "Pay Cash on Delivery",
-    desc:    "Pay in cash when your order arrives at your door. No online payment, no UPI, no hassle. Simple as that.",
-    color:   "from-teal-400 to-cyan-500",
-    bgLight: "bg-teal-50",
-    border:  "border-teal-200",
-    tips: [
-      "Cash only — no card or UPI needed",
-      "Keep exact change ready if possible",
-      "Receipt shared on WhatsApp on request",
-    ],
-  },
-];
+// const DEFAULT_STEPS = [
+//   {
+//     id:      1,
+//     emoji:   "🍕",
+//     title:   "Browse Our Menu",
+//     desc:    "Explore our full menu — Pizzas, Bakes, Cakes, Bread, Biscuits and Ice Cream. Filter by category to find exactly what you're craving.",
+//     color:   "from-orange-400 to-red-500",
+//     bgLight: "bg-orange-50",
+//     border:  "border-orange-200",
+//     tips: [
+//       "Use category filters to quickly find items",
+//       "Look for the ⭐ Bestseller badge for top picks",
+//       "Check the 🟢 Fresh Board for today's availability",
+//     ],
+//   },
+//   {
+//     id:      2,
+//     emoji:   "🛒",
+//     title:   "Add Items to Cart",
+//     desc:    "Tap 'Add' on any item. Your cart builds up automatically. You can adjust quantities any time before ordering.",
+//     color:   "from-amber-400 to-orange-500",
+//     bgLight: "bg-amber-50",
+//     border:  "border-amber-200",
+//     tips: [
+//       "Ice Cream can only be delivered with a Pizza, Bake or Cake",
+//       "Bread, Toast & Biscuits are store pickup only",
+//       "No account or login needed — completely hassle-free",
+//     ],
+//   },
+//   {
+//     id:      3,
+//     emoji:   "📱",
+//     title:   "Tap 'Order on WhatsApp'",
+//     desc:    "When you're ready, tap the green WhatsApp button. Your complete order — items, quantities, prices and delivery address — is auto-filled in a message to us.",
+//     color:   "from-green-400 to-emerald-600",
+//     bgLight: "bg-green-50",
+//     border:  "border-green-200",
+//     tips: [
+//       "WhatsApp opens automatically on your phone",
+//       "Your full order details are pre-filled — no typing needed",
+//       "Add your delivery address in the message before sending",
+//     ],
+//   },
+//   {
+//     id:      4,
+//     emoji:   "✅",
+//     title:   "We Confirm Your Order",
+//     desc:    "We'll reply on WhatsApp within a few minutes to confirm your order and give you an estimated delivery time.',",
+//     color:   "from-blue-400 to-indigo-500",
+//     bgLight: "bg-blue-50",
+//     border:  "border-blue-200",
+//     tips: [
+//       "Confirmation usually takes 2–5 minutes",
+//       "We'll let you know if any item is unavailable",
+//       "You can modify the order before we start preparing",
+//     ],
+//   },
+//   {
+//     id:      5,
+//     emoji:   "🛵",
+//     title:   "We Deliver to Your Door",
+//     desc:    "Sit back and relax! We prepare your order fresh and deliver it hot to your door. You'll get a WhatsApp update when it's on the way.',",
+//     color:   "from-purple-400 to-pink-500",
+//     bgLight: "bg-purple-50",
+//     border:  "border-purple-200",
+//     tips: [
+//       "₹20 flat delivery charge for all home delivery orders",
+//       "Delivery available within our local area",
+//       "Track via WhatsApp updates from us",
+//     ],
+//   },
+//   {
+//     id:      6,
+//     emoji:   "💵",
+//     title:   "Pay Cash on Delivery",
+//     desc:    "Pay in cash when your order arrives at your door. No online payment, no UPI, no hassle. Simple as that.",
+//     color:   "from-teal-400 to-cyan-500",
+//     bgLight: "bg-teal-50",
+//     border:  "border-teal-200",
+//     tips: [
+//       "Cash only — no card or UPI needed",
+//       "Keep exact change ready if possible",
+//       "Receipt shared on WhatsApp on request",
+//     ],
+//   },
+// ];
 
 
 
@@ -220,7 +221,7 @@ function DeliveryRules() {
 // ─────────────────────────────────────────────────────────────
 // MAIN
 // ─────────────────────────────────────────────────────────────
-export default function HowToOrder({ steps = DEFAULT_STEPS, onNavigate }) {
+export default function HowToOrder({ steps = INIT_STEPS, onNavigate }) {
  
   return (
     <>

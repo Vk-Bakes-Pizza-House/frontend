@@ -116,16 +116,7 @@ export function StoreManagementPanel() {
           <Globe size={15} />
           Delivery Logistics
         </button>
-        <button
-          onClick={() => setActiveTab("fqa")}
-          className={`px-4 py-2.5 text-sm font-bold flex items-center gap-2 transition-all border-b-2 rounded-t-lg ${activeTab === "delivery"
-              ? `border-[#F5A623] ${C.dark} bg-[#F5A623]/10`
-              : `border-transparent ${C.muted} hover:${C.dark}`
-            }`}
-        >
-          <Globe size={15} />
-          FQA
-        </button>
+       
       </div>
 
       {/* TAB SUB-PANEL 1: CORE DETAILS */}
@@ -241,7 +232,7 @@ export function StoreManagementPanel() {
         </div>
       )}
 
-      {activeTab === "fqa" && (<ManageFaq />)}
+      {/* {activeTab === "fqa" && (<ManageFaq />)} */}
 
       {/* Persisted Sticky Control Action Header */}
       <div className="flex justify-end pt-2">

@@ -1,7 +1,10 @@
 import { useEffect, useState } from "react";
 import { C } from "../../data/menu";
-import { MapPin, Clock, Phone } from "lucide-react";  
+import { MapPin, Clock, Phone, MessageCircle } from "lucide-react";  
 import { useStoreStore } from "../../store";
+import { FaInstagram, FaFacebook } from "react-icons/fa";
+
+
 
 function ContactPage() {
   const { store, fetchStore } = useStoreStore();
@@ -37,7 +40,7 @@ function ContactPage() {
           {[
             { icon: <MapPin size={18} color={C.red} />, t: "Address", b: address },
             { icon: <Clock size={18} color={C.red} />, t: "Store Timings", b: timingText },
-            { icon: <Phone size={18} color={C.red} />, t: "WhatsApp", b: `+${whatsapp.slice(0, 2)} ${whatsapp.slice(2)}` },
+            { icon: <Phone size={18} color={C.red} />, t: "Call me", b: `+${whatsapp.slice(0, 2)} ${whatsapp.slice(2)}` },
           ].map(({ icon, t, b }) => (
             <div key={t} style={{ background: "white", borderRadius: 12, padding: "18px", border: `1px solid ${C.border}`, display: "flex", gap: 14, alignItems: "flex-start" }}>
               <div style={{ width: 38, height: 38, borderRadius: 9, background: "#FFF0E0", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>{icon}</div>
@@ -47,10 +50,41 @@ function ContactPage() {
               </div>
             </div>
           ))}
-          <a href={`https://wa.me/${whatsapp}`} target="_blank" rel="noreferrer"
-            style={{ background: "#25D366", color: "white", padding: "15px", borderRadius: 12, fontFamily: C.f2, fontWeight: 700, fontSize: 15, textAlign: "center", display: "block", textDecoration: "none" }}>
-            💬 Chat on WhatsApp
-          </a>
+          <div>
+                      <h3 className="text-sm font-bold tracking-[2px] mb-5 text-[#D44B1A] ">
+                        FIND US
+                      </h3>
+          
+                     
+                        
+                        <div className="flex gap-3 mx-5">
+                        {[
+                          {
+                            icon: <FaInstagram size={36} className="text-pink-500" />,
+                            href: "/",
+                          },
+                          {
+                            icon: <FaFacebook size={36} className="text-sky-500" />,
+                            href: "/",
+                          },
+                          {
+                            icon: <MessageCircle size={36} className="text-green-600" />,
+                            href: `https://wa.me/${whatsapp}`,
+                          },
+                        ].map((item, index) => (
+                          <a
+                            key={index}
+                            href={item.href}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="w-9 h-9 rounded-lg border border-white/10 bg-white/5 flex items-center justify-center hover:bg-white/10 transition"
+                          >
+                            {item.icon}
+                          </a>
+                        ))}
+                      
+                      </div>
+                    </div>
         </div>
       </div>
     </div>

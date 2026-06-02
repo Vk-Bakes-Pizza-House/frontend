@@ -18,8 +18,8 @@ import { endpoints } from "../utils/endpoints";
         fetchFaqs: async () => {
           set({ loading: true, error: null });
           try {
-            // Endpoints object se query link check karein (e.g., endpoints.faqs)
-            const response = await api.get(endpoints.faqs || "/faqs");
+            // Endpoints object se query link check karein (e.g., endpoints.FAQ.getAll)
+            const response = await api.get(endpoints.FAQ.getAll);
             set({ FAQS: response.data, loading: false });
           } catch (err) {
             set({ 
@@ -33,7 +33,7 @@ import { endpoints } from "../utils/endpoints";
         addFaq: async (faqData) => {
           set({ loading: true, error: null });
           try {
-            const response = await api.post(endpoints.faqs || "/faqs", faqData);
+            const response = await api.post(endpoints.FAQ.create, faqData);
             // Naya FAQ direct state mein front par push karein
             set((state) => ({
               FAQS: [response.data, ...state.FAQS],
@@ -48,12 +48,30 @@ import { endpoints } from "../utils/endpoints";
             return { success: false, message: get().error };
           }
         },
+        editFaq: async (faqData) => {
+          set({ loading: true, error: null });
+          try {
+            const response = await api.put(`${endpoints.FAQ.update(faqData._id)}`, faqData);
+            // Edit kiya gaya FAQ direct state mein update karein
+            set((state) => ({
+              FAQS: [response.data, ...state.FAQS],
+              loading: false
+            }));
+            return { success: true };
+          } catch (err) {
+            set({ 
+              error: err.response?.data?.message || "FAQ edit nahi ho paya.", 
+              loading: false 
+            });
+            return { success: false, message: get().error };
+          }
+        },
 
         // 3. Delete FAQ (Trash icon ke onClick par _id pass karein)
         deleteFaq: async (id) => {
           set({ loading: true, error: null });
           try {
-            await api.delete(`${endpoints.faqs || "/faqs"}/${id}`);
+            await api.delete(endpoints.FAQ.delete(id));
             // Filter karke list se instantly remove karein
             set((state) => ({
               FAQS: state.FAQS.filter((faq) => faq._id !== id),
@@ -68,6 +86,7 @@ import { endpoints } from "../utils/endpoints";
             return { success: false, message: get().error };
           }
         }
+
       }),
       {
         name: "faq-storage", // local storage identifier name

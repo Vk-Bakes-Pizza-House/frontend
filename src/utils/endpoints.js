@@ -52,7 +52,7 @@ const endpointsPathsDev = {
       `${API_BASE}/reviews/${id}`,
     delete: (id) => `${API_BASE}/reviews/${id}`,
   },
-  fqa:{
+  FAQ:{
     getAll: `${API_BASE}/faqs`,
     create: `${API_BASE}/faqs`,
     update: (id) => `${API_BASE}/faqs/${id}`,
@@ -112,7 +112,7 @@ const endpointsPathsProd = {
       `/api/reviews/${id}`,
     delete: (id) => `/api/reviews/${id}`,
   },
-  fqa:{
+  FAQ:{
     getAll: `/api/faqs`,
     create: `/api/faqs`,
     update: (id) => `/api/faqs/${id}`,
@@ -197,6 +197,6 @@ export const API_ENDPOINTS = {
   MENU: endpoints.menu,
   ORDERS: endpoints.orders,
   REVIEWS: endpoints.reviews,
-  FQAs: endpoints.fqa,
+  FQAs: endpoints.FAQ,
   UPLOAD: endpoints.upload,
 };

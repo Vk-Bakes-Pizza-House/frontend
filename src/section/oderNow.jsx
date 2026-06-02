@@ -4,7 +4,7 @@
 import { useState, useEffect, useRef } from "react";
 import { X, ArrowRight, ShoppingBag, ShoppingCart } from "lucide-react";
 import { buildMsg, isDlv, getWhatsApp, getDeliveryFees, getFreeDeliveryAbove, getCategory } from "../config";
-import { EMOJI,C } from "../data/menu";
+import { EMOJI, C } from "../data/menu";
 import api from "../store/api";
 import { endpoints } from "../utils/endpoints";
 import {
@@ -16,6 +16,9 @@ import {
 } from "../components/Order";
 import useCartStore from "../store/cartStore";
 import { toast } from "sonner";
+
+import useOrderSubmit  from "../hooks/orderSubmit";
+
 
 // ─────────────────────────────────────────────────────────────
 // const getFreeDeliveryAbove ;
@@ -30,7 +33,9 @@ const PIZZA_SIZES = [
 
 export default function OrderNowModal({ item, onClose }) {
   const category = getCategory(item);
-  const { addItem: add, logOrder } = useCartStore();
+  const { addItem: add, logOrder } = useCartStore()
+
+
   const isPizza = category === "pizza";
 
   // ── State ────────────────────────────────────────────────
@@ -52,6 +57,35 @@ export default function OrderNowModal({ item, onClose }) {
   const [showIce, setShowIce] = useState(false);
 
   const inputRef = useRef(null);
+
+
+   // ── Price calculations ────────────────────────────────────
+  const sizeObj = PIZZA_SIZES.find((s) => s.key === selectedSize);
+  const sizeAdd = isPizza ? (sizeObj?.priceAdd ?? 0) : 0;
+  const cheeseAdd = isPizza && extraCheese ? 30 : 0;
+  const itemPrice = item.price + sizeAdd + cheeseAdd;
+
+  const allAddonItems = [...drinks, ...iceCreams];
+  const activeAddons = Object.entries(addons).filter(([, q]) => q > 0);
+
+  const addonTotal = activeAddons.reduce((s, [id, q]) => {
+    const f = allAddonItems.find((a) => (a._id || a.id) === id);
+    return s + (f ? f.price * q : 0);
+  }, 0);
+
+  const subtotal = itemPrice * mainQty + addonTotal;
+  const deliveryFee = subtotal >= getFreeDeliveryAbove() ? 0 : getDeliveryFees();
+  const total = subtotal + deliveryFee;
+  const remaining = Math.max(0, getFreeDeliveryAbove() - subtotal);
+
+const { handleAddToCart, handleConfirmOrder } = useOrderSubmit({
+ item ,isPizza, sizeObj, selectedSize,
+  extraCheese, itemPrice, mainQty,
+  activeAddons, allAddonItems,
+  subtotal, deliveryFee, total,
+  add, onClose,
+});
+
 
   // ── Keyboard / focus ─────────────────────────────────────
   useEffect(() => { setTimeout(() => inputRef.current?.focus(), 120); }, []);
@@ -80,24 +114,7 @@ export default function OrderNowModal({ item, onClose }) {
     })();
   }, []);
 
-  // ── Price calculations ────────────────────────────────────
-  const sizeObj = PIZZA_SIZES.find((s) => s.key === selectedSize);
-  const sizeAdd = isPizza ? (sizeObj?.priceAdd ?? 0) : 0;
-  const cheeseAdd = isPizza && extraCheese ? 30 : 0;
-  const itemPrice = item.price + sizeAdd + cheeseAdd;
-
-  const allAddonItems = [...drinks, ...iceCreams];
-  const activeAddons = Object.entries(addons).filter(([, q]) => q > 0);
-
-  const addonTotal = activeAddons.reduce((s, [id, q]) => {
-    const f = allAddonItems.find((a) => (a._id || a.id) === id);
-    return s + (f ? f.price * q : 0);
-  }, 0);
-
-  const subtotal = itemPrice * mainQty + addonTotal;
-  const deliveryFee = subtotal >= getFreeDeliveryAbove() ? 0 : getDeliveryFees();
-  const total = subtotal + deliveryFee;
-  const remaining = Math.max(0, getFreeDeliveryAbove() - subtotal);
+ 
 
   // ── Add-on qty helper ─────────────────────────────────────
   const setAddonQty = (id, delta) =>
@@ -107,101 +124,7 @@ export default function OrderNowModal({ item, onClose }) {
       return { ...prev, [id]: next };
     });
 
-  // ── Build customised item name ────────────────────────────
-  const buildMainItem = () => {
-    const sizeLabel   = isPizza && sizeObj?.priceAdd > 0 ? ` (${sizeObj.label})` : "";
-    const cheeseLabel = isPizza && extraCheese ? " + Extra Cheese" : "";
-    const itemId = item?._id || item?.id;
-    const variantId = `${itemId}-${selectedSize}-${extraCheese ? "cheese" : "no-cheese"}`;
 
-    return {
-      ...item,
-      _id: variantId,
-      menuItem: item._id || item.id,
-      id: itemId,
-      name: `${item.name}${sizeLabel}${cheeseLabel}`,
-      price: itemPrice,
-      qty: mainQty,
-    };
-  };
-
-  // ── Add to cart ───────────────────────────────────────────
-  const handleAddToCart = () => {
-    const main = buildMainItem();
-    add(main, mainQty);
-
-    activeAddons.forEach(([id, q]) => {
-      const found = allAddonItems.find((a) => (a._id || a.id) === id);
-      if (found) add({ ...found, qty: 1, deliverable: true }, q);
-    });
-
-    onClose();
-  };
-
-
-
-
-  // ── WhatsApp order ────────────────────────────────────────
-  const confirmAndOrder = async () => {
-    if (!name.trim() || !phone.trim() || !addr.trim()) {
-      toast.warning("Please fill in all address details before confirming.");
-      return;
-    }
-
-    const addonLines = activeAddons.map(([id, q]) => {
-      const f = allAddonItems.find((a) => (a._id || a.id) === id);
-      return { ...f, qty: q, deliverable: true };
-    });
-
-    const main = buildMainItem();
-    const itemsPayload = [main, ...addonLines]
-      .filter(Boolean)
-      .map(({ _id, menuItem, name, price, qty }) => {
-        const sourceId = menuItem || _id;
-        const item = {
-          name,
-          price: Number(price || 0),
-          qty: Number(qty || 0),
-        };
-        if (typeof sourceId === "string" && /^[0-9a-fA-F]{24}$/.test(sourceId)) {
-          item.menuItem = sourceId;
-        }
-        return item;
-      })
-      .filter((item) => item.qty > 0 && item.name);
-
-    if (itemsPayload.length === 0) {
-      toast.error("Order must have at least one item.");
-      return;
-    }
-
-    const payload = {
-      customer: {
-        name: name.trim(),
-        phone: phone.trim(),
-        address: addr.trim(),
-      },
-      items: itemsPayload,
-      orderType: isDlv(main, [main]) ? "delivery" : "pickup",
-      subtotal: Number(subtotal),
-      deliveryCharge: Number(deliveryFee || 0),
-      total: Number(total),
-      paymentMethod: "Cash on Delivery",
-    };
-
-    try {
-      await api.post(endpoints.orders.create, payload);
-      toast.success("Order saved to backend. Opening WhatsApp...");
-    } catch (e) {
-      console.warn("Failed to save order payload:", e.message || e);
-      toast.warning("Could not save order to backend. Opening WhatsApp anyway.");
-    }
-
-    setIsOpen(false);
-    const msg = buildMsg([main, ...addonLines], addr, name, phone);
-    window.open(`https://wa.me/${getWhatsApp()}?text=${msg}`, "_blank");
-    onClose();
-  }
   const handleWhatsAppClick = () => {
     // if (!mainQty.length) return;
     setIsOpen(true); // Popup open karo
@@ -389,7 +312,7 @@ export default function OrderNowModal({ item, onClose }) {
               Cancel
             </button>
             <button
-              onClick={handleAddToCart}
+              onClick={()=> handleAddToCart( )}
               className="flex-[2] flex items-center justify-center gap-2 py-2.5 px-4
                          rounded-xl border-2 border-[#D44B1A] bg-[#FFF3EE] hover:bg-[#FFE8E0]
                          font-sans text-sm font-bold text-[#D44B1A] transition-colors"
@@ -446,7 +369,13 @@ export default function OrderNowModal({ item, onClose }) {
                     Cancel
                   </button>
                   <button
-                    onClick={confirmAndOrder}
+                    onClick={() =>
+                      handleConfirmOrder(
+                        name,
+                        phone,
+                        addr
+                      )
+                    }
                     className="flex-1 py-3 rounded-xl text-white font-bold text-sm transition-all active:scale-95"
                     style={{ background: C.green }}
                   >

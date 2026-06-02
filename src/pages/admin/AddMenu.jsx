@@ -11,7 +11,7 @@ export default function AddMenu() {
 
   // Page load hote hi existing categories fetch karein
   useEffect(() => {
-    if (fetchCategories) fetchCategories();
+  fetchCategories();
   }, []);
 
   console.log("Current Categories:", categories); // Debugging ke liye
