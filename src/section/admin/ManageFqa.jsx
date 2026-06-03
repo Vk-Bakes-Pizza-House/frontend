@@ -7,8 +7,8 @@ import { AddFaqForm,FaqRow } from "../FqaItem";
 
 
 function ManageFaq() {
-//   const [faqs, setFaqs] = useState(INITIAL_FAQS);
-const { FAQS, addFaq, deleteFaq, editFaq } = useFQAStore();
+  const [addingFaq, setAddingFaq] = useState(false);
+  const { FAQS, addFaq, deleteFaq, editFaq, toggleFaq } = useFQAStore();
   const [question, setQuestion] = useState("");
   const [answer, setAnswer] = useState("");
 
@@ -20,7 +20,6 @@ const { FAQS, addFaq, deleteFaq, editFaq } = useFQAStore();
       toast.warning("Please Question aur Answer dono fill karein!");
       return;
     }
-    console.log(FAQS);
 
     const newFaq = {
       q: question.trim(),
@@ -39,7 +38,6 @@ const { FAQS, addFaq, deleteFaq, editFaq } = useFQAStore();
     deleteFaq(indexToDelete);
     toast.info("FAQ remove kar diya gaya.");
   };
-  const toggleFaq = (id) => setFaqs(prev => prev.map(q => q.id === id ? { ...q, active: !q.active } : q));
 
   return (
     // <div className="min-h-screen bg-stone-50 py-8 px-4">
@@ -130,7 +128,7 @@ const { FAQS, addFaq, deleteFaq, editFaq } = useFQAStore();
                   </div>
 
                   {/* Add FAQ form */}
-                  {addFaq && (
+                  {addingFaq && (
                     <div className="bg-white rounded-2xl border border-orange-200 p-4 mb-4">
                       <p className="text-sm font-bold text-stone-700 mb-3">➕ Add New FAQ</p>
                       <AddFaqForm onSave={addFaq} onCancel={() => setAddingFaq(false)} />
@@ -150,9 +148,9 @@ const { FAQS, addFaq, deleteFaq, editFaq } = useFQAStore();
                     ))}
                   </div>
 
-                  {!addFaq && (
+                  {!addingFaq && (
                     <button
-                      onClick={() => setAddFaq(true)}
+                      onClick={() => setAddingFaq(true)}
                       className="flex items-center gap-2 w-full py-3 rounded-2xl border-2 border-dashed border-orange-300 text-orange-500 text-sm font-bold hover:border-orange-400 hover:bg-orange-50 transition-all justify-center"
                     >
                       <Plus size={15} /> Add New FAQ

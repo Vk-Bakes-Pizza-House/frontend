@@ -1,6 +1,5 @@
 import {useState} from "react"
-import {ChevronUp,ChevronDown,EyeOff,Edit3,Trash2 } from "lucide-react"
-// ── FAQ accordion ─────────────────────────────────────────────
+import {ChevronUp,ChevronDown,Eye,EyeOff,Edit3,Trash2 } from "lucide-react"// ── FAQ accordion ─────────────────────────────────────────────
 export function FaqItem({ q, a, last }) {
   const [open, setOpen] = useState(false);
 

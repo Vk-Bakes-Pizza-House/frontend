@@ -51,6 +51,7 @@ const useMenuStore = create(
         // ── Helpers ───────────────────────────────────────────
         clearError:  () => set({ error: null }),
         setCategory: (cat) => set({ activeCategory: cat }),
+        
 
         // ══════════════════════════════════════════════════════
         // MENU ITEMS

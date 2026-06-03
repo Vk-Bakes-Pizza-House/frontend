@@ -175,6 +175,7 @@ export default function PizzaDetail({ onBack, onNavigate }) {
       qty,
       extras,
       size: selectedSize.label,
+      image: item.image || item.imageUrl || "",
     };
 
     // Remaining add to cart logic...
@@ -233,8 +234,15 @@ export default function PizzaDetail({ onBack, onNavigate }) {
 
               {/* Main image */}
               <div className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-orange-100 via-amber-50 to-orange-50 aspect-square flex items-center justify-center shadow-lg">
-                <span className="text-[140px] select-none leading-none">🍕</span>
-
+                {item.image || item.imageUrl ? (
+                  <img 
+                    src={item.image || item.imageUrl} 
+                    alt={item.name} 
+                    className="w-full h-full object-cover" 
+                  />
+                ) : (
+                  <span className="text-[140px] select-none leading-none">🍕</span>
+                )}
                 {/* Badges */}
                 <div className="absolute top-4 left-4 flex flex-col gap-2">
                   {item.tag && (

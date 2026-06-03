@@ -129,7 +129,7 @@ export default function LayoutWrapper() {
 
           {/* Admin */}
           <Route
-            path="/admin/*"
+            path="/login/*"
             element={<AdminApp />}
           />
 

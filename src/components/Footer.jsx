@@ -80,9 +80,24 @@ export default function Footer({ onNavigate }) {
   const storeName = storeData?.storeName || "VK Bakes";
   const storeAddress = storeData?.address || "Your Locality, City — 000000";
   const deliveryFee = storeData?.deliveryFee || 20;
-  const whatsapp = storeData?.whatsapp || WA_DEFAULT;
-  const timings = storeData?.timings || {};
+  const phone1 = storeData?.phone1 || WA_DEFAULT;
+  const phone2 = storeData?.phone2 || "";
+  const openTime = storeData?.openTime || "08:00";
+  const closeTime = storeData?.closeTime || "21:00";
   const deliveryZone = storeData?.deliveryZone || "Within 5 km" ;
+
+  const formatTime = (time24) => {
+    const [h, m] = time24.split(':');
+    const hour = parseInt(h);
+    const ampm = hour >= 12 ? 'PM' : 'AM';
+    const hour12 = hour % 12 || 12;
+    return `${hour12}:${m} ${ampm}`;
+  };
+
+  const phoneDisplay = phone2 
+    ? `+${phone1.slice(0, 2)} ${phone1.slice(2)} 
+     +${phone2.slice(0, 2)} ${phone2.slice(2)}` 
+    : `+${phone1.slice(0, 2)} ${phone1.slice(2)}`;
 
   return (
     <footer className="bg-[#120600] text-[#E8D5C0] font-sans">
@@ -167,11 +182,11 @@ export default function Footer({ onNavigate }) {
                 },
                 {
                   icon: <Phone size={14} className="text-[#D44B1A]" />,
-                  text: whatsapp ? `+${whatsapp.replace(/^91/, "")}` : "+91 99999 99999",
+                  text: phoneDisplay,
                 },
                 {
                   icon: <Clock size={14} className="text-[#D44B1A]" />,
-                  text: "Open 7 days a week",
+                  text: `${formatTime(openTime)} – ${formatTime(closeTime)}, 7 days`,
                 },
               ].map((item, index) => (
                 <div key={index} className="flex gap-3">
@@ -196,7 +211,7 @@ export default function Footer({ onNavigate }) {
                 },
                 {
                   icon: <MessageCircle size={16} className="text-green-600" />,
-                  href: `https://wa.me/${whatsapp}`,
+                  href: `https://wa.me/${phone1}`,
                 },
               ].map((item, index) => (
                 <a

@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
-import { AlertCircle, Plus, Minus, Trash2, X } from "lucide-react"; // X icon add kiya modal close karne ke liye
-import { C, EMOJI } from "../data/menu";
+import { AlertCircle, Plus, Minus, Trash2, X, Loader2 } from "lucide-react"; // X icon add kiya modal close karne ke liyeimport { C, EMOJI } from "../data/menu";
 import { isDlv, hasPCB, buildMsg } from "../config";
 import { getWhatsApp, getDeliveryFees, getFreeDeliveryAbove } from "../config";
 import { AddressBox, CartSummary } from "../components/Order"
@@ -15,6 +14,7 @@ function Cart() {
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [addr, setAddr] = useState("");
+  const [whatsappLoading, setWhatsappLoading] = useState(false)
 
   // Popup modal ko open/close karne ki state
   const [isOpen, setIsOpen] = useState(false);
@@ -25,13 +25,13 @@ function Cart() {
   const remaining = Math.max(0, getFreeDeliveryAbove() - sub);
 
 
-const {  handleConfirmOrder } = useCartOrderSubmit({
-  cart,
-  subtotal: sub,
-  deliveryFee,
-  total: sub + deliveryFee,
-  onDone: () => setIsOpen(false)
-});
+  const { handleConfirmOrder } = useCartOrderSubmit({
+    cart,
+    subtotal: sub,
+    deliveryFee,
+    total: sub + deliveryFee,
+    onDone: () => setIsOpen(false)
+  });
 
   // 1. Jab main WhatsApp button par click hoga
   const handleWhatsAppClick = () => {
@@ -122,7 +122,7 @@ const {  handleConfirmOrder } = useCartOrderSubmit({
           <div className="flex flex-col gap-3">
             {cart.map(item => (
               <div key={item._id || item.id} className="flex items-center gap-3 rounded-lg p-3.5 bg-white border" style={{ borderColor: C.border }}>
-                <div className="text-2xl flex-shrink-0">{EMOJI[item.category || item.cat]}</div>
+                <div className="text-2xl flex-shrink-0">{item.image ? <img src={item.image} alt={item.name} className="w-10 h-10 object-cover" /> : "🍕" }</div>
                 <div className="flex-1 min-w-0">
                   <div className="font-semibold text-sm" style={{ color: C.mid, fontFamily: C.f2 }}>{item.name}</div>
                   <div className="text-xs mt-1" style={{ color: isDlv(item, cart) ? "#16A34A" : C.muted, fontFamily: C.f2 }}>
@@ -207,16 +207,27 @@ const {  handleConfirmOrder } = useCartOrderSubmit({
                 Cancel
               </button>
               <button
- onClick={() =>
-    handleConfirmOrder(
-      name,
-      phone,
-      addr
-    )
-  }                className="flex-1 py-3 rounded-xl text-white font-bold text-sm transition-all active:scale-95"
+                onClick={async () => {
+                  setWhatsappLoading(true);
+                  try {
+                    await handleConfirmOrder(name, phone, addr);
+                  } finally {
+                    setWhatsappLoading(false);
+                  }
+
+                }}
+                disabled={whatsappLoading}
+                className="flex-1 py-3 rounded-xl text-white font-bold text-sm transition-all active:scale-95"
                 style={{ background: C.green }}
               >
-                Confirm Order
+                {whatsappLoading ? (
+                  <span className="inline-flex items-center justify-center gap-2">
+                    <Loader2 className="animate-spin" size={16} />
+                    Confirming...
+                  </span>
+                ) : (
+                  "Confirm Order"
+                )}
               </button>
             </div>
 

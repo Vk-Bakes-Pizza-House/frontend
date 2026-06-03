@@ -1,5 +1,4 @@
-// src/utils/orderHelpers.js
-// ─────────────────────────────────────────────────────────────
+// src/utils/orderhelper.js// ─────────────────────────────────────────────────────────────
 // Reusable helpers for building, validating, and submitting
 // orders from OrderNowModal (and any future order flow).
 // ─────────────────────────────────────────────────────────────
@@ -32,7 +31,13 @@ export const buildMainItem = ({
   const sizeLabel   = isPizza && sizeObj?.priceAdd > 0 ? ` (${sizeObj.label})` : "";
   const cheeseLabel = isPizza && extraCheese ? " + Extra Cheese" : "";
   const itemId      = item?._id || item?.id;
-  const variantId   = `${itemId}-${selectedSize}-${extraCheese ? "cheese" : "no-cheese"}`;
+
+  if (!itemId) {
+    console.error("buildMainItem: missing menu item id", item);
+    return null;
+  }
+
+  const variantId   = `${itemId}-${selectedSize ?? "default"}-${extraCheese ? "cheese" : "no-cheese"}`;
 
   return {
     ...item,
@@ -66,8 +71,14 @@ export const buildAddonLines = (activeAddons, allAddonItems) =>
 //   addonLines   → result of buildAddonLines()
 //
 export const addOrderToCart = (add, mainItem, addonLines) => {
+  if (!mainItem || !mainItem._id || !mainItem.menuItem) {
+    console.error("addOrderToCart: invalid mainItem", mainItem);
+    return false;
+  }
+
   add(mainItem, mainItem.qty);
   addonLines.forEach((addon) => add({ ...addon, qty: 1 }, addon.qty));
+  return true;
 };
 
 // ── 4. Convert cart items → backend Order.items[] payload ─────
@@ -116,7 +127,7 @@ export const confirmAndSendOrder = async ({
   }
 
   // ── Build backend payload ───────────────────────────────────
-  const allCartItems   = [mainItem, ...addonLines];
+  const allCartItems   = mainItem ? [mainItem, ...addonLines] : [...addonLines];
   const itemsPayload   = toOrderItemsPayload(allCartItems);
 
   if (itemsPayload.length === 0) {
@@ -131,7 +142,7 @@ export const confirmAndSendOrder = async ({
       address: addr.trim(),
     },
     items:          itemsPayload,
-    orderType:      isDlv(mainItem, [mainItem]) ? "delivery" : "pickup",
+    orderType:      isDlv(mainItem, allCartItems) ? "delivery" : "pickup",
     subtotal:       Number(subtotal),
     deliveryCharge: Number(deliveryFee || 0),
     total:          Number(total),

@@ -2,7 +2,7 @@
 
 // ─────────────────────────────────────────────────────────────
 import { useState, useEffect, useRef } from "react";
-import { X, ArrowRight, ShoppingBag, ShoppingCart } from "lucide-react";
+import { X, ArrowRight, ShoppingBag, ShoppingCart, Loader2 } from "lucide-react";
 import { buildMsg, isDlv, getWhatsApp, getDeliveryFees, getFreeDeliveryAbove, getCategory } from "../config";
 import { EMOJI, C } from "../data/menu";
 import api from "../store/api";
@@ -55,6 +55,7 @@ export default function OrderNowModal({ item, onClose }) {
   const [addonError, setAddonError] = useState(null);
   const [showDrinks, setShowDrinks] = useState(false);
   const [showIce, setShowIce] = useState(false);
+  const [whatsappLoading, setWhatsappLoading] = useState(false)
 
   const inputRef = useRef(null);
 
@@ -369,17 +370,26 @@ const { handleAddToCart, handleConfirmOrder } = useOrderSubmit({
                     Cancel
                   </button>
                   <button
-                    onClick={() =>
-                      handleConfirmOrder(
-                        name,
-                        phone,
-                        addr
-                      )
-                    }
-                    className="flex-1 py-3 rounded-xl text-white font-bold text-sm transition-all active:scale-95"
+                    onClick={async () => {
+                      setWhatsappLoading(true);
+                      try {
+                        await handleConfirmOrder(name, phone, addr);
+                      } finally {
+                        setWhatsappLoading(false);
+                      }
+                    }}
+                    disabled={whatsappLoading}
+                    className={`flex-1 py-3 rounded-xl text-white font-bold text-sm transition-all active:scale-95 ${whatsappLoading ? "opacity-70 cursor-not-allowed" : ""}`}
                     style={{ background: C.green }}
                   >
-                    Confirm Order
+                    {whatsappLoading ? (
+                      <span className="inline-flex items-center justify-center gap-2">
+                        <Loader2 className="animate-spin" size={16} />
+                        Confirming...
+                      </span>
+                    ) : (
+                      "Confirm Order"
+                    )}
                   </button>
                 </div>
 

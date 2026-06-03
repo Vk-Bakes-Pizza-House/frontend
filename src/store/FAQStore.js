@@ -52,9 +52,10 @@ import { endpoints } from "../utils/endpoints";
           set({ loading: true, error: null });
           try {
             const response = await api.put(`${endpoints.FAQ.update(faqData._id)}`, faqData);
-            // Edit kiya gaya FAQ direct state mein update karein
             set((state) => ({
-              FAQS: [response.data, ...state.FAQS],
+              FAQS: state.FAQS.map((faq) =>
+                faq._id === faqData._id ? response.data : faq
+              ),
               loading: false
             }));
             return { success: true };
@@ -66,7 +67,6 @@ import { endpoints } from "../utils/endpoints";
             return { success: false, message: get().error };
           }
         },
-
         // 3. Delete FAQ (Trash icon ke onClick par _id pass karein)
         deleteFaq: async (id) => {
           set({ loading: true, error: null });
@@ -85,6 +85,16 @@ import { endpoints } from "../utils/endpoints";
             });
             return { success: false, message: get().error };
           }
+        },
+
+        // 4. Toggle FAQ visibility state locally
+        toggleFaq: (id) => {
+          set((state) => ({
+            FAQS: state.FAQS.map((faq) =>
+              faq._id === id ? { ...faq, active: !faq.active } : faq
+            ),
+          }));
+          return { success: true };
         }
 
       }),

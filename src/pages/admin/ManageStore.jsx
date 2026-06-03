@@ -17,15 +17,14 @@ export function StoreManagementPanel() {
     storeName: "VK Bakes & Pizza House",
     tagline: "Fresh · Local · Delivered",
     discription: "Fresh-baked breads, artisan cakes, and hot pizzas — delivered right to your door.",
-    whatsapp: "919999999999",
+    phone1: "919999999999",
+    phone2: "",
     address: "Your Locality, City — 000000",
     deliveryZone: "Within 5 km",
     deliveryFee: "20",
-    freeDeliveryFee: "300", // Synchronized with frontend inputs
-    timings: {
-      monFri: { open: "08:00", close: "21:00" },
-
-    },
+    freeDeliveryFee: "300",
+    openTime: "08:00",
+    closeTime: "21:00",
     closedDays: "",
   });
 
@@ -37,12 +36,14 @@ export function StoreManagementPanel() {
           storeName: data.storeName || form.storeName,
           tagline: data.tagline || form.tagline,
           discription: data.discription || form.discription,
-          whatsapp: data.whatsapp || form.whatsapp,
+          phone1: data.phone1 || form.phone1,
+          phone2: data.phone2 || form.phone2,
           address: data.address || form.address,
           deliveryZone: data.deliveryZone || form.deliveryZone,
           deliveryFee: String(data.deliveryFee ?? form.deliveryFee),
           freeDeliveryFee: String(data.freeDeliveryFee ?? form.freeDeliveryFee),
-          timings: data.timings || form.timings,
+          openTime: data.openTime || form.openTime,
+          closeTime: data.closeTime || form.closeTime,
           closedDays: data.closedDays || form.closedDays,
         });
       }
@@ -55,8 +56,8 @@ export function StoreManagementPanel() {
     setSaved(false);
   };
 
-  const setTiming = (day, field, v) =>
-    setForm(p => ({ ...p, timings: { ...p.timings, [day]: { ...p.timings[day], [field]: v } } }));
+  const setTiming = (field, v) =>
+    setForm(p => ({ ...p, [field]: v }));
 
   const save = async () => {
     setLoading(true);
@@ -64,12 +65,14 @@ export function StoreManagementPanel() {
       storeName: form.storeName,
       tagline: form.tagline,
       discription: form.discription,
-      whatsapp: form.whatsapp,
+      phone1: form.phone1,
+      phone2: form.phone2,
       address: form.address,
       deliveryZone: form.deliveryZone,
       deliveryFee: Number(form.deliveryFee),
       freeDeliveryFee: Number(form.freeDeliveryFee),
-      timings: form.timings,
+      openTime: form.openTime,
+      closeTime: form.closeTime,
       closedDays: form.closedDays,
     };
 
@@ -81,11 +84,7 @@ export function StoreManagementPanel() {
     }
   };
 
-  const DAYS = [
-    { key: "monFri", label: "Mon – Fri" },
-    { key: "saturday", label: "Saturday" },
-    { key: "sunday", label: "Sunday" },
-  ];
+
 
   if (initialLoading) {
     return <div className={`text-center py-8 ${C.muted}`}>Loading store configuration…</div>;
@@ -133,13 +132,20 @@ export function StoreManagementPanel() {
               <Input label="Tagline" value={form.tagline} onChange={e => set("tagline", e.target.value)} placeholder="Fresh · Local · Delivered" />
               <Input label="Description" value={form.discription} onChange={e => set("discription", e.target.value)} placeholder="Description" />
               <Input
-                label="WhatsApp Number (with country code)"
-                value={form.whatsapp}
-                onChange={e => set("whatsapp", e.target.value)}
+                label="Phone 1 (Primary)"
+                value={form.phone1}
+                onChange={e => set("phone1", e.target.value)}
                 placeholder="919999999999"
                 icon={Phone}
-                hint="Orders will be sent to this number via wa.me link"
-
+                hint="Primary contact number shown on website"
+              />
+              <Input
+                label="Phone 2 (Secondary)"
+                value={form.phone2}
+                onChange={e => set("phone2", e.target.value)}
+                placeholder="919876543210"
+                icon={Phone}
+                hint="Optional: second contact number for support"
               />
               <Input
                 label="Store Address"
@@ -155,29 +161,30 @@ export function StoreManagementPanel() {
           <div className={`${C.card} rounded-2xl border ${C.border} p-6`}>
             <div className="flex items-center gap-2 mb-5">
               <Clock size={16} className={C.red} />
-              <p className={`text-sm font-bold ${C.dark}`}>Store Timings</p>
+              <p className={`text-sm font-bold ${C.dark}`}>Store Timings (All Days)</p>
             </div>
-            <div className="space-y-3">
-              {DAYS.map(day => (
-                <div key={day.key} className="flex items-center gap-3 flex-wrap">
-                  <span className={`text-xs font-semibold ${C.muted} w-20`}>{day.label}</span>
-                  <div className="flex items-center gap-2 flex-1 min-w-fit">
-                    <input
-                      type="time"
-                      value={form.timings[day.key].open}
-                      onChange={e => setTiming(day.key, "open", e.target.value)}
-                      className={`px-3 py-2 rounded-lg border ${C.border} ${C.bg} ${C.dark} text-sm outline-none focus:border-[#F5A623] focus:ring-2 focus:ring-[#F5A623]/20 transition-all`}
-                    />
-                    <span className={`${C.muted} text-xs`}>to</span>
-                    <input
-                      type="time"
-                      value={form.timings[day.key].close}
-                      onChange={e => setTiming(day.key, "close", e.target.value)}
-                      className={`px-3 py-2 rounded-lg border ${C.border} ${C.bg} ${C.dark} text-sm outline-none focus:border-[#F5A623] focus:ring-2 focus:ring-[#F5A623]/20 transition-all`}
-                    />
-                  </div>
+            <div className="space-y-4">
+              <p className={`text-xs ${C.muted}`}>Set the same opening and closing time for all days. Override holidays below.</p>
+              <div className="flex items-center gap-3">
+                <div className="flex-1">
+                  <label className={`text-xs font-semibold ${C.muted} block mb-2`}>Opening Time</label>
+                  <input
+                    type="time"
+                    value={form.openTime}
+                    onChange={e => setTiming("openTime", e.target.value)}
+                    className={`w-full px-3 py-2 rounded-lg border ${C.border} ${C.bg} ${C.dark} text-sm outline-none focus:border-[#F5A623] focus:ring-2 focus:ring-[#F5A623]/20 transition-all`}
+                  />
                 </div>
-              ))}
+                <div className="flex-1">
+                  <label className={`text-xs font-semibold ${C.muted} block mb-2`}>Closing Time</label>
+                  <input
+                    type="time"
+                    value={form.closeTime}
+                    onChange={e => setTiming("closeTime", e.target.value)}
+                    className={`w-full px-3 py-2 rounded-lg border ${C.border} ${C.bg} ${C.dark} text-sm outline-none focus:border-[#F5A623] focus:ring-2 focus:ring-[#F5A623]/20 transition-all`}
+                  />
+                </div>
+              </div>
             </div>
             <div className="mt-4">
               <Input
@@ -186,7 +193,6 @@ export function StoreManagementPanel() {
                 onChange={e => set("closedDays", e.target.value)}
                 placeholder="e.g. Holi, Diwali"
                 hint="Comma-separated. Store will show as closed on these days."
-
               />
             </div>
           </div>

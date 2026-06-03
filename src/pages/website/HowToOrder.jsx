@@ -235,20 +235,20 @@ export default function HowToOrder({ steps = INIT_STEPS, onNavigate }) {
 
         {/* ── Hero ──────────────────────────────────────── */}
         <div className="bg-gradient-to-br from-stone-900 via-stone-800 to-stone-900 text-white">
-          <div className="max-w-4xl mx-auto px-5 py-16 text-center">
+          <div className="max-w-4xl mx-auto px-5 py-3 text-center">
             <div className="inline-flex items-center gap-2 bg-orange-500/20 border border-orange-500/30 rounded-full px-4 py-1.5 text-xs font-semibold text-orange-300 mb-5">
               <MessageCircle size={12} /> Order via WhatsApp — No app download needed
             </div>
             <h1
-              className="text-4xl sm:text-5xl font-bold mb-4 leading-tight"
+              className="text-3xl sm:text-4xl font-bold mb-4 leading-tight"
               style={{ fontFamily: C.f1 }}
             >
               How to Order from
               <span className="text-orange-400"> VK Bakes</span>
             </h1>
-            <p className="text-stone-400 text-base max-w-xl mx-auto leading-relaxed mb-8">
+            {/* <p className="text-stone-400 text-base max-w-xl mx-auto leading-relaxed mb-8">
               Ordering is simple — browse our menu, build your cart, and place your order in one tap on WhatsApp. No login, no app, no payment gateway.
-            </p>
+            </p> */}
         
           </div>
         </div>

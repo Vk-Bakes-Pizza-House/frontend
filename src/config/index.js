@@ -10,7 +10,9 @@ import { useStoreStore } from "../store/index.js";
 
 
 // 2. Dynamic Getters (Yeh functions direct aapke store se current value nikal ke denge)
-export const getWhatsApp = () => useStoreStore.getState().store?.whatsapp || "";
+export const getWhatsApp = () => useStoreStore.getState().store?.phone1 || "";
+export const getPhone1 = () => useStoreStore.getState().store?.phone1 || "";
+export const getPhone2 = () => useStoreStore.getState().store?.phone2 || "";
 export const getFreeDeliveryAbove = () => useStoreStore.getState().store?.freeDeliveryFee || 300;
 export const getDeliveryFees = () => useStoreStore.getState().store?.deliveryFee || 300;
 // ── Field-name normalizers ────────────────────────────────────

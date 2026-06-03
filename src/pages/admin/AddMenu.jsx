@@ -11,9 +11,8 @@ export default function AddMenu() {
 
   // Page load hote hi existing categories fetch karein
   useEffect(() => {
-  fetchCategories();
-  }, []);
-
+    fetchCategories();
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
   console.log("Current Categories:", categories); // Debugging ke liye
   // Form Submit Handler
   const handleSubmit = async (e) => {
@@ -23,17 +22,23 @@ export default function AddMenu() {
       toast.error("Category ka naam likhna zaroori hai!");
       return;
     }
-    const res = await addCategory({ 
-      category: category.trim(), 
-      emoji: emoji.trim() || "🍽️" // Agar emoji nahi dala toh default set hoga
-    });
 
-    if (res?.success || res) {
-      toast.success(`${category} category successfully add ho gayi!`);
-      setCategory("");
-      setEmoji("");
-    } else {
-      toast.error("Kuch gadbad hui, category add nahi ho payi.");
+    try {
+      const res = await addCategory({ 
+        category: category.trim(), 
+        emoji: emoji.trim() || "🍽️"
+      });
+
+      if (res?.success) {
+        toast.success(`${category} category successfully add ho gayi!`);
+        setCategory("");
+        setEmoji("");
+      } else {
+        toast.error(res?.message || "Kuch gadbad hui, category add nahi ho payi.");
+      }
+    } catch (error) {
+      console.error("Add category error:", error);
+      toast.error("Error: " + (error.message || "Category add nahi ho payi"));
     }
   };
 
@@ -116,8 +121,8 @@ export default function AddMenu() {
 
           <div className="divide-y divide-white/5 max-h-[300px] overflow-y-auto">
             {categories && categories.length > 0 ? (
-              categories.map((cat,index) => (
-                <div key={cat.index} className="p-4 flex items-center justify-between hover:bg-white/[0.02] transition-colors">
+              categories.map((cat, index) => (
+                <div key={cat._id || index} className="p-4 flex items-center justify-between hover:bg-white/[0.02] transition-colors">
                   <div className="flex items-center gap-3">
                     <span className="text-lg bg-black/40 w-10 h-10 rounded-xl flex items-center justify-center border border-white/5">
                       {cat.emoji || "🍽️"}

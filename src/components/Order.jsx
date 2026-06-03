@@ -248,14 +248,14 @@ export function AddressBox({
           placeholder="Your name"
           className="w-full p-3 rounded-xl border-2 border-[#E8D5C0] focus:border-[#D44B1A] outline-none text-sm"
         />
-        <label htmlFor="addr-phone" className="text-sm font-bold text-[#2D1400] flex items-center gap-2">Phone Number</label>
+        <label htmlFor="addr-phone" className="text-sm font-bold text-[#2D1400] flex items-center gap-2">WhatsApp Number</label>
         <input
           id="addr-phone"
           type="tel"
           inputMode="tel"
           value={phone}
           onChange={(e) => setPhone(e.target.value)}
-          placeholder="Phone number"
+          placeholder="WhatsApp number"
           className="w-full p-3 rounded-xl border-2 border-[#E8D5C0] focus:border-[#D44B1A] outline-none text-sm"
         />
       </div>

@@ -19,11 +19,15 @@ export default function useCartOrderSubmit({
         addr
       ) => {
 
+        if (!cart || cart.length === 0) {
+          toast.error("Cart is empty. Please add items before confirming.");
+          return;
+        }
+
         const mainItem = cart[0];
 
         const addonLines =
           cart.slice(1);
-
         await confirmAndSendOrder({
           customer: {
             name,
