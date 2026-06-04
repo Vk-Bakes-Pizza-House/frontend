@@ -41,9 +41,9 @@ export function QtyControl({ qty, onInc, onDec, size = "md" }) {
 // ── 2. Size upsell banner ─────────────────────────────────────
 // Shows a one-tap suggestion based on the currently selected size.
 const UPSELL = {
-  rg: { msg: "🔥 Upgrade to Medium for just +₹100",    key: "md" },
-  md: { msg: "💪 Go Large for only +₹200 more!",        key: "lg" },
-  lg: { msg: "💡 Regular saves you ₹200",               key: "rg" },
+  rg: { msg: "🔥 Upgrade to Medium for just +₹100", key: "md" },
+  md: { msg: "💪 Go Large for only +₹200 more!", key: "lg" },
+  lg: { msg: "💡 Regular saves you ₹200", key: "rg" },
 };
 
 export function SizeUpsellBanner({ selectedKey, sizes, onSelect }) {
@@ -96,7 +96,7 @@ export function AddonSection({
           )}
         </div>
         {open
-          ? <ChevronUp   size={15} className="text-[#8B6A4F]" />
+          ? <ChevronUp size={15} className="text-[#8B6A4F]" />
           : <ChevronDown size={15} className="text-[#8B6A4F]" />}
       </button>
 
@@ -114,7 +114,7 @@ export function AddonSection({
             <p className="px-4 py-3 font-sans text-xs text-[#8B6A4F]">No items available</p>
           ) : (
             items.map((a) => {
-              const id  = a._id || a.id;
+              const id = a._id || a.id;
               const qty = addons[id] ?? 0;
               const cat = getCategory(a);
               return (
@@ -148,7 +148,7 @@ export function AddonSection({
                   ) : (
                     <QtyControl
                       qty={qty}
-                      onInc={() => onQtyChange(id,  1)}
+                      onInc={() => onQtyChange(id, 1)}
                       onDec={() => onQtyChange(id, -1)}
                       size="sm"
                     />
@@ -258,52 +258,59 @@ export function AddressBox({
   });
 
   const watched = watch();
+  const watchedName = watch("name");
+  const watchedPhone = watch("whatsappNumber");
+  const watchedAddress = watch("address");
 
   useEffect(() => {
-    if (onChange) onChange(watched.address ?? "");
-    if (setName) setName(watched.name ?? "");
-    if (setPhone) setPhone(watched.whatsappNumber ?? "");
-    if (onValidChange) onValidChange(isValid ? watched : null);
-  }, [watched, isValid, onChange, setName, setPhone, onValidChange]);
+  if (onChange) onChange(watchedAddress ?? "");
+  if (setName) setName(watchedName ?? "");
+  if (setPhone) setPhone(watchedPhone ?? "");
+  if (onValidChange) {
+    onValidChange(isValid ? { name: watchedName, whatsappNumber: watchedPhone, address: watchedAddress } : null);
+  }
+}, [watchedName, watchedPhone, watchedAddress, isValid, onChange, setName, setPhone, onValidChange]);
 
-  return (
-    <form onSubmit={handleSubmit(() => {})} className="flex flex-col gap-2">
-      <div className="flex flex-col gap-3">
-        <label htmlFor="addr-name" className="text-sm font-bold text-[#2D1400] flex items-center gap-2">Name</label>
-        <input
-          id="addr-name"
-          {...register("name")}
-          placeholder="Your name"
-          className="w-full p-3 rounded-xl border-2 border-[#E8D5C0] focus:border-[#D44B1A] outline-none text-sm"
-        />
-        {errors.name && <p className="text-xs text-red-500">{errors.name.message}</p>}
 
-        <label htmlFor="addr-phone" className="text-sm font-bold text-[#2D1400] flex items-center gap-2">WhatsApp Number</label>
-        <input
-          id="addr-phone"
-          type="tel"
-          inputMode="tel"
-          {...register("whatsappNumber")}
-          placeholder="WhatsApp number"
-          className="w-full p-3 rounded-xl border-2 border-[#E8D5C0] focus:border-[#D44B1A] outline-none text-sm"
-        />
-        {errors.whatsappNumber && <p className="text-xs text-red-500">{errors.whatsappNumber.message}</p>}
-      </div>
 
-      <label className="flex items-center gap-2 text-sm font-bold text-[#2D1400]">
-        <MapPin size={15} className="text-[#D44B1A]" />
-        Delivery Address
-      </label>
-
-      <textarea
-        rows={1}
-        {...register("address")}
-        placeholder="Enter your address..."
-        className="w-full p-3 rounded-xl border-2 border-[#E8D5C0] focus:border-[#D44B1A] outline-none resize-none text-sm"
+return (
+  <form onSubmit={handleSubmit(() => { })} className="flex flex-col gap-2">
+    <div className="flex flex-col gap-3">
+      <label htmlFor="addr-name" className="text-sm font-bold text-[#2D1400] flex items-center gap-2">Name</label>
+      <input
+        id="addr-name"
+        {...register("name")}
+        placeholder="Your name"
+        className="w-full p-3 rounded-xl border-2 border-[#E8D5C0] focus:border-[#D44B1A] outline-none text-sm"
       />
-      {errors.address && <p className="text-xs text-red-500">{errors.address.message}</p>}
-    </form>
-  );
+      {errors.name && <p className="text-xs text-red-500">{errors.name.message}</p>}
+
+      <label htmlFor="addr-phone" className="text-sm font-bold text-[#2D1400] flex items-center gap-2">WhatsApp Number</label>
+      <input
+        id="addr-phone"
+        type="tel"
+        inputMode="tel"
+        {...register("whatsappNumber")}
+        placeholder="WhatsApp number"
+        className="w-full p-3 rounded-xl border-2 border-[#E8D5C0] focus:border-[#D44B1A] outline-none text-sm"
+      />
+      {errors.whatsappNumber && <p className="text-xs text-red-500">{errors.whatsappNumber.message}</p>}
+    </div>
+
+    <label className="flex items-center gap-2 text-sm font-bold text-[#2D1400]">
+      <MapPin size={15} className="text-[#D44B1A]" />
+      Delivery Address
+    </label>
+
+    <textarea
+      rows={1}
+      {...register("address")}
+      placeholder="Enter your address..."
+      className="w-full p-3 rounded-xl border-2 border-[#E8D5C0] focus:border-[#D44B1A] outline-none resize-none text-sm"
+    />
+    {errors.address && <p className="text-xs text-red-500">{errors.address.message}</p>}
+  </form>
+);
 }
 export function CartSummary({
   subtotal,
