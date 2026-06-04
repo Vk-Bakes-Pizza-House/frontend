@@ -15,7 +15,7 @@ import ManageOrders from "./ManageOrders";
 import ManageReviews from "./ManageReviews";
 import AdminProfile from "./AdminProfile";
 import ManageHowToOrder from "./ManageHowtoOrder";
-import AddMenu from "./addMenu";
+import AddMenu from "./AddMenu";
 import ManageItemDetail from "../../section/admin/ManageItemDetail";
 import useAuthStore from "../../store/authStore"
 import StoreManagementPanel from "./ManageStore";
