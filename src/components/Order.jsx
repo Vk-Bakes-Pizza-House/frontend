@@ -2,9 +2,13 @@
 // ─────────────────────────────────────────────────────────────
 // Shared reusable components used by ItemCard & OrderNowModal.
 // ─────────────────────────────────────────────────────────────
-import { ChevronDown, ChevronUp, Loader2, Plus, Minus,MapPin } from "lucide-react";
+import { ChevronDown, ChevronUp, Loader2, Plus, Minus, MapPin } from "lucide-react";
 import { EMOJI } from "../data/menu";
 import { getCategory } from "../config/index";
+import { useEffect } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import addressValidation from "../validation/addressValidation";
 
 // ── 1. Qty stepper ────────────────────────────────────────────
 export function QtyControl({ qty, onInc, onDec, size = "md" }) {
@@ -235,60 +239,70 @@ export function AddressBox({
   name,
   phone,
   setName,
-  setPhone
+  setPhone,
+  onValidChange,
 }) {
+  const {
+    register,
+    handleSubmit,
+    watch,
+    formState: { errors, isValid },
+  } = useForm({
+    resolver: zodResolver(addressValidation),
+    mode: "onChange",
+    defaultValues: {
+      name: name ?? "",
+      whatsappNumber: phone ?? "",
+      address: value ?? "",
+    },
+  });
+
+  const watched = watch();
+
+  useEffect(() => {
+    if (onChange) onChange(watched.address ?? "");
+    if (setName) setName(watched.name ?? "");
+    if (setPhone) setPhone(watched.whatsappNumber ?? "");
+    if (onValidChange) onValidChange(isValid ? watched : null);
+  }, [watched, isValid, onChange, setName, setPhone, onValidChange]);
+
   return (
-    <div className="flex flex-col gap-2">
+    <form onSubmit={handleSubmit(() => {})} className="flex flex-col gap-2">
       <div className="flex flex-col gap-3">
         <label htmlFor="addr-name" className="text-sm font-bold text-[#2D1400] flex items-center gap-2">Name</label>
         <input
           id="addr-name"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
+          {...register("name")}
           placeholder="Your name"
           className="w-full p-3 rounded-xl border-2 border-[#E8D5C0] focus:border-[#D44B1A] outline-none text-sm"
         />
+        {errors.name && <p className="text-xs text-red-500">{errors.name.message}</p>}
+
         <label htmlFor="addr-phone" className="text-sm font-bold text-[#2D1400] flex items-center gap-2">WhatsApp Number</label>
         <input
           id="addr-phone"
           type="tel"
           inputMode="tel"
-          value={phone}
-          onChange={(e) => setPhone(e.target.value)}
+          {...register("whatsappNumber")}
           placeholder="WhatsApp number"
           className="w-full p-3 rounded-xl border-2 border-[#E8D5C0] focus:border-[#D44B1A] outline-none text-sm"
         />
+        {errors.whatsappNumber && <p className="text-xs text-red-500">{errors.whatsappNumber.message}</p>}
       </div>
-      <label className="
-        flex items-center gap-2
-        text-sm font-bold
-        text-[#2D1400]
-      ">
-        <MapPin
-          size={15}
-          className="text-[#D44B1A]"
-        />
 
+      <label className="flex items-center gap-2 text-sm font-bold text-[#2D1400]">
+        <MapPin size={15} className="text-[#D44B1A]" />
         Delivery Address
       </label>
 
       <textarea
         rows={1}
-        value={value}
-        onChange={(e) =>
-          onChange(e.target.value)
-        }
+        {...register("address")}
         placeholder="Enter your address..."
-        className="
-          w-full p-3 rounded-xl
-          border-2 border-[#E8D5C0]
-          focus:border-[#D44B1A]
-          outline-none resize-none
-          text-sm
-        "
+        className="w-full p-3 rounded-xl border-2 border-[#E8D5C0] focus:border-[#D44B1A] outline-none resize-none text-sm"
       />
-
-    </div>
+      {errors.address && <p className="text-xs text-red-500">{errors.address.message}</p>}
+    </form>
   );
 }
 export function CartSummary({

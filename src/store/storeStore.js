@@ -7,6 +7,7 @@ import {
 
 import { toast } from "sonner";
 import api from "./api";
+import { endpoints } from "../utils/endpoints";
 
 
 // ─────────────────────────────────────────────
@@ -62,7 +63,7 @@ const useStoreStore = create(
             store &&
             lastFetched &&
             now - lastFetched <
-              CACHE_DURATION;
+            CACHE_DURATION;
 
           // Return Cached Data
           if (
@@ -91,7 +92,7 @@ const useStoreStore = create(
           try {
 
             const { data } =
-              await api.get("/store");
+              await api.get(endpoints.store.get);
 
             set({
 
@@ -142,8 +143,7 @@ const useStoreStore = create(
           try {
 
             const { data } =
-              await api.put(
-                "/store/update",
+              await api.put(endpoints.store.update,
                 updateData
               );
 
@@ -198,8 +198,7 @@ const useStoreStore = create(
           try {
 
             const { data } =
-              await api.patch(
-                "/store/toggle-status"
+              await api.patch(endpoints.store.toggle
               );
 
             set({

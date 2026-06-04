@@ -7,6 +7,7 @@ import {
 
 import api from "./api";
 import { endpoints } from "../utils/endpoints";
+import {toast} from "sonner"
 
 
 // ─────────────────────────────────────────────
@@ -207,23 +208,24 @@ const useReviewStore = create(
             get().fetchApprovedReviews(
               true
             );
-
+            
+            toast.success("Your Review Submited")
             return {
               success: true,
+              
             };
-
           } catch (err) {
-
+            
             set({
-
+              
               error: err.message,
 
               submitLoading: false,
 
             });
-
+toast.error("Submit Failed: " + err.message)
             return {
-
+              
               success: false,
 
               message: err.message,
@@ -441,9 +443,9 @@ const useReviewStore = create(
             }));
 
             // Refresh Public Cache
-            get().fetchApprovedReviews(
-              true
-            );
+            // get().fetchApprovedReviews(
+            //   true
+            // );
 
             return {
               success: true,

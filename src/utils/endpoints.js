@@ -58,6 +58,11 @@ const endpointsPathsDev = {
     update: (id) => `${API_BASE}/faqs/${id}`,
     delete: (id) => `${API_BASE}/faqs/${id}`,
   },
+  store: {
+    get: `${API_BASE}/store`,
+    update: `${API_BASE}/store/update`,
+    toggle: `${API_BASE}/store/toggle-status`
+  },
 
   upload: {
     image: `${API_BASE}/upload`,
@@ -117,6 +122,12 @@ const endpointsPathsProd = {
     create: `/api/faqs`,
     update: (id) => `/api/faqs/${id}`,
     delete: (id) => `/api/faqs/${id}`,
+  },
+
+  store:{
+      get: `/api/store`,
+      update: `/api/store/update`,
+      toggle: `/api/store/toggle-status`,
   },
 
   upload: {

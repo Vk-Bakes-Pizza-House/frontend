@@ -50,6 +50,7 @@ export const buildMsg = (cart, addr,name,phone ) => {
 
   let m = "🛍️ VK BAKES & PIZZA — NEW ORDER!\n\n";
 
+  // m+= `🛒 Order Id: ${_id}\n\n`;
   if (dlv.length) {
     m += "🚚 DELIVERY ITEMS:\n";
     dlv.forEach((i) => (m += `• ${i.qty}x ${i.name} — ₹${i.price * i.qty}\n`));

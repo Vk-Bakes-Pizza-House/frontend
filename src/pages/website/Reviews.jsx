@@ -292,30 +292,63 @@
 // };
 
 // export default Reviews;
+
 import { useEffect, useState } from "react";
 import { Star, MessageCircle } from "lucide-react";
+import { zodResolver } from "@hookform/resolvers/zod";
+import {
+  useForm,
+  Controller,
+} from "react-hook-form";
+
 import { C } from "../../data/menu";
 import useReviewStore from "../../store/reviewStore";
+import reviewSchema from "../../validation/reviewValidation";
+
 const ReviewsSection = () => {
 
   // ─────────────────────────────
   // STORE
   // ─────────────────────────────
-
   const {
     reviews,
     loading,
-    error,
     submitLoading,
-
     fetchApprovedReviews,
     submitReview,
-  } = useReviewStore();  // ─────────────────────────────
-  // FORM STATE
-  // ─────────────────────────────
-  const [showForm, setShowForm] = useState(false);
-  const [formData, setFormData] = useState({ name: "", phone: "", rating: 5, text: "" });
+  } = useReviewStore();
 
+  const [showForm, setShowForm] =
+    useState(false);
+
+  const {
+    register,
+    handleSubmit,
+    control,
+    reset,
+    formState: { errors },
+  } = useForm({
+    resolver: zodResolver(
+      reviewSchema
+    ),
+    defaultValues: {
+      name: "",
+      phone: "",
+      rating: 5,
+      text: "",
+    },
+  });
+
+  const onSubmit = async (data) => {
+    const result =
+      await submitReview(data);
+
+    if (result?.success) {
+      reset();
+      setShowForm(false);
+      fetchApprovedReviews();
+    }
+  };
   // ─────────────────────────────
   // FETCH REVIEWS
   // ─────────────────────────────
@@ -324,20 +357,7 @@ const ReviewsSection = () => {
     fetchApprovedReviews();
   }, [fetchApprovedReviews]);
 
-  // ─────────────────────────────
-  // SUBMIT REVIEW
-  // ─────────────────────────────
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    const result = await submitReview(formData);
-    if (result.success) {
-      setFormData({ name: "", phone: "", rating: 5, text: "" });
-      setShowForm(false);
-      // Refresh reviews
-      fetchApprovedReviews();
-    }
-  };
+  
   return (
 
     <section className="bg-[#3D1A00] py-14 px-4">
@@ -357,7 +377,7 @@ const ReviewsSection = () => {
           </h2>
         </div>
 
- <div style={{ textAlign: "center", marginBottom: 24 }}>
+        <div style={{ textAlign: "center", marginBottom: 24 }}>
           <button
             onClick={() => setShowForm(!showForm)}
             style={{
@@ -381,7 +401,7 @@ const ReviewsSection = () => {
           </button>
         </div>
         {/* REVIEW FORM */}
-  {showForm && (
+        {showForm && (
           <div style={{
             background: "white",
             border: `1px solid ${C.border}`,
@@ -392,7 +412,7 @@ const ReviewsSection = () => {
             <h3 style={{ fontFamily: C.f1, color: C.mid, fontSize: 20, marginBottom: 16 }}>
               Share Your Experience
             </h3>
-            <form onSubmit={handleSubmit}>
+            <form onSubmit={handleSubmit(onSubmit)}>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 16 }}>
                 <div>
                   <label style={{ display: "block", fontFamily: C.f2, fontSize: 14, fontWeight: 600, color: C.mid, marginBottom: 6 }}>
@@ -400,18 +420,15 @@ const ReviewsSection = () => {
                   </label>
                   <input
                     type="text"
-                    value={formData.name}
-                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                    required
-                    style={{
-                      width: "100%",
-                      padding: "10px 12px",
-                      border: `1px solid ${C.border}`,
-                      borderRadius: 6,
-                      fontFamily: C.f2,
-                      fontSize: 14
-                    }}
+                    {...register("name")}
+                    className="w-full border rounded-md p-3"
                   />
+
+                  {errors.name && (
+                    <p className="text-red-500 text-sm mt-1">
+                      {errors.name.message}
+                    </p>
+                  )}
                 </div>
                 <div>
                   <label style={{ display: "block", fontFamily: C.f2, fontSize: 14, fontWeight: 600, color: C.mid, marginBottom: 6 }}>
@@ -419,64 +436,76 @@ const ReviewsSection = () => {
                   </label>
                   <input
                     type="tel"
-                    value={formData.phone}
-                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                    style={{
-                      width: "100%",
-                      padding: "10px 12px",
-                      border: `1px solid ${C.border}`,
-                      borderRadius: 6,
-                      fontFamily: C.f2,
-                      fontSize: 14
-                    }}
+                    {...register("phone")}
+                    className="w-full border rounded-md p-3"
                   />
+
+                  {errors.phone && (
+                    <p className="text-red-500 text-sm mt-1">
+                      {errors.phone.message}
+                    </p>
+                  )}
                 </div>
               </div>
               <div style={{ marginBottom: 16 }}>
                 <label style={{ display: "block", fontFamily: C.f2, fontSize: 14, fontWeight: 600, color: C.mid, marginBottom: 6 }}>
                   Rating *
                 </label>
-                <div style={{ display: "flex", gap: 4 }}>
-                  {[1, 2, 3, 4, 5].map((star) => (
-                    <button
-                      key={star}
-                      type="button"
-                      onClick={() => setFormData({ ...formData, rating: star })}
-                      style={{
-                        background: "none",
-                        border: "none",
-                        cursor: "pointer",
-                        padding: 2
-                      }}
-                    >
-                      <Star
-                        size={24}
-                        fill={star <= formData.rating ? C.gold : "transparent"}
-                        color={star <= formData.rating ? C.gold : C.border}
-                      />
-                    </button>
-                  ))}
-                </div>
+                <Controller
+                  name="rating"
+                  control={control}
+                  render={({ field }) => (
+                    <div className="flex gap-2">
+                      {[1, 2, 3, 4, 5].map(
+                        (star) => (
+                          <button
+                            key={star}
+                            type="button"
+                            onClick={() =>
+                              field.onChange(star)
+                            }
+                          >
+                            <Star
+                              size={24}
+                              fill={
+                                star <= field.value
+                                  ? C.gold
+                                  : "transparent"
+                              }
+                              color={
+                                star <= field.value
+                                  ? C.gold
+                                  : C.border
+                              }
+                            />
+                          </button>
+                        )
+                      )}
+                    </div>
+                  )}
+                />
+
+                {errors.rating && (
+                  <p className="text-red-500 text-sm mt-1">
+                    {errors.rating.message}
+                  </p>
+                )}
               </div>
               <div style={{ marginBottom: 20 }}>
                 <label style={{ display: "block", fontFamily: C.f2, fontSize: 14, fontWeight: 600, color: C.mid, marginBottom: 6 }}>
                   Your Review *
                 </label>
                 <textarea
-                  value={formData.text}
-                  onChange={(e) => setFormData({ ...formData, text: e.target.value })}
-                  required
                   rows={4}
-                  style={{
-                    width: "100%",
-                    padding: "10px 12px",
-                    border: `1px solid ${C.border}`,
-                    borderRadius: 6,
-                    fontFamily: C.f2,
-                    fontSize: 14,
-                    resize: "vertical"
-                  }}
+                  {...register("text")}
+                  className="w-full border rounded-md p-3"
                 />
+
+                {errors.text && (
+                  <p className="text-red-500 text-sm mt-1">
+                    {errors.text.message}
+                  </p>
+                )}
               </div>
               <button
                 type="submit"
@@ -550,9 +579,9 @@ const ReviewsSection = () => {
                 <p className="text-gray-700 leading-relaxed mb-4">
                   "{r.text}"
                 </p>
- <span style={{ fontFamily: C.f2, fontSize: 12, color: C.muted }}>
-                      {new Date(r.createdAt).toLocaleDateString()}
-                    </span>
+                <span style={{ fontFamily: C.f2, fontSize: 12, color: C.muted }}>
+                  {new Date(r.createdAt).toLocaleDateString()}
+                </span>
                 {/* NAME */}
 
                 <div className="font-semibold text-red-500">

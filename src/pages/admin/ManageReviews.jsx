@@ -5,16 +5,19 @@
 // Uses reviewStore for backend integration.
 // ─────────────────────────────────────────────────────────────
 import { useState, useEffect } from "react";
-import { Star, Check, X, Trash2, Search, MessageSquare } from "lucide-react";
-import { C } from "./Dashboard";
+import { Star, Check, X, Trash2, Search, MessageSquare, AlertTriangle } from "lucide-react";
 import useReviewStore from "../../store/reviewStore";
 
 // ── Stars display ────────────────────────────────────────────
 function Stars({ n }) {
   return (
-    <div style={{ display:"flex", gap:2 }}>
-      {[1,2,3,4,5].map(i => (
-        <Star key={i} size={13} fill={i<=n?C.gold:"none"} color={i<=n?C.gold:"#D0C0B0"} />
+    <div className="flex gap-0.5">
+      {[1, 2, 3, 4, 5].map((i) => (
+        <Star
+          key={i}
+          size={13}
+          className={i <= n ? "text-[#F5A623] fill-[#F5A623]" : "text-stone-300"}
+        />
       ))}
     </div>
   );
@@ -22,52 +25,42 @@ function Stars({ n }) {
 
 // ── Status badge ─────────────────────────────────────────────
 const STATUS_STYLE = {
-  pending:  { bg:"#FEF9C3", color:"#854D0E", label:"Pending"  },
-  approved: { bg:"#DCFCE7", color:"#166534", label:"Approved" },
-  rejected: { bg:"#FEE2E2", color:"#991B1B", label:"Rejected" },
+  pending: { bg: "bg-yellow-100", text: "text-yellow-800", label: "Pending", border: "border-yellow-500" },
+  approved: { bg: "bg-green-100", text: "text-green-800", label: "Approved", border: "border-green-600" },
+  rejected: { bg: "bg-red-100", text: "text-red-800", label: "Rejected", border: "border-red-600" },
 };
 
 function StatusBadge({ status }) {
   const s = STATUS_STYLE[status];
   return (
-    <span style={{ background:s.bg, color:s.color, padding:"3px 10px", borderRadius:20,
-      fontSize:11, fontFamily:C.f2, fontWeight:600 }}>
+    <span className={`px-2.5 py-0.5 rounded-full text-[11px] font-semibold tracking-wide ${s.bg} ${s.text}`}>
       {s.label}
     </span>
   );
 }
 
 // ── Review card ──────────────────────────────────────────────
-function ReviewCard({ review, onApprove, onReject, onDelete }) {
-  const isPending  = review.status === "pending";
+function ReviewCard({ review, onApprove, onReject, setDeleteTarget }) {
+  const isPending = review.status === "pending";
   const isApproved = review.status === "approved";
+  const s = STATUS_STYLE[review.status];
 
   return (
-    <div style={{
-      background:   "white",
-      border:       `1px solid ${C.border}`,
-      borderRadius: 12,
-      padding:      "18px",
-      borderLeft:   `4px solid ${STATUS_STYLE[review.status].color}`,
-    }}>
+    <div className={`bg-white border border-stone-200 rounded-xl p-4.5 border-l-4 ${s.border} shadow-sm`}>
       {/* Top row */}
-      <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", flexWrap:"wrap", gap:8, marginBottom:12 }}>
+      <div className="flex justify-between items-start flex-wrap gap-2 mb-3">
         <div>
-          <div style={{ display:"flex", alignItems:"center", gap:10 }}>
-            <div style={{
-              width:36, height:36, borderRadius:"50%", background:C.red,
-              display:"flex", alignItems:"center", justifyContent:"center",
-              fontFamily:C.f2, fontWeight:700, color:"white", fontSize:14, flexShrink:0,
-            }}>
+          <div className="flex items-center gap-2.5">
+            <div className="w-9 h-9 rounded-full bg-red-600 flex items-center justify-center font-bold text-white text-sm flex-shrink-0">
               {review.name.charAt(0).toUpperCase()}
             </div>
             <div>
-              <div style={{ fontFamily:C.f2, fontWeight:700, color:C.mid, fontSize:14 }}>{review.name}</div>
-              <div style={{ fontFamily:C.f2, color:C.muted, fontSize:11 }}>{review.phone} · {review.time}</div>
+              <div className="font-bold text-stone-800 text-sm">{review.name}</div>
+              <div className="text-stone-500 text-[11px] font-medium">{review.phone} · {review.time}</div>
             </div>
           </div>
         </div>
-        <div style={{ display:"flex", alignItems:"center", gap:8 }}>
+        <div className="flex items-center gap-2">
           <Stars n={review.rating} />
           <StatusBadge status={review.status} />
         </div>
@@ -75,64 +68,55 @@ function ReviewCard({ review, onApprove, onReject, onDelete }) {
 
       {/* Item tag */}
       {review.item !== "—" && (
-        <div style={{ display:"inline-flex", alignItems:"center", gap:5, background:"#FFF0E0",
-          border:`1px solid ${C.border}`, borderRadius:6, padding:"3px 9px",
-          fontFamily:C.f2, fontSize:11, color:C.muted, marginBottom:10 }}>
+        <div className="inline-flex items-center gap-1.5 bg-orange-50 border border-stone-200 rounded-md px-2 py-0.5 text-[11px] text-stone-500 font-medium mb-2.5">
           <MessageSquare size={10} />
           Ordered: {review.item}
         </div>
       )}
 
       {/* Review text */}
-      <p style={{ fontFamily:C.f2, color:"#3D2B1A", fontSize:13, lineHeight:1.65, marginBottom:14 }}>
+      <p className="text-stone-700 text-sm font-normal leading-relaxed mb-3.5 italic">
         "{review.text}"
       </p>
 
       {/* Action buttons */}
-      <div style={{ display:"flex", gap:8, flexWrap:"wrap" }}>
+      <div className="flex gap-2 flex-wrap">
         {isPending && (
           <>
-            <button onClick={() => onApprove(review.id)} style={{
-              display:"flex", alignItems:"center", gap:5,
-              padding:"8px 14px", background:"#DCFCE7", border:"1px solid #BBF7D0",
-              borderRadius:8, fontFamily:C.f2, fontSize:12, fontWeight:600, color:"#166534",
-            }}>
+            <button
+              onClick={() => onApprove(review.id)}
+              className="flex items-center gap-1.5 px-3 py-2 bg-green-100 hover:bg-green-200 border border-green-200 rounded-lg text-xs font-semibold text-green-800 transition-colors"
+            >
               <Check size={13} /> Approve — Show on Website
             </button>
-            <button onClick={() => onReject(review.id)} style={{
-              display:"flex", alignItems:"center", gap:5,
-              padding:"8px 14px", background:"#FEE2E2", border:"1px solid #FECACA",
-              borderRadius:8, fontFamily:C.f2, fontSize:12, fontWeight:600, color:"#991B1B",
-            }}>
+            <button
+              onClick={() => onReject(review.id)}
+              className="flex items-center gap-1.5 px-3 py-2 bg-red-100 hover:bg-red-200 border border-red-200 rounded-lg text-xs font-semibold text-red-800 transition-colors"
+            >
               <X size={13} /> Reject — Don't Show
             </button>
           </>
         )}
         {isApproved && (
-          <button onClick={() => onReject(review.id)} style={{
-            display:"flex", alignItems:"center", gap:5,
-            padding:"8px 14px", background:"#FFF5F5", border:`1px solid ${C.border}`,
-            borderRadius:8, fontFamily:C.f2, fontSize:12, fontWeight:600, color:C.muted,
-          }}>
+          <button
+            onClick={() => onReject(review.id)}
+            className="flex items-center gap-1.5 px-3 py-2 bg-stone-50 hover:bg-stone-100 border border-stone-200 rounded-lg text-xs font-semibold text-stone-600 transition-colors"
+          >
             <X size={13} /> Unpublish
           </button>
         )}
         {review.status === "rejected" && (
-          <button onClick={() => onApprove(review.id)} style={{
-            display:"flex", alignItems:"center", gap:5,
-            padding:"8px 14px", background:"#F0FDF4", border:"1px solid #DCFCE7",
-            borderRadius:8, fontFamily:C.f2, fontSize:12, fontWeight:600, color:"#166534",
-          }}>
+          <button
+            onClick={() => onApprove(review.id)}
+            className="flex items-center gap-1.5 px-3 py-2 bg-green-50 hover:bg-green-100 border border-green-200 rounded-lg text-xs font-semibold text-green-800 transition-colors"
+          >
             <Check size={13} /> Re-approve
           </button>
         )}
-        <button onClick={() => {
-          if (window.confirm("Permanently delete this review?")) onDelete(review.id);
-        }} style={{
-          display:"flex", alignItems:"center", gap:5,
-          padding:"8px 14px", border:`1px solid ${C.border}`,
-          borderRadius:8, fontFamily:C.f2, fontSize:12, fontWeight:600, color:C.muted,
-        }}>
+        <button
+          onClick={() => setDeleteTarget(review.id)} // Custom pop-up open karega
+          className="flex items-center gap-1.5 px-3 py-2 hover:bg-red-50 border border-stone-200 hover:border-red-200 rounded-lg text-xs font-semibold text-stone-500 hover:text-red-600 transition-colors ml-auto"
+        >
           <Trash2 size={13} /> Delete
         </button>
       </div>
@@ -156,6 +140,7 @@ export default function ManageReviews() {
 
   const [filter, setFilter] = useState("all");
   const [q, setQ] = useState("");
+  const [deleteTarget, setDeleteTarget] = useState(null); // Modal state for delete trigger
 
   useEffect(() => {
     fetchAllReviews();
@@ -163,18 +148,19 @@ export default function ManageReviews() {
 
   const handleApprove = async (id) => {
     await approveReview(id);
-    fetchAllReviews(); // Refresh to get updated counts
+    fetchAllReviews();
   };
 
   const handleReject = async (id) => {
     await rejectReview(id);
-    fetchAllReviews(); // Refresh to get updated counts
+    fetchAllReviews();
   };
 
-  const handleDelete = async (id) => {
-    if (window.confirm("Permanently delete this review?")) {
-      await deleteReview(id);
-      fetchAllReviews(); // Refresh to get updated counts
+  const confirmDelete = async () => {
+    if (deleteTarget) {
+      await deleteReview(deleteTarget);
+      setDeleteTarget(null); // Modal close karega
+      fetchAllReviews();
     }
   };
 
@@ -199,21 +185,13 @@ export default function ManageReviews() {
 
   if (error) {
     return (
-      <div style={{ padding: "40px", textAlign: "center" }}>
-        <div style={{ color: C.red, fontFamily: C.f2, marginBottom: 16 }}>
+      <div className="p-10 text-center">
+        <div className="text-red-600 font-semibold mb-4">
           Error loading reviews: {error}
         </div>
         <button
           onClick={() => { clearError(); fetchAllReviews(); }}
-          style={{
-            padding: "8px 16px",
-            background: C.red,
-            color: "white",
-            border: "none",
-            borderRadius: 6,
-            fontFamily: C.f2,
-            cursor: "pointer"
-          }}
+          className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white font-medium rounded-lg shadow transition-colors"
         >
           Retry
         </button>
@@ -222,37 +200,38 @@ export default function ManageReviews() {
   }
 
   return (
-    <div>
+    <div className="relative">
       {/* Header */}
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 20, flexWrap: "wrap", gap: 12 }}>
+      <div className="flex justify-between items-start flex-wrap gap-3 mb-5">
         <div>
-          <h2 style={{ fontFamily: C.f1, color: C.mid, fontSize: 24, fontWeight: 700 }}>Manage Reviews</h2>
-          <p style={{ fontFamily: C.f2, color: C.muted, fontSize: 13, marginTop: 3 }}>
+          <h2 className="text-2xl font-black text-stone-800 tracking-tight">Manage Reviews</h2>
+          <p className="text-stone-500 text-xs mt-1 font-medium">
             {pendingCount} pending approval · {counts.approved} live on website
-            {loading && " (Loading...)"}
+            {loading && <span className="text-orange-500 animate-pulse"> (Loading...)</span>}
           </p>
         </div>
         {/* Avg rating pill */}
-        <div style={{ display: "flex", alignItems: "center", gap: 8, background: "white",
-          border: `1px solid ${C.border}`, borderRadius: 10, padding: "10px 16px" }}>
+        <div className="flex items-center gap-2 bg-white border border-stone-200 rounded-xl px-4 py-2.5 shadow-sm">
           <Stars n={Math.round(Number(avgRating))} />
-          <span style={{ fontFamily: C.f2, fontWeight: 700, color: C.mid, fontSize: 16 }}>{avgRating}</span>
-          <span style={{ fontFamily: C.f2, color: C.muted, fontSize: 12 }}>avg. rating</span>
+          <span className="font-bold text-stone-800 text-base leading-none ml-1">{avgRating}</span>
+          <span className="text-stone-400 text-xs font-semibold">avg. rating</span>
         </div>
       </div>
 
       {/* Filter tabs */}
-      <div style={{ display: "flex", gap: 6, marginBottom: 14, flexWrap: "wrap" }}>
+      <div className="flex gap-1.5 mb-3.5 flex-wrap">
         {FILTERS.map(f => {
-          const s = f !== "all" ? STATUS_STYLE[f] : null;
+          const isActive = filter === f;
           return (
-            <button key={f} onClick={() => setFilter(f)} style={{
-              padding: "7px 14px", borderRadius: 20,
-              fontFamily: C.f2, fontSize: 12, fontWeight: 600,
-              background: filter === f ? (s?.color || C.mid) : "white",
-              color: filter === f ? "white" : C.mid,
-              border: filter === f ? "none" : `1px solid ${C.border}`,
-            }}>
+            <button 
+              key={f} 
+              onClick={() => setFilter(f)} 
+              className={`px-3.5 py-1.5 rounded-full text-xs font-bold transition-all border ${
+                isActive 
+                  ? "bg-stone-800 text-white border-stone-800 shadow-sm" 
+                  : "bg-white text-stone-700 border-stone-200 hover:bg-stone-50"
+              }`}
+            >
               {f.charAt(0).toUpperCase() + f.slice(1)} ({counts[f]})
             </button>
           );
@@ -261,22 +240,27 @@ export default function ManageReviews() {
 
       {/* Pending alert */}
       {pendingCount > 0 && filter !== "approved" && filter !== "rejected" && (
-        <div style={{ background: "#FEF9C3", border: "1px solid #FDE68A", borderRadius: 8,
-          padding: "10px 14px", marginBottom: 14, fontFamily: C.f2, fontSize: 13, color: "#854D0E" }}>
-          ⚠️ <strong>{pendingCount} review{pendingCount > 1 ? "s" : ""}</strong> waiting for your approval before showing on the website.
+        <div className="bg-yellow-50 border border-yellow-200 text-yellow-800 rounded-lg p-3.5 mb-3.5 text-xs md:text-sm font-medium flex items-center gap-2">
+          <span>⚠️</span>
+          <span>
+            <strong>{pendingCount} review{pendingCount > 1 ? "s" : ""}</strong> waiting for your approval before showing on the website.
+          </span>
         </div>
       )}
 
-      {/* Search */}
-      <div style={{ display: "flex", alignItems: "center", gap: 8, background: "white",
-        border: `1px solid ${C.border}`, borderRadius: 8, padding: "0 12px", marginBottom: 14 }}>
-        <Search size={14} color={C.muted} />
-        <input value={q} onChange={e => setQ(e.target.value)} placeholder="Search by name or review content…"
-          style={{ border: "none", outline: "none", fontFamily: C.f2, fontSize: 13, color: C.mid, padding: "10px 0", flex: 1 }} />
+      {/* Search Bar */}
+      <div className="flex items-center gap-2.5 bg-white border border-stone-200 rounded-lg px-3 mb-3.5 shadow-sm focus-within:border-stone-400 transition-colors">
+        <Search size={14} className="text-stone-400" />
+        <input 
+          value={q} 
+          onChange={e => setQ(e.target.value)} 
+          placeholder="Search by name or review content…"
+          className="border-none outline-none text-stone-800 text-sm py-2.5 flex-1 bg-transparent" 
+        />
       </div>
 
-      {/* Review cards */}
-      <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+      {/* Review cards layout */}
+      <div className="flex flex-col gap-3">
         {visible.map(r => (
           <ReviewCard
             key={r._id}
@@ -288,15 +272,48 @@ export default function ManageReviews() {
             }}
             onApprove={handleApprove}
             onReject={handleReject}
-            onDelete={handleDelete}
+            setDeleteTarget={setDeleteTarget}
           />
         ))}
         {visible.length === 0 && !loading && (
-          <div style={{ padding: "60px 0", textAlign: "center", fontFamily: C.f2, color: C.muted, fontSize: 14 }}>
+          <div className="py-14 text-center text-stone-400 font-medium text-sm">
             No reviews found.
           </div>
         )}
       </div>
+
+      {/* ── CUSTOM TAILWIND CONFIRMATION MODAL ────────────────── */}
+      {deleteTarget && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-fade-in">
+          <div className="bg-white max-w-sm w-full rounded-2xl p-5 border border-stone-200 shadow-2xl transform scale-100 transition-transform duration-200">
+            <div className="flex items-center gap-3 text-red-600 mb-3">
+              <div className="p-2 bg-red-50 rounded-xl">
+                <AlertTriangle size={22} />
+              </div>
+              <h3 className="text-base font-black tracking-tight text-stone-900">Permanently Delete?</h3>
+            </div>
+            
+            <p className="text-xs md:text-sm text-stone-500 leading-relaxed mb-5">
+              Kya aap sach mein is review ko permanently delete karna chahte hain? Yeh action revert nahi kiya ja sakta.
+            </p>
+
+            <div className="flex gap-2 justify-end">
+              <button
+                onClick={() => setDeleteTarget(null)}
+                className="px-4 py-2 text-xs font-bold text-stone-600 bg-stone-100 hover:bg-stone-200 rounded-lg transition-colors"
+              >
+                No, Cancel
+              </button>
+              <button
+                onClick={confirmDelete}
+                className="px-4 py-2 text-xs font-bold text-white bg-red-600 hover:bg-red-700 rounded-lg shadow-sm transition-colors"
+              >
+                Yes, Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

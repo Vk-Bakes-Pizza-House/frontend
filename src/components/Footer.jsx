@@ -19,7 +19,7 @@ const NAV_LINKS = [
   { label: "Home", href: "/home" },
   { label: "Our Menu", href: "/menu" },
   { label: "Custom Cake", href: "/cake" },
-  { label: "Daily Offers", href: "/offers" },
+  { label: "Daily Offers", href: "/home" },
   { label: "Reviews", href: "/reviews" },
   { label: "Contact Us", href: "/contact" },
 ];
@@ -203,11 +203,11 @@ export default function Footer({ onNavigate }) {
               {[
                 {
                   icon: <FaInstagram size={16} className="text-pink-500" />,
-                  href: "/",
+                  href: "https://www.instagram.com/its_vivek_1503?utm_source=qr&igsh=aGNwcW1kOXRjeTc5",
                 },
                 {
                   icon: <FaFacebook size={16} className="text-sky-500" />,
-                  href: "/",
+                  href: "https://www.facebook.com/share/1HHiwdNmMr/",
                 },
                 {
                   icon: <MessageCircle size={16} className="text-green-600" />,

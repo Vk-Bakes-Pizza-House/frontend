@@ -12,7 +12,7 @@ function Navbar({ page, go }) {
     ["cake", "Custom Cake"],
     ["contact", "Contact"],
     ["how-to-order", "How to Order"],
-    ["login", "Login"],
+    ["admin", "Login"],
   ];
 
   const handleNavClick = (route) => {

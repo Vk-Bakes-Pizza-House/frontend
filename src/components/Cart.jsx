@@ -7,6 +7,7 @@ import { Link } from "react-router-dom";
 import useCartStore from "../store/cartStore";
 import useCartOrderSubmit from "../hooks/useCartOrderSubmit";
 import { toast } from "sonner";
+import { C} from "../data/menu"
 
 
 function Cart() {

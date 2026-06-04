@@ -62,11 +62,11 @@ function ContactPage() {
                         {[
                           {
                             icon: <FaInstagram size={36} className="text-pink-500" />,
-                            href: "https://instagram.com/yourProfile",
+                            href: "https://www.instagram.com/its_vivek_1503?utm_source=qr&igsh=aGNwcW1kOXRjeTc5",
                           },
                           {
                             icon: <FaFacebook size={36} className="text-sky-500" />,
-                            href: "https://facebook.com/yourPage",
+                            href: "https://www.facebook.com/share/1HHiwdNmMr/",
                           },
                           {
                             icon: <MessageCircle size={36} className="text-green-600" />,

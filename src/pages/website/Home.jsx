@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { C, REVIEWS, FRESH_BOARD } from "../../data/menu";
 import { HelpCircle } from "lucide-react"
 import Footer from "../../components/Footer";
-import ReviewsSection from "../../section/reviewSection";
+import ReviewsSection from "../website/Reviews";
 import { useFQAStore, useStoreStore,useMenuStore } from "../../store";
 import ItemCard from "../../components/ItemCard";
 // import  from "../../store/menuStore";
