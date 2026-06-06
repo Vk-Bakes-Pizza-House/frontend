@@ -12,7 +12,7 @@ export const C = {
   border: "#E8D5C0",
   card: "#FFFFFF",
   green: "#25D366",
-  f1: "'Playfair Display', serif",
+   f1: "'Playfair Display', serif",
   f2: "'DM Sans', sans-serif",
 };
 

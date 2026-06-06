@@ -4,10 +4,9 @@ import { C, REVIEWS, FRESH_BOARD } from "../../data/menu";
 import { HelpCircle } from "lucide-react"
 import Footer from "../../components/Footer";
 import ReviewsSection from "../website/Reviews";
-import { useFQAStore, useStoreStore,useMenuStore } from "../../store";
+import { useFQAStore, useStoreStore, useMenuStore } from "../../store";
 import ItemCard from "../../components/ItemCard";
-// import  from "../../store/menuStore";
-import {FaqItem} from "../../section/FqaItem";
+import { FaqItem } from "../../section/FqaItem";
 import { toast } from "sonner";
 
 
@@ -19,15 +18,7 @@ const CATS = [
   { key: "ice", label: "Ice Cream", emoji: "🍦" },
 ];
 
-// const FAQS = [
-//   { q: "How long does delivery take?", a: "Usually 25–40 minutes depending on your location and order size. We'll give you an estimated time when we confirm your order." },
-//   { q: "Which areas do you deliver to?", a: "We deliver locally within our neighborhood. Message us on WhatsApp to check if your area is covered." },
-//   { q: "Can I change my order after placing it?", a: "Yes! Message us on WhatsApp before we start preparing. Once preparation begins, changes may not be possible." },
-//   { q: "Why can't I order ice cream alone?", a: "Ice cream melts quickly, so we only deliver it alongside a Pizza, Bake or Cake order to ensure it reaches you in good condition. You can always pick it up from our store!" },
-//   { q: "Can I order for pickup instead?", a: "Absolutely! Just mention 'store pickup' in your WhatsApp message and there's no delivery charge." },
-//   { q: "How do I order a custom cake?", a: "Go to the Custom Cake page, fill in the size, flavour, message and delivery date, then tap 'Send Order on WhatsApp'. We confirm the price and details with you directly." },
-//   { q: "What if I have a food allergy?", a: "Please mention your allergy clearly in the WhatsApp message. We'll do our best to accommodate and let you know if we can safely prepare your order." },
-// ];
+
 
 // ─────────────────────────────────────────────────────────────
 const Home = ({ go, cart, add }) => {
@@ -63,6 +54,13 @@ const Home = ({ go, cart, add }) => {
   // Featured = Bestseller tag, or first 6 if none tagged
   const featured = items.filter((i) => i.tag === "Bestseller").slice(0, 6);
   const displayItems = items.slice(0, 4);
+
+
+
+  // Component ke andar
+  const specials = useStoreStore((s) => s.specials);
+
+
   return (
     <div style={{ background: C.bg }}>
 
@@ -75,7 +73,7 @@ const Home = ({ go, cart, add }) => {
         <div style={{ fontFamily: C.f2, color: C.gold, fontSize: 12, letterSpacing: 3, marginBottom: 12 }}>
           🍕 {store?.tagline?.toUpperCase()}
         </div>
-        <h1 style={{
+        <h1  style={{
           fontFamily: C.f1, color: "#FFF8F0",
           fontSize: "clamp(34px,7vw,60px)", fontWeight: 700,
           lineHeight: 1.1, marginBottom: 14,
@@ -128,31 +126,46 @@ const Home = ({ go, cart, add }) => {
       </div>
 
       {/* ── Specials ────────────────────────────────────────── */}
-      <div style={{ background: C.mid, padding: "24px 16px" }}>
-        <div style={{ maxWidth: 960, margin: "0 auto" }}>
-          <div style={{ fontFamily: C.f2, color: C.gold, fontSize: 11, letterSpacing: 3, marginBottom: 12, textAlign: "center" }}>
-            🔥 TODAY'S SPECIALS
+
+
+<div className="bg-[#3D1A00] px-4 py-6">
+  <div className="mx-auto max-w-6xl">
+    
+    <div className="mb-3 font-semibold text-center text-[15px] tracking-[3px] text-[#D4A574]">
+      🔥 TODAY'S SPECIALS
+    </div>
+
+    {specials?.length > 0 ? (
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        {specials.map((item, i) => (
+          <div
+            key={i}
+            className="flex items-center gap-3 rounded-lg border-l-4 border-red-600 bg-[#4A2105] p-4 shadow-sm"
+          >
+            <span className="text-2xl">
+              {item.e}
+            </span>
+
+            <div>
+              <h3 className="text-sm font-bold text-[#FFF8F0]">
+                {item.t}
+              </h3>
+
+              <p className="text-xs text-[#D4A574]">
+                {item.d}
+              </p>
+            </div>
           </div>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(260px,1fr))", gap: 12 }}>
-            {[
-              { e: "🔥", t: "Buy 2 Pizzas, Get 1 Bake Free!", d: "Valid today only" },
-              { e: "🎉", t: "Cake + Ice Cream Combo", d: "Any cake + 2 scoops at ₹50 off" },
-            ].map((s, i) => (
-              <div key={i} style={{
-                background: "#3D1A00", borderLeft: `4px solid ${C.red}`,
-                borderRadius: 8, padding: "14px 18px",
-                display: "flex", gap: 12, alignItems: "center",
-              }}>
-                <span style={{ fontSize: 24 }}>{s.e}</span>
-                <div>
-                  <div style={{ fontFamily: C.f2, fontWeight: 700, color: "#FFF8F0", fontSize: 14 }}>{s.t}</div>
-                  <div style={{ fontFamily: C.f2, color: C.gold, fontSize: 12 }}>{s.d}</div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
+        ))}
       </div>
+    ) : (
+      <div className="rounded-lg bg-[#4A2105] p-5 text-center text-sm text-[#D4A574]">
+        😴 Aaj koi special offer nahi hai —
+        kal dobara check karein!
+      </div>
+    )}
+  </div>
+</div>
 
       {/* ── Category filter + Items grid ─────────────────────── */}
       <div style={{ padding: "36px 16px" }}>

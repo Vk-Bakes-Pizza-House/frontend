@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import { FaInstagram, FaFacebook } from "react-icons/fa";
 import { useStoreStore } from "../store";
+import {C} from "../data/menu";
 
 const WA_DEFAULT = "919999999999";
 
@@ -49,11 +50,10 @@ function StarPicker({ value, onChange }) {
         >
           <Star
             size={20}
-            className={`${
-              (hover || value) >= n
+            className={`${(hover || value) >= n
                 ? "fill-yellow-400 text-yellow-400"
                 : "text-stone-600"
-            }`}
+              }`}
           />
         </button>
       ))}
@@ -84,7 +84,7 @@ export default function Footer({ onNavigate }) {
   const phone2 = storeData?.phone2 || "";
   const openTime = storeData?.openTime || "08:00";
   const closeTime = storeData?.closeTime || "21:00";
-  const deliveryZone = storeData?.deliveryZone || "Within 5 km" ;
+  const deliveryZone = storeData?.deliveryZone || "Within 5 km";
 
   const formatTime = (time24) => {
     const [h, m] = time24.split(':');
@@ -94,37 +94,29 @@ export default function Footer({ onNavigate }) {
     return `${hour12}:${m} ${ampm}`;
   };
 
-  const phoneDisplay = phone2 
+  const phoneDisplay = phone2
     ? `+${phone1.slice(0, 2)} ${phone1.slice(2)} 
-     +${phone2.slice(0, 2)} ${phone2.slice(2)}` 
+     +${phone2.slice(0, 2)} ${phone2.slice(2)}`
     : `+${phone1.slice(0, 2)} ${phone1.slice(2)}`;
 
   return (
     <footer className="bg-[#120600] text-[#E8D5C0] font-sans">
       {/* Main Footer */}
-      <div className="max-w-7xl mx-auto px-5 py-14">
-        <div className="grid grid-cols-1  sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-10">
-          
+      <div className="max-w-7xl mx-auto px-4 py-8">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
           {/* Brand */}
           <div>
-            <div className="mb-4">
-              <h2 className="text-3xl font-bold text-[#F5A623]">
-                Vk Bakes  &
-              </h2>
-
-              <p className="text-3xl font-bold text-[#D44B1A] mt-1">
-               PIZZA HOUSE
-              </p>
+            <div className="mb-3 ">
+              <h2 className="text-xl font-bold text-[#F5A623]">Vk Bakes &</h2>
+              <p className="text-xl font-bold text-[#D44B1A] mt-0.5">PIZZA HOUSE</p>
             </div>
-
-            <p className="text-sm leading-7 text-[#eab869] mb-5">
-              Your neighborhood bakery since day one. Fresh-baked breads,
-              artisan cakes, and hot pizzas — all made with love for our
-              local community.
+           
+            <p className="text-xs leading-6 text-[#eab869] mb-4">
+              Fresh-baked breads, artisan cakes, and hot pizzas — made with love.
             </p>
 
             {/* Social */}
-            
+
           </div>
 
           {/* Quick Links */}
@@ -138,7 +130,7 @@ export default function Footer({ onNavigate }) {
                 <li key={link.label}>
                   <Link
                     to={link.href === "/home" ? "/" : link.href}
-                    className="flex items-center gap-2 text-sm text-[#eab869] hover:text-[#eba205] transition"
+                    className="flex items-center gap-2 text-xs  text-[#eab869] hover:text-[#eba205] transition"
                   >
                     <ChevronRight size={14} className="text-[#D44B1A]" />
                     {link.label}
@@ -150,16 +142,16 @@ export default function Footer({ onNavigate }) {
 
           {/* Categories */}
           <div>
-            <h3 className="text-sm font-bold tracking-[2px] mb-5 text-[#D44B1A] ">
+            <h3 className="text-xs font-bold tracking-[2px] mb-3 text-[#D44B1A]">
               OUR MENU
             </h3>
 
-            <ul className="space-y-3">
+            <ul className="space-y-2">
               {CATEGORIES.map((item) => (
                 <li key={item.label}>
                   <Link
                     to={item.href}
-                    className="text-sm text-[#eab869] hover:text-[#eba205] transition"
+                    className="text-xs text-[#eab869] hover:text-[#eba205] transition"
                   >
                     {item.label}
                   </Link>
@@ -194,55 +186,54 @@ export default function Footer({ onNavigate }) {
                     {item.icon}
                   </div>
 
-                  <p className="text-sm leading-6 whitespace-pre-line text-[#eab869]">
+                  <p className="text-xs leading-5 whitespace-pre-line text-[#eab869]">
                     {item.text}
                   </p>
                 </div>
               ))}
               <div className="flex gap-3">
-              {[
-                {
-                  icon: <FaInstagram size={16} className="text-pink-500" />,
-                  href: "https://www.instagram.com/its_vivek_1503?utm_source=qr&igsh=aGNwcW1kOXRjeTc5",
-                },
-                {
-                  icon: <FaFacebook size={16} className="text-sky-500" />,
-                  href: "https://www.facebook.com/share/1HHiwdNmMr/",
-                },
-                {
-                  icon: <MessageCircle size={16} className="text-green-600" />,
-                  href: `https://wa.me/${phone1}`,
-                },
-              ].map((item, index) => (
-                <a
-                  key={index}
-                  href={item.href}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="w-9 h-9 rounded-lg border border-white/10 bg-white/5 flex items-center justify-center hover:bg-white/10 transition"
-                >
-                  {item.icon}
-                </a>
-              ))}
-            </div>
+                {[
+                  {
+                    icon: <FaInstagram size={16} className="text-pink-500" />,
+                    href: "https://www.instagram.com/its_vivek_1503?utm_source=qr&igsh=aGNwcW1kOXRjeTc5",
+                  },
+                  {
+                    icon: <FaFacebook size={16} className="text-sky-500" />,
+                    href: "https://www.facebook.com/share/1HHiwdNmMr/",
+                  },
+                  {
+                    icon: <MessageCircle size={16} className="text-green-600" />,
+                    href: `https://wa.me/${phone1}`,
+                  },
+                ].map((item, index) => (
+                  <a
+                    key={index}
+                    href={item.href}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="w-9 h-9 rounded-lg border border-white/10 bg-white/5 flex items-center justify-center hover:bg-white/10 transition"
+                  >
+                    {item.icon}
+                  </a>
+                ))}
+              </div>
 
-            {/* Badge */}
-            
-            <div className="inline-flex items-center gap-2 mt-5 px-3 py-1 rounded-full border border-green-500/20 bg-green-500/10">
-              <div className="w-2 h-2 rounded-full bg-green-500" />
-              <span className="text-sm font-semibold text-green-500">
-                {`${ deliveryZone }`}
-              </span>
-            </div>
+              {/* Badge */}
+
+              <div className="inline-flex items-center gap-2 mt-5 px-3 py-1 rounded-full border border-green-500/20 bg-green-500/10">
+                <div className="w-2 h-2 rounded-full bg-green-500" />
+                <span className="text-sm font-semibold text-green-500">
+                  {`${deliveryZone}`}
+                </span>
+              </div>
             </div>
           </div>
         </div>
       </div>
 
       {/* Delivery Strip */}
-      <div className="border-t border-white/10 px-5 py-4">
-        <div className="max-w-7xl mx-auto flex flex-wrap justify-center gap-5 text-sm text-[#eab869] ">
-          {[
+      {/* <div className="border-t border-white/10 px-5 py-4">
+<div className="max-w-7xl mx-auto flex flex-col sm:flex-row flex-wrap justify-center gap-2 sm:gap-4 text-xs text-[#eab869]">          {[
             "🚚 Pizza, Bakes & Cakes — Home Delivery",
             "🍦 Ice Cream — With Pizza/Cake/Bake only",
             "🏪 Bread, Toast & Biscuits — Pickup only",
@@ -253,7 +244,7 @@ export default function Footer({ onNavigate }) {
             </div>
           ))}
         </div>
-      </div>
+      </div> */}
 
       {/* Copyright */}
       <div className="border-t border-white/10 px-5 py-4">
