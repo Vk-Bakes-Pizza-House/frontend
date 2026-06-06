@@ -43,17 +43,17 @@ export default function LayoutWrapper() {
       : location.pathname.slice(1);
 
   // Navigation handler
-  // const handleNavigation = useCallback(
-  //   (page) => {
-  //     const route =
-  //       page === "home"
-  //         ? "/"
-  //         : `/${page}`;
+  const handleNavigation = useCallback(
+    (page) => {
+      const route =
+        page === "home"
+          ? "/"
+          : `/${page}`;
 
-  //     navigate(route);
-  //   },
-  //   [navigate]
-  // );
+      navigate(route);
+    },
+    [navigate]
+  );
 
   return (
     <div
