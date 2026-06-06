@@ -124,12 +124,11 @@ const endpointsPathsProd = {
     delete: (id) => `/api/faqs/${id}`,
   },
 
-  store:{
 store:{
   get: `/api/store`,
   update: `/api/store/update`,
   toggle: `/api/store/toggle-status`,
-},  },
+  },
 
   upload: {
     image: `/api/upload`,
