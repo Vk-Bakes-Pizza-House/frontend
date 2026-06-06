@@ -6,7 +6,9 @@ import { useState, useCallback } from "react";
 import {
   Routes,
   Route,
-  BrowserRouter
+  BrowserRouter,
+  useNavigate,
+  useLocation,
 } from "react-router-dom";
 
 // Layout
