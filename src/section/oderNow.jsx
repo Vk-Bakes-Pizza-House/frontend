@@ -17,31 +17,28 @@ import {
 import useCartStore from "../store/cartStore";
 import { toast } from "sonner";
 
-import useOrderSubmit  from "../hooks/orderSubmit";
+import useOrderSubmit from "../hooks/orderSubmit";
 
 
-// ─────────────────────────────────────────────────────────────
-// const getFreeDeliveryAbove ;
-
-const PIZZA_SIZES = [
-  { label: 'Regular (8")', key: "rg", priceAdd: 0 },
-  { label: 'Medium  (10")', key: "md", priceAdd: 100 },
-  { label: 'Large   (12")', key: "lg", priceAdd: 200 },
-];
 
 // ─────────────────────────────────────────────────────────────
 
-export default function OrderNowModal({ item, onClose }) {
+export default function OrderNowModal({ item, onClose, initialSize = null }) {
+  const sizes = item?.sizes || [];
+  
   const category = getCategory(item);
   const { addItem: add, logOrder } = useCartStore()
 
-
+  console.log("OrderNowModal render", { item });
   const isPizza = category === "pizza";
+
 
   // ── State ────────────────────────────────────────────────
   const [mainQty, setMainQty] = useState(1);
-  const [selectedSize, setSize] = useState("rg");
-  const [extraCheese, setExtraCheese] = useState(false);
+const [selectedSize, setSize] = useState(
+    initialSize || (sizes.length > 0 ? sizes[0] : null)
+  );
+    const [extraCheese, setExtraCheese] = useState(false);
   const [addons, setAddons] = useState({});
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
@@ -60,11 +57,9 @@ export default function OrderNowModal({ item, onClose }) {
   const inputRef = useRef(null);
 
 
-   // ── Price calculations ────────────────────────────────────
-  const sizeObj = PIZZA_SIZES.find((s) => s.key === selectedSize);
-  const sizeAdd = isPizza ? (sizeObj?.priceAdd ?? 0) : 0;
+  // ── Price calculations ────────────────────────────────────
   const cheeseAdd = isPizza && extraCheese ? 30 : 0;
-  const itemPrice = item.price + sizeAdd + cheeseAdd;
+  const itemPrice = selectedSize ? selectedSize.price : item.price;
 
   const allAddonItems = [...drinks, ...iceCreams];
   const activeAddons = Object.entries(addons).filter(([, q]) => q > 0);
@@ -79,13 +74,13 @@ export default function OrderNowModal({ item, onClose }) {
   const total = subtotal + deliveryFee;
   const remaining = Math.max(0, getFreeDeliveryAbove() - subtotal);
 
-const { handleAddToCart, handleConfirmOrder } = useOrderSubmit({
- item ,isPizza, sizeObj, selectedSize,
-  extraCheese, itemPrice, mainQty,
-  activeAddons, allAddonItems,
-  subtotal, deliveryFee, total,
-  add, onClose,
-});
+  const { handleAddToCart, handleConfirmOrder } = useOrderSubmit({
+    item, isPizza,  selectedSize,
+    extraCheese, itemPrice, mainQty,
+    activeAddons, allAddonItems,
+    subtotal, deliveryFee, total,
+    add, onClose,
+  });
 
 
   // ── Keyboard / focus ─────────────────────────────────────
@@ -115,7 +110,7 @@ const { handleAddToCart, handleConfirmOrder } = useOrderSubmit({
     })();
   }, []);
 
- 
+
 
   // ── Add-on qty helper ─────────────────────────────────────
   const setAddonQty = (id, delta) =>
@@ -195,38 +190,36 @@ const { handleAddToCart, handleConfirmOrder } = useOrderSubmit({
           </div>
 
           {/* 2 ── Pizza size picker */}
-          {isPizza && (
+
+          {isPizza && sizes.length > 0 && (
             <div className="flex flex-col gap-2">
               <p className="font-sans text-sm font-bold text-[#2D1400]">📐 Choose Size</p>
-
               <div className="grid grid-cols-3 gap-2">
-                {PIZZA_SIZES.map((s) => (
+                {sizes.map(s => (
                   <button
-                    key={s.key}
-                    onClick={() => setSize(s.key)}
-                    className={`flex flex-col items-center py-2.5 px-2 rounded-xl border-2 transition-all ${selectedSize === s.key
-                      ? "border-[#D44B1A] bg-[#FFF3EE]"
-                      : "border-[#E8D5C0] bg-white hover:bg-[#FFF8F3]"
+                    key={s._id}
+                    onClick={() => setSize(s)}
+                    className={`flex flex-col items-center py-2.5 px-2 rounded-xl border-2 transition-all ${selectedSize?._id === s._id
+                        ? "border-[#D44B1A] bg-[#FFF3EE]"
+                        : "border-[#E8D5C0] bg-white hover:bg-[#FFF8F3]"
                       }`}
                   >
-                    <span className={`font-sans text-xs font-semibold leading-snug ${selectedSize === s.key ? "text-[#D44B1A]" : "text-[#2D1400]"
+                    <span className={`text-xs font-semibold leading-snug ${selectedSize?._id === s._id ? "text-[#D44B1A]" : "text-[#2D1400]"
                       }`}>
                       {s.label}
                     </span>
-                    <span className={`font-sans text-[11px] font-bold mt-0.5 ${selectedSize === s.key ? "text-[#D44B1A]" : "text-[#8B6A4F]"
+                    <span className={`text-[11px] font-bold mt-0.5 ${selectedSize?._id === s._id ? "text-[#D44B1A]" : "text-[#8B6A4F]"
                       }`}>
-                      {s.priceAdd === 0 ? "Base" : `+₹${s.priceAdd}`}
+                      ₹{s.price}
                     </span>
+                    {s.tag && (
+                      <span className="text-[9px] text-amber-600 font-semibold mt-0.5">
+                        {s.tag}
+                      </span>
+                    )}
                   </button>
                 ))}
               </div>
-
-              {/* Upsell suggestion banner */}
-              <SizeUpsellBanner
-                selectedKey={selectedSize}
-                sizes={PIZZA_SIZES}
-                onSelect={setSize}
-              />
             </div>
           )}
 
@@ -290,7 +283,7 @@ const { handleAddToCart, handleConfirmOrder } = useOrderSubmit({
             qty={mainQty}
             itemPrice={itemPrice}
             isPizza={isPizza}
-            sizeObj={sizeObj}
+            sizeObj={selectedSize}
             extraCheese={extraCheese}
             activeAddons={activeAddons}
             allAddonItems={allAddonItems}
@@ -313,7 +306,7 @@ const { handleAddToCart, handleConfirmOrder } = useOrderSubmit({
               Cancel
             </button>
             <button
-              onClick={()=> handleAddToCart( )}
+              onClick={() => handleAddToCart()}
               className="flex-[2] flex items-center justify-center gap-2 py-2.5 px-4
                          rounded-xl border-2 border-[#D44B1A] bg-[#FFF3EE] hover:bg-[#FFE8E0]
                          font-sans text-sm font-bold text-[#D44B1A] transition-colors"

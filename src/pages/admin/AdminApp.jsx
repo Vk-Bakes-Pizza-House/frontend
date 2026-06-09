@@ -1,61 +1,102 @@
-// admin/AdminApp.jsx
-// ─────────────────────────────────────────────────────────────
-// Root entry point for the admin panel.
-// Handles auth gate → renders AdminShell + active page.
-//
-// Usage: In your main App.jsx, route /admin → <AdminApp />
-//   e.g. using react-router-dom:
-//     <Route path="/admin/*" element={<AdminApp />} />
-// ─────────────────────────────────────────────────────────────
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
+import { Routes, Route, Navigate, useLocation, useNavigate } from "react-router-dom";
 import AdminLogin from "./AdminLogin";
-import Dashboard, { AdminShell } from "./Dashboard";
+import Dashboard from "./Dashboard";
 import ManageMenu from "./ManageMenu";
 import ManageOrders from "./ManageOrders";
 import ManageReviews from "./ManageReviews";
 import AdminProfile from "./AdminProfile";
 import ManageHowToOrder from "./ManageHowtoOrder";
 import AddMenu from "./AddMenu";
+import { AdminShell } from "../../section/admin/AdminShell";
 import ManageItemDetail from "../../section/admin/ManageItemDetail";
-import useAuthStore from "../../store/authStore"
+import useAuthStore from "../../store/authStore";
 import StoreManagementPanel from "./ManageStore";
 
 export default function AdminApp() {
   const { isLoggedIn, fetchMe } = useAuthStore();
-  const [page, setPage] = useState("dashboard");
+  const location = useLocation();
+  const navigate = useNavigate();
 
-  // Check auth on mount
+  // Run validation effect once upon authentication status verification
   useEffect(() => {
     if (isLoggedIn()) {
       fetchMe();
     }
   }, [isLoggedIn, fetchMe]);
 
+  // Auth Gate check: Redirect instantly to login if state keys are unverified
+  if (!isLoggedIn()) {
+    return <AdminLogin onLogin={() => { }} />;
+  }
+
   const logout = () => {
     useAuthStore.getState().logout();
     sessionStorage.removeItem("vk_admin_auth");
   };
 
-  if (!isLoggedIn()) {
-    return <AdminLogin onLogin={() => { }} />;
-  }
+  const handleNavigate = (pageKey) => {
+    const routeMap = {
+      dashboard: "/admin",
+      addMenu: "/admin/add-menu",
+      addItem: "/admin/add-item",
+      itemDetails: "/admin/add-item-details",
+      orders: "/admin/orders",
+      reviews: "/admin/reviews",
+      store: "/admin/store",
+      howToOrder: "/admin/how-to-order",
+      profile: "/admin/profile",
+    };
 
-  const PAGE = {
-    dashboard: <Dashboard />,
-    addMenu: <AddMenu />,
-    addItem: <ManageMenu />,
-    orders: <ManageOrders />,
-    reviews: <ManageReviews />,
-    itemDetails: <ManageItemDetail />,
-    store: <StoreManagementPanel />,
-    howToOrder: <ManageHowToOrder />,
-    profile: <AdminProfile onLogout={logout} />,
+    navigate(routeMap[pageKey] || "/admin");
+  };
+
+  // Helper function to extract current path context for the menu active styling highlights
+  const getCurrentPageKey = () => {
+    const segments = location.pathname.replace(/^\/admin\/?/, "").split("/");
+    const currentSlug = segments[0] || "";
+    
+    // Map paths directly back to string key highlights within your layout menu links
+    const slugMap = {
+      "": "dashboard",
+      "add-menu": "addMenu",
+      "add-item": "addItem",
+      "orders": "orders",
+      "reviews": "reviews",
+      "add-item-details": "itemDetails",
+      "store": "store",
+      "how-to-order": "howToOrder",
+      "profile": "profile"
+    };
+    return slugMap[currentSlug] || "dashboard";
   };
 
   return (
-    <AdminShell page={page} onNavigate={setPage} onLogout={logout} onProfileClick={() => setPage("profile")}>
-      {PAGE[page] || <Dashboard />}
-    </AdminShell>
+    <Routes>
+      {/* Wrap nested pages directly inside the structural AdminShell layout container component */}
+      <Route 
+        element={
+          <AdminShell 
+            page={getCurrentPageKey()} 
+            onNavigate={handleNavigate}
+            onLogout={logout}
+          />
+        }
+      >
+        {/* Native React Router declaration outlets handle actual component instantiation matching */}
+        <Route index element={<Dashboard />} />
+        <Route path="add-menu" element={<AddMenu />} />
+        <Route path="add-item" element={<ManageMenu />} />
+        <Route path="orders" element={<ManageOrders />} />
+        <Route path="reviews" element={<ManageReviews />} />
+        <Route path="add-item-details" element={<ManageItemDetail />} />
+        <Route path="store" element={<StoreManagementPanel />} />
+        <Route path="how-to-order" element={<ManageHowToOrder />} />
+        <Route path="profile" element={<AdminProfile onLogout={logout} />} />
+        
+        {/* Wildcard catch-all: redirects any unknown routes back to the main dashboard safely */}
+        <Route path="*" element={<Navigate to="/admin" replace />} />
+      </Route>
+    </Routes>
   );
 }
-

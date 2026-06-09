@@ -20,6 +20,18 @@ import { Link } from "react-router-dom";
 
 function ItemCard({ item }) {
   const [showModal, setShowModal] = useState(false);
+
+  const sizes = item?.sizes || [];
+  const hasSizes = sizes.length > 0;
+
+  // Default pehla size select
+  const [selectedSize, setSelectedSize] = useState(
+    hasSizes ? sizes[0] : null
+  );
+
+  const displayPrice = hasSizes && selectedSize
+    ? selectedSize.price
+    : item?.price;
   const { addItem: add, items: cart } = useCartStore();
 
   // ── Normalise DB / legacy field names ─────────────────────
@@ -113,15 +125,36 @@ function ItemCard({ item }) {
             {isDlv(item, cart || []) ? "✅ Will be delivered" : "🏪 Store pickup only"}
           </p>
 
-          {/* Pizza hint */}
-          {/* {isPizza && (
-            <p className="font-sans text-[10px] text-amber-600 font-medium">
-              🍕 Tap Add to choose your size
-            </p>
-          )} */}
-        <p className="font-sans font-bold text-lg text-[#D44B1A]">
-          ₹{item?.price?.toFixed(2)}
-        </p>
+
+
+          {/* Price */}
+          <p className="font-sans font-bold text-lg text-[#D44B1A]">
+            ₹{displayPrice?.toFixed(2)}
+          </p>
+
+          {/* Size picker — sirf tab jab sizes available ho */}
+          {hasSizes && (
+            <div className="flex gap-1.5 mt-1">
+              {sizes.map(s => (
+                <button
+                  key={s._id}
+                  onClick={(e) => {
+                    e.preventDefault(); // Link click rokne ke liye
+                    setSelectedSize(s);
+                  }}
+                  className={`flex-1 py-1.5 rounded-lg text-[10px] font-bold border transition-all ${selectedSize?._id === s._id
+                      ? "border-[#D44B1A] bg-[#FFF3EE] text-[#D44B1A]"
+                      : "border-[#E8D5C0] bg-white text-[#8B6A4F] hover:bg-[#FFF8F3]"
+                    }`}
+                >
+                  {s.label}
+                  <span className="block text-[9px] font-normal mt-0.5">
+                    ₹{s.price}
+                  </span>
+                </button>
+              ))}
+            </div>
+          )}
 
           {/* Order Now button */}
           <button
@@ -143,6 +176,7 @@ function ItemCard({ item }) {
       {showModal && (
         <OrderNowModal
           item={item}
+          initialSize={selectedSize} // ← pass karo
           onClose={() => setShowModal(false)}
         />
       )}

@@ -28,6 +28,7 @@ import HowToOrder from "../pages/website/HowToOrder";
 
 // Admin
 import AdminApp from "../pages/admin/AdminApp";
+import AdminLogin from "../pages/admin/AdminLogin";
 
 
 export default function LayoutWrapper() {
@@ -36,7 +37,7 @@ export default function LayoutWrapper() {
 
   // Check admin page
   const isAdminPage =
-    location.pathname.startsWith("/admin");
+    location.pathname.startsWith("/login"&&("/admin"));
 
   // Current page key
   const currentPage =
@@ -128,6 +129,7 @@ export default function LayoutWrapper() {
             element={<HowToOrder />}
           />
 
+          <Route path="/login" element={<AdminLogin />} />
           {/* Admin */}
           <Route
             path="/admin/*"

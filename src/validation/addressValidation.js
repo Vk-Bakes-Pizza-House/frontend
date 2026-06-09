@@ -18,8 +18,8 @@ export const addressValidation = z.object({
   address: z
     .string()
     .trim()
-    .min(10, "Address must be at least 10 characters")
-    .max(300, "Address is too long"),
+    .min(3, "Address must be at least 3 characters")
+    .max(100, "Address is too long"),
 });
 
 export default addressValidation;

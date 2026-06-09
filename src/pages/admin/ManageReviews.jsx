@@ -6,7 +6,7 @@
 // ─────────────────────────────────────────────────────────────
 import { useState, useEffect } from "react";
 import { Star, Check, X, Trash2, Search, MessageSquare, AlertTriangle } from "lucide-react";
-import useReviewStore from "../../store/reviewStore";
+import {useReviewStore} from "../../store";
 
 // ── Stars display ────────────────────────────────────────────
 function Stars({ n }) {

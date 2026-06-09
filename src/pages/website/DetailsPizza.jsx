@@ -133,7 +133,7 @@ export default function PizzaDetail({ onBack, onNavigate }) {
 
   const [sizeIdx, setSizeIdx] = useState(1);           // default Medium
   const [extras, setExtras] = useState([]);           // selected extra ids
-  const [qty, setQty] = useState(1);
+  const [qty, setQty] = useState(item.price < 100 ? 3 : 1);
   const [wishlist, setWishlist] = useState(false);
   const [tab, setTab] = useState("description"); // description | nutrition | reviews
   const [addedAnim, setAddedAnim] = useState(false);
@@ -201,8 +201,8 @@ export default function PizzaDetail({ onBack, onNavigate }) {
 
     return () => { mounted = false; };
   }, [itemId]);
-  const isCartDisabled = !item.available || (totalPrice < 100 && qty < 3);
-
+  const minQtyRequired = item.price < 100 ? 3 : 1;
+  const isCartDisabled = !item.available || qty < minQtyRequired;
   return (
     <>
       <style>{`
@@ -235,10 +235,10 @@ export default function PizzaDetail({ onBack, onNavigate }) {
               {/* Main image */}
               <div className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-orange-100 via-amber-50 to-orange-50 aspect-square flex items-center justify-center shadow-lg">
                 {item.image || item.imageUrl ? (
-                  <img 
-                    src={item.image || item.imageUrl} 
-                    alt={item.name} 
-                    className="w-full h-full object-cover" 
+                  <img
+                    src={item.image || item.imageUrl}
+                    alt={item.name}
+                    className="w-full h-full object-cover"
                   />
                 ) : (
                   <span className="text-[140px] select-none leading-none">🍕</span>
@@ -397,7 +397,7 @@ export default function PizzaDetail({ onBack, onNavigate }) {
                 {/* Qty picker */}
                 <div className="flex items-center gap-2 bg-white border border-stone-200 rounded-2xl p-1.5">
                   <button
-                    onClick={() => setQty(q => Math.max(1, q - 1))}
+                    onDec={() => setQty(q => Math.max(minQtyRequired, q - 1))}
                     className="w-9 h-9 rounded-xl bg-stone-100 hover:bg-stone-200 flex items-center justify-center transition-colors"
                   >
                     <Minus size={14} className="text-stone-600" />
@@ -415,13 +415,16 @@ export default function PizzaDetail({ onBack, onNavigate }) {
                 <button
                   onClick={addToCart}
                   disabled={isCartDisabled}
-                  className={`flex-1 flex items-center justify-center gap-2.5 py-3.5 rounded-2xl text-sm font-bold transition-all active:scale-95 
-    ${addedAnim
-                      ? "bg-emerald-500 text-white shadow-lg shadow-emerald-200"
-                      : isCartDisabled
-                        ? "bg-stone-200 text-stone-400 cursor-not-allowed"
-                        : "bg-orange-600 hover:bg-orange-500 text-white shadow-lg shadow-orange-200"
-                    }`}
+                  className={`flex-1 flex items-center justify-center gap-2.5 py-3.5 rounded-2xl text-sm font-bold transition-all active:scale-95 bg-orange-600 hover:bg-orange-500 text-white shadow-lg shadow-orange-200
+    ${addedAnim ? (
+                      <><span className="text-base">✓</span> Added to Cart!</>
+                    ) : !item.available ? (
+                      <>Out of Stock</>
+                    ) : qty < minQtyRequired ? (
+                      <>Min. {minQtyRequired} Qty Required</>
+                    ) : (
+                      <><ShoppingCart size={16} /> Add to Cart · ₹{totalPrice}</>
+                    )}`}
                 >
                   {addedAnim ? (
                     <><span className="text-base">✓</span> Added to Cart!</>
@@ -552,7 +555,7 @@ export default function PizzaDetail({ onBack, onNavigate }) {
           </div>
 
           {/* ── Related items ──────────────────────────────── */}
-          <div className="mt-10">
+          {/* <div className="mt-10">
             <h3 className="text-lg font-bold text-stone-800 mb-4" style={{ fontFamily: C.f1 }}>
               You might also like
             </h3>
@@ -577,7 +580,7 @@ export default function PizzaDetail({ onBack, onNavigate }) {
                 </div>
               ))}
             </div>
-          </div>
+          </div> */}
 
         </div>
       </div>
