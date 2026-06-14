@@ -2,13 +2,15 @@
 // ─────────────────────────────────────────────────────────────
 // Shared reusable components used by ItemCard & OrderNowModal.
 // ─────────────────────────────────────────────────────────────
+import { useState } from "react";
 import { ChevronDown, ChevronUp, Loader2, Plus, Minus, MapPin } from "lucide-react";
-import { EMOJI } from "../data/menu";
+import { EMOJI, C } from "../data/menu";
 import { getCategory } from "../config/index";
 import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import addressValidation from "../validation/addressValidation";
+import {addressValidation} from "../validation/addressValidation";
+import {toast} from "sonner"
 
 // ── 1. Qty stepper ────────────────────────────────────────────
 export function QtyControl({ qty, onInc, onDec, size = "md" }) {
@@ -234,84 +236,170 @@ export function OrderSummary({
 
 
 export function AddressBox({
-  value,
-  onChange,
-  name,
-  phone,
-  setName,
-  setPhone,
+  // ── New clean props ──────────────────────────────────────
+  onConfirm,        // (data) => Promise<void>  ← FIX 1: pass your handler here
+  onCancel,         // () => void
+ 
+  // ── Optional: notify parent of live validity ─────────────
   onValidChange,
+ 
+  // ── Legacy controlled props (backward compat) ────────────
+  addr,  onChange,
+  name,   setName,
+  phone,  setPhone,
+  setIsOpen,        // legacy way to close — prefer onCancel
 }) {
+  const [whatsappLoading, setWhatsappLoading] = useState(false);
+ 
   const {
     register,
     handleSubmit,
     watch,
+    reset,
     formState: { errors, isValid },
   } = useForm({
-    resolver: zodResolver(addressValidation),
-    mode: "onChange",
+    resolver:      zodResolver(addressValidation),
+    mode:          "all",
+    reValidateMode: "onChange",
     defaultValues: {
-      name: name ?? "",
-      whatsappNumber: phone ?? "",
-      address: value ?? "",
+       name:    name || "",
+      whatsappNumber:   phone || "",
+      address: addr || "",
     },
   });
-
-  const watched = watch();
-  const watchedName = watch("name");
-  const watchedPhone = watch("whatsappNumber");
+ 
+  // ── Sync external controlled values into form ─────────────
+ 
+  // ── Watch fields ──────────────────────────────────────────
+  const watchedName    = watch("name");
+  const watchedPhone   = watch("whatsappNumber");
   const watchedAddress = watch("address");
-
+ 
+  // ── Sync back to legacy parent state + onValidChange ─────
+  
   useEffect(() => {
-  if (onChange) onChange(watchedAddress ?? "");
-  if (setName) setName(watchedName ?? "");
-  if (setPhone) setPhone(watchedPhone ?? "");
-  if (onValidChange) {
-    onValidChange(isValid ? { name: watchedName, whatsappNumber: watchedPhone, address: watchedAddress } : null);
-  }
-}, [watchedName, watchedPhone, watchedAddress, isValid, onChange, setName, setPhone, onValidChange]);
-
-
-
-return (
-  <form onSubmit={handleSubmit(() => { })} className="flex flex-col gap-2">
-    <div className="flex flex-col gap-3">
-      <label htmlFor="addr-name" className="text-sm font-bold text-[#2D1400] flex items-center gap-2">Name</label>
-      <input
-        id="addr-name"
-        {...register("name")}
-        placeholder="Your name"
-        className="w-full p-3 rounded-xl border-2 border-[#E8D5C0] focus:border-[#D44B1A] outline-none text-sm"
-      />
-      {errors.name && <p className="text-xs text-red-500">{errors.name.message}</p>}
-
-      <label htmlFor="addr-phone" className="text-sm font-bold text-[#2D1400] flex items-center gap-2">WhatsApp Number</label>
-      <input
-        id="addr-phone"
-        type="tel"
-        inputMode="tel"
-        {...register("whatsappNumber")}
-        placeholder="WhatsApp number"
-        className="w-full p-3 rounded-xl border-2 border-[#E8D5C0] focus:border-[#D44B1A] outline-none text-sm"
-      />
-      {errors.whatsappNumber && <p className="text-xs text-red-500">{errors.whatsappNumber.message}</p>}
-    </div>
-
-    <label className="flex items-center gap-2 text-sm font-bold text-[#2D1400]">
-      <MapPin size={15} className="text-[#D44B1A]" />
-      Delivery Address
-    </label>
-
-    <textarea
-      rows={1}
-      {...register("address")}
-      placeholder="Enter your address..."
-      className="w-full p-3 rounded-xl border-2 border-[#E8D5C0] focus:border-[#D44B1A] outline-none resize-none text-sm"
-    />
-    {errors.address && <p className="text-xs text-red-500">{errors.address.message}</p>}
-  </form>
-);
+    onChange?.(watchedAddress || "");
+    setName?.(watchedName     || "");
+    setPhone?.(watchedPhone   || "");
+    onValidChange?.(
+      isValid
+        ? { name: watchedName, whatsappNumber: watchedPhone, address: watchedAddress }
+        : null
+    );
+  }, [watchedName, watchedPhone, watchedAddress, isValid, onChange, setName, setPhone, onValidChange]);
+  
+  const onSubmit = async (data) => {
+    // Guard — shouldn't happen since button is disabled, but belt-and-suspenders
+    if (!onConfirm) {
+      console.error("AddressBox: onConfirm prop is missing");
+      toast.error("Something went wrong. Please try again.");
+      return;
+    }
+ 
+    setWhatsappLoading(true);   // ✅ FIX 2: loading BEFORE the async call
+ 
+    try {
+      await onConfirm(data);    // ✅ FIX 3: awaited so errors bubble up
+ 
+      // ✅ FIX 4: close only after success
+      onCancel?.();             // preferred
+      setIsOpen?.(false);       // legacy fallback
+ console.log("Order confirmed with data:", data);
+    } catch (err) {
+      console.error("AddressBox submit error:", err);
+      toast.error(err?.message || "Order failed. Please try again.");
+      // Modal stays open so user can retry
+    } finally {
+      setWhatsappLoading(false);
+    }
+  };
+ 
+  // ─────────────────────────────────────────────────────────
+  return (
+    <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-3">
+ 
+      {/* Name */}
+      <div className="flex flex-col gap-1">
+        <label htmlFor="addr-name" className="text-sm font-bold text-[#2D1400]">
+          Name
+        </label>
+        <input
+          id="addr-name"
+          {...register("name")}
+          placeholder="Your name"
+          className="w-full p-3 rounded-xl border-2 border-[#E8D5C0] focus:border-[#D44B1A] outline-none text-sm transition-colors"
+        />
+        {errors.name && (
+          <p className="text-xs text-red-500">{errors.name.message}</p>
+        )}
+      </div>
+ 
+      {/* WhatsApp number */}
+      <div className="flex flex-col gap-1">
+        <label htmlFor="addr-phone" className="text-sm font-bold text-[#2D1400]">
+          WhatsApp Number
+        </label>
+        <input
+          id="addr-phone"
+          type="tel"
+          inputMode="numeric"
+          maxLength={10}
+          {...register("whatsappNumber")}
+          placeholder="10-digit number e.g. 9876543210"
+          className="w-full p-3 rounded-xl border-2 border-[#E8D5C0] focus:border-[#D44B1A] outline-none text-sm transition-colors"
+        />
+        {errors.whatsappNumber && (
+          <p className="text-xs text-red-500">{errors.whatsappNumber.message}</p>
+        )}
+      </div>
+ 
+      {/* Address */}
+      <div className="flex flex-col gap-1">
+        <label className="flex items-center gap-1.5 text-sm font-bold text-[#2D1400]">
+          <MapPin size={14} className="text-[#D44B1A]" />
+          Delivery Address
+        </label>
+        <textarea
+          rows={3}
+          {...register("address")}
+          placeholder="House no., street, area, landmark…"
+          className="w-full p-3 rounded-xl border-2 border-[#E8D5C0] focus:border-[#D44B1A] outline-none resize-none text-sm transition-colors"
+        />
+        {errors.address && (
+          <p className="text-xs text-red-500">{errors.address.message}</p>
+        )}
+      </div>
+ 
+      {/* Buttons */}
+      <div className="flex gap-3 mt-1">
+        <button
+          type="button"
+          onClick={() => { onCancel?.(); setIsOpen?.(false); }}
+          className="flex-1 py-3 rounded-xl border border-stone-200 text-stone-600 font-bold text-sm hover:bg-stone-50 transition-colors"
+        >
+          Cancel
+        </button>
+ 
+        <button
+          type="submit"
+          disabled={!isValid || whatsappLoading}
+          className={`flex-1 py-3 rounded-xl text-white font-bold text-sm transition-all active:scale-95
+            ${(!isValid || whatsappLoading) ? "opacity-60 cursor-not-allowed" : ""}`}
+          style={{ background: C.green }}
+        >
+          {whatsappLoading ? (
+            <span className="inline-flex items-center justify-center gap-2">
+              <Loader2 className="animate-spin" size={16} />
+              Confirming…
+            </span>
+          ) : "Confirm Order"}
+        </button>
+      </div>
+ 
+    </form>
+  );
 }
+
 export function CartSummary({
   subtotal,
   deliveryFee,

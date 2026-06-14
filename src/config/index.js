@@ -67,9 +67,9 @@ export const buildMsg = (cart, addr,name,phone ) => {
   m += `💵 Payment: Cash on Delivery\n`;
   if (deliveryFee > 0) m += `🚚 Delivery Charge: ₹${deliveryFee}\n`;
   m += `💰 Total: ₹${sub + deliveryFee}\n`;
-  m += `\n📍 Name: ${name?.trim() || "[Please add your name]"}\n`;
-  m += `\n📍 Phone: ${phone?.trim() || "[Please add your phone number]"}\n`;
-  m += `\n📍 Address: ${addr?.trim() || "[Please add your address]"}\n`;
+  m += `\n📍 Name: ${name|| "[Please add your name]"}\n`;
+  m += `\n📍 Phone: ${phone|| "[Please add your phone number]"}\n`;
+  m += `\n📍 Address: ${addr|| "[Please add your address]"}\n`;
 
   return encodeURIComponent(m);
 };

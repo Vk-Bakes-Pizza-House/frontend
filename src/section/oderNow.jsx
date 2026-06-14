@@ -29,7 +29,7 @@ export default function OrderNowModal({ item, onClose, initialSize = null }) {
   const category = getCategory(item);
   const { addItem: add, logOrder } = useCartStore()
 
-  console.log("OrderNowModal render", { item });
+  
   const isPizza = category === "pizza";
 
 
@@ -52,7 +52,6 @@ const [selectedSize, setSize] = useState(
   const [addonError, setAddonError] = useState(null);
   const [showDrinks, setShowDrinks] = useState(false);
   const [showIce, setShowIce] = useState(false);
-  const [whatsappLoading, setWhatsappLoading] = useState(false)
 
   const inputRef = useRef(null);
 
@@ -71,7 +70,7 @@ const [selectedSize, setSize] = useState(
 
   const subtotal = itemPrice * mainQty + addonTotal;
   const deliveryFee = subtotal >= getFreeDeliveryAbove() ? 0 : getDeliveryFees();
-  const total = subtotal + deliveryFee;
+  const total = subtotal + deliveryFee+addonTotal + cheeseAdd;
   const remaining = Math.max(0, getFreeDeliveryAbove() - subtotal);
 
   const { handleAddToCart, handleConfirmOrder } = useOrderSubmit({
@@ -351,41 +350,13 @@ const [selectedSize, setSize] = useState(
                     onChange={setAddr}
                     setName={setName}
                     setPhone={setPhone}
+                    setIsOpen ={setIsOpen}
+                    onConfirm={handleConfirmOrder}
                   />
                 </div>
 
                 {/* Action Buttons inside Popup */}
-                <div className="flex gap-3">
-                  <button
-                    onClick={() => setIsOpen(false)}
-                    className="flex-1 py-3 rounded-xl border border-stone-200 text-stone-600 font-bold text-sm hover:bg-stone-50 transition-colors"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    onClick={async () => {
-                      setWhatsappLoading(true);
-                      try {
-                        await handleConfirmOrder(name, phone, addr);
-                      } finally {
-                        setWhatsappLoading(false);
-                      }
-                    }}
-                    disabled={whatsappLoading}
-                    className={`flex-1 py-3 rounded-xl text-white font-bold text-sm transition-all active:scale-95 ${whatsappLoading ? "opacity-70 cursor-not-allowed" : ""}`}
-                    style={{ background: C.green }}
-                  >
-                    {whatsappLoading ? (
-                      <span className="inline-flex items-center justify-center gap-2">
-                        <Loader2 className="animate-spin" size={16} />
-                        Confirming...
-                      </span>
-                    ) : (
-                      "Confirm Order"
-                    )}
-                  </button>
-                </div>
-
+                
               </div>
             </div>
           )}

@@ -72,12 +72,9 @@ export default function useOrderSubmit({
 
   const handleConfirmOrder =
     useCallback(
-      async (
-        name,
-        phone,
-        addr
-      ) => {
-
+      async (data) => {
+        const { name:name, whatsappNumber: phone, address: addr } = data || {};
+console.log("confrim",data)
         const mainItem =
           buildMainItem({
             item,
@@ -98,7 +95,7 @@ export default function useOrderSubmit({
         await confirmAndSendOrder({
           customer: {
             name,
-            phone,
+            whatsappNumber: phone,
             addr,
           },
 

@@ -263,7 +263,7 @@ export default function ManageOrders() {
               ...o,
               id: o._id,
               customer: o.customer?.name || "Unknown",
-              phone: o.customer?.phone || "",
+              phone: o.customer?.number || "",
               address: o.customer?.address || "",
               items: o.items || [],
               type: o.orderType,

@@ -25,6 +25,7 @@ import ContactPage from "../pages/website/Contact";
 import Cart from "../components/Cart";
 import PizzaDetail from "../pages/website/DetailsPizza";
 import HowToOrder from "../pages/website/HowToOrder";
+import NotFound from "../pages/website/NotFound";
 
 // Admin
 import AdminApp from "../pages/admin/AdminApp";
@@ -136,8 +137,14 @@ export default function LayoutWrapper() {
             element={<AdminApp />}
           />
 
-        </Routes>
+        <Route
+          path="*"
+          element={<NotFound onNavigate={handleNavigation} />}
+        />  
 
+        </Routes>
+        
+      
       </main>
 
       {/* Hide Footer + WhatsApp on Admin */}

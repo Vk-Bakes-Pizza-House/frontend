@@ -13,9 +13,8 @@ import { C} from "../data/menu"
 function Cart() {
   const { items: cart, addItem: add, logOrder } = useCartStore();
   const [name, setName] = useState("");
-  const [phone, setPhone] = useState("");
+  const [whatsappnumber, setWhatsappNumber] = useState("");
   const [addr, setAddr] = useState("");
-  const [whatsappLoading, setWhatsappLoading] = useState(false)
 
   // Popup modal ko open/close karne ki state
   const [isOpen, setIsOpen] = useState(false);
@@ -40,61 +39,7 @@ function Cart() {
     setIsOpen(true); // Popup open karo
   };
 
-  // // 2. Jab Popup ke andar "Confirm Order" par click hoga
-  // const confirmAndOrder = async () => {
-  //   if (!name.trim() || !phone.trim() || !addr.trim()) {
-  //     toast.warning("Please fill in all address details before confirming.");
-  //     return;
-  //   }
-  //   const itemsPayload = [main, ...addonLines]
-  //     .filter(Boolean)
-  //     .map(({ _id, menuItem, name, price, qty }) => {
-  //       const sourceId = menuItem || _id;
-  //       const item = {
-  //         name,
-  //         price: Number(price || 0),
-  //         qty: Number(qty || 0),
-  //       };
-  //       if (typeof sourceId === "string" && /^[0-9a-fA-F]{24}$/.test(sourceId)) {
-  //         item.menuItem = sourceId;
-  //       }
-  //       return item;
-  //     })
-  //     .filter((item) => item.qty > 0 && item.name);
-
-  //   if (itemsPayload.length === 0) {
-  //     toast.error("Order must have at least one item.");
-  //     return;
-  //   }
-  //   const payload = {
-  //     customer: {
-  //       name: name.trim(),
-  //       phone: phone.trim(),
-  //       address: addr.trim(),
-  //     },
-  //     items: itemsPayload,
-  //     orderType: isDlv(main, [main]) ? "delivery" : "pickup",
-  //     subtotal: Number(subtotal),
-  //     deliveryCharge: Number(deliveryFee || 0),
-  //     total: Number(total),
-  //     paymentMethod: "Cash on Delivery",
-  //   };
-
-  //   try {
-  //     await api.post(endpoints.orders.create, payload);
-  //     toast.success("Order saved to backend. Opening WhatsApp...");
-  //   } catch (e) {
-  //     console.warn("Failed to save order payload:", e.message || e);
-  //     toast.warning("Could not save order to backend. Opening WhatsApp anyway.");
-  //   }
-
-  //   setIsOpen(false); // Modal close karo
-  //   const logResult = await logOrder(name.trim(), phone.trim());
-  //   if (logResult.success) {
-  //     toast.success("Order logged! Opening WhatsApp...");
-  //   }
-  //   window.open(`https://wa.me/${getWhatsApp()}?text=${buildMsg(cart, addr, name, phone)}`, "_blank");
-  // };
+  
 
   const removeItem = (itemId) => {
     cart.filter(i => (i._id || i.id) === itemId).forEach(i => add(i, -i.qty));
@@ -192,46 +137,17 @@ function Cart() {
               <AddressBox
                 value={addr}
                 name={name}
-                phone={phone}
+                phone={whatsappnumber}
                 onChange={setAddr}
                 setName={setName}
-                setPhone={setPhone}
+                setPhone={setWhatsappNumber}
+                setIsOpen={setIsOpen}
+                onConfirm={handleConfirmOrder}
               />
             </div>
 
             {/* Action Buttons inside Popup */}
-            <div className="flex gap-3">
-              <button
-                onClick={() => setIsOpen(false)}
-                className="flex-1 py-3 rounded-xl border border-stone-200 text-stone-600 font-bold text-sm hover:bg-stone-50 transition-colors"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={async () => {
-                  setWhatsappLoading(true);
-                  try {
-                    await handleConfirmOrder(name, phone, addr);
-                  } finally {
-                    setWhatsappLoading(false);
-                  }
-
-                }}
-                disabled={whatsappLoading}
-                className="flex-1 py-3 rounded-xl text-white font-bold text-sm transition-all active:scale-95"
-                style={{ background: C.green }}
-              >
-                {whatsappLoading ? (
-                  <span className="inline-flex items-center justify-center gap-2">
-                    <Loader2 className="animate-spin" size={16} />
-                    Confirming...
-                  </span>
-                ) : (
-                  "Confirm Order"
-                )}
-              </button>
-            </div>
-
+           
           </div>
         </div>
       )}

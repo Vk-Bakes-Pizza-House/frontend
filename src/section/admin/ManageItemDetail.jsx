@@ -19,55 +19,55 @@ import { useState, useEffect, useRef } from "react";
 import {
   Save, Trash2, Eye, EyeOff, ToggleLeft, ToggleRight, Star,
   Camera, Plus, X, AlertTriangle, CheckCircle, RefreshCw,
-  ChevronRight, IndianRupee, Search, Leaf, ArrowLeft,
+  ChevronRight, IndianRupee, Search, Leaf, ArrowLeft, MenuSquare ,
 } from "lucide-react";
 import { toast } from "sonner";
 import useMenuStore from "../../store/menuStore";
 
 // ── Design tokens ─────────────────────────────────────────────
 const C = {
-  bg:     "#FFF8F0",
-  dark:   "#1A0A00",
-  mid:    "#2D1400",
-  red:    "#D44B1A",
-  gold:   "#F5A623",
-  muted:  "#8B6A4F",
+  bg: "#FFF8F0",
+  dark: "#1A0A00",
+  mid: "#2D1400",
+  red: "#D44B1A",
+  gold: "#F5A623",
+  muted: "#8B6A4F",
   border: "#E8D5C0",
-  f1:     "'Playfair Display', serif",
-  f2:     "'DM Sans', sans-serif",
+  f1: "'Playfair Display', serif",
+  f2: "'DM Sans', sans-serif",
 };
 
 const CATS = [
-  { key: "pizza",   label: "Pizza",     emoji: "🍕" },
-  { key: "cake",    label: "Cake",      emoji: "🎂" },
-  { key: "bake",    label: "Bakes",     emoji: "🥐" },
-  { key: "bread",   label: "Bread",     emoji: "🍞" },
-  { key: "toast",   label: "Toast",     emoji: "🥖" },
-  { key: "biscuit", label: "Biscuits",  emoji: "🍪" },
-  { key: "ice",     label: "Ice Cream", emoji: "🍦" },
-  { key: "drink",   label: "Drinks",    emoji: "🥤" },
+  { key: "pizza", label: "Pizza", emoji: "🍕" },
+  { key: "cake", label: "Cake", emoji: "🎂" },
+  { key: "bake", label: "Bakes", emoji: "🥐" },
+  { key: "bread", label: "Bread", emoji: "🍞" },
+  { key: "toast", label: "Toast", emoji: "🥖" },
+  { key: "biscuit", label: "Biscuits", emoji: "🍪" },
+  { key: "ice", label: "Ice Cream", emoji: "🍦" },
+  { key: "drink", label: "Drinks", emoji: "🥤" },
 ];
 const EMOJI = Object.fromEntries(CATS.map(c => [c.key, c.emoji]));
 
 // ── Blank form — covers every field PizzaDetail needs ─────────
 const BLANK_FORM = {
-  name:        "",
-  category:    "pizza",
-  price:       "",
+  name: "",
+  category: "pizza",
+  price: "",
   description: "",
-  tag:         "",
-  sortOrder:   0,
-  imageUrl:    "",
-  available:   true,
+  tag: "",
+  sortOrder: 0,
+  imageUrl: "",
+  available: true,
   deliverable: true,
   // ── Fields PizzaDetail shows — add these to your Mongoose schema ──
-  prepTime:    "",          // e.g. "20–25 min"
-  isVeg:       true,
-  calories:    "",          // e.g. "~620 kcal"
-  serves:      "",          // e.g. "1–2"
+  prepTime: "",          // e.g. "20–25 min"
+  isVeg: true,
+  calories: "",          // e.g. "~620 kcal"
+  serves: "",          // e.g. "1–2"
   // Pizza-specific arrays
-  sizes:       [],          // [{ label, price, tag }]
-  extras:      [],          // [{ label, price }]
+  sizes: [],          // [{ label, price, tag }]
+  extras: [],          // [{ label, price }]
   ingredients: [],          // ["Hand-tossed dough", ...]
 };
 
@@ -101,7 +101,7 @@ function Card({ title, sub, accent, children }) {
 function Stars({ n }) {
   return (
     <div className="flex gap-0.5">
-      {[1,2,3,4,5].map(i => (
+      {[1, 2, 3, 4, 5].map(i => (
         <Star key={i} size={12}
           fill={i <= Math.round(n) ? C.gold : "none"}
           color={i <= Math.round(n) ? C.gold : "#D0C0B0"}
@@ -117,19 +117,27 @@ function Stars({ n }) {
 function ItemSelector({ items, loading, activeId, activeCat, onCatChange, onSelect }) {
   const [search, setSearch] = useState("");
 
+
   const filtered = items.filter(i =>
     i.category === activeCat &&
     i.name.toLowerCase().includes(search.toLowerCase())
   );
 
+  const openMenuSelector = () => {
+    setIsOpen(!isOpen);
+  }
+
   return (
     <div className="flex flex-col h-full bg-white border-r border-[#E8D5C0]" style={{ width: 240, flexShrink: 0 }}>
       {/* Header */}
+
+
       <div className="px-4 py-3 border-b border-[#E8D5C0]">
         <p className="font-bold text-sm text-[#1A0A00]" style={{ fontFamily: C.f1 }}>Menu Items</p>
         <p className="text-[11px] text-[#8B6A4F] mt-0.5">
           {items.filter(i => i.available).length} available
         </p>
+
       </div>
 
       {/* Category tabs */}
@@ -138,11 +146,10 @@ function ItemSelector({ items, loading, activeId, activeCat, onCatChange, onSele
           <button
             key={c.key}
             onClick={() => onCatChange(c.key)}
-            className={`shrink-0 px-2.5 py-1 rounded-full text-[11px] font-bold transition-all border ${
-              activeCat === c.key
+            className={`shrink-0 px-2.5 py-1 rounded-full text-[11px] font-bold transition-all border ${activeCat === c.key
                 ? "bg-[#D44B1A] text-white border-[#D44B1A]"
                 : "bg-white text-[#8B6A4F] border-[#E8D5C0] hover:bg-[#FFF8F0]"
-            }`}
+              }`}
           >
             {c.emoji}
           </button>
@@ -176,11 +183,10 @@ function ItemSelector({ items, loading, activeId, activeCat, onCatChange, onSele
             <button
               key={item._id}
               onClick={() => onSelect(item)}
-              className={`w-full flex items-center gap-2.5 px-3 py-2.5 text-left transition-all border-l-2 ${
-                activeId === item._id
+              className={`w-full flex items-center gap-2.5 px-3 py-2.5 text-left transition-all border-l-2 ${activeId === item._id
                   ? "border-[#D44B1A] bg-[#FFF0E6]"
                   : "border-transparent hover:bg-[#FFF8F0]"
-              }`}
+                }`}
             >
               <span className="text-xl shrink-0">{EMOJI[item.category] || "🍽️"}</span>
               <div className="flex-1 min-w-0">
@@ -256,7 +262,7 @@ function SizesEditor({ value, onChange }) {
       {value.map((s, i) => (
         <div key={i} className="flex gap-2 items-center">
           <input value={s.label} onChange={e => update(i, "label", e.target.value)}
-            placeholder='e.g. Medium (9")' className={`${inp} flex-[2]`} />
+            placeholder='e.g. Medium (9")' className={`${inp} flex-[2] text-[10px]`} />
           <div className="relative flex-1">
             <IndianRupee size={11} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-[#8B6A4F]" />
             <input type="number" value={s.price} onChange={e => update(i, "price", e.target.value)}
@@ -265,7 +271,7 @@ function SizesEditor({ value, onChange }) {
           <input value={s.tag} onChange={e => update(i, "tag", e.target.value)}
             placeholder="Popular ✨" className={`${inp} flex-1`} />
           <button onClick={() => onChange(value.filter((_, j) => j !== i))}
-            className="w-7 h-7 rounded-lg bg-red-50 border border-red-200 flex items-center justify-center text-red-500 hover:bg-red-100 shrink-0">
+            className="w-5 h-5 rounded-lg bg-red-50 border border-red-200 flex items-center justify-center text-red-500 hover:bg-red-100 shrink-0">
             <X size={12} />
           </button>
         </div>
@@ -319,14 +325,15 @@ export default function ManageItemDetail() {
     fetchMenu, updateItem, deleteItem,
   } = useMenuStore();
 
-  const [activeCat,     setActiveCat]     = useState("pizza");
-  const [selectedItem,  setSelectedItem]  = useState(null);
-  const [form,          setForm]          = useState(null);
-  const [saving,        setSaving]        = useState(false);
-  const [saved,         setSaved]         = useState(false);
-  const [deleteModal,   setDeleteModal]   = useState(false);
+  const [activeCat, setActiveCat] = useState("pizza");
+  const [selectedItem, setSelectedItem] = useState(null);
+  const [form, setForm] = useState(null);
+  const [saving, setSaving] = useState(false);
+  const [saved, setSaved] = useState(false);
+  const [deleteModal, setDeleteModal] = useState(false);
   const [deleteConfirm, setDeleteConfirm] = useState("");
-  const [imgPreview,    setImgPreview]    = useState("");
+  const [imgPreview, setImgPreview] = useState("");
+  const [isOpen, setIsOpen] = useState(false);
   const fileRef = useRef();
 
   // ── Initial fetch ─────────────────────────────────────────
@@ -401,25 +408,60 @@ export default function ManageItemDetail() {
     <div className="flex h-screen overflow-hidden" style={{ background: C.bg, fontFamily: C.f2 }}>
 
       {/* ── Left: item selector ──────────────────────────── */}
-      <ItemSelector
-        items={catItems}
-        loading={loading}
-        activeId={selectedItem?._id}
-        activeCat={activeCat}
-        onCatChange={setActiveCat}
-        onSelect={loadItem}
-      />
-
+      <aside className="hidden md:block w-60 shrink-0 sticky top-0 h-screen overflow-y-auto border-r border-[#E8D5C0]">
+        <ItemSelector
+          items={catItems}
+          loading={loading}
+          activeId={selectedItem?._id}
+          activeCat={activeCat}
+          onCatChange={setActiveCat}
+          onSelect={loadItem}
+          setIsOpen={setIsOpen}
+        />
+      </aside>
+      {isOpen && (
+        <div
+          onClick={() => setIsOpen(false)}
+          className="fixed inset-0 bg-black/50 backdrop-blur-xs z-40 md:hidden transition-opacity"
+        />
+      )}
+      <aside className={`fixed top-0 bottom-0 left-0 w-60 z-50 md:hidden bg-[#1A0A00] transition-transform duration-300 ease-in-out flex flex-col ${isOpen ? "translate-x-0" : "-translate-x-full"
+        }`}>
+          
+        <button
+          type="button"
+          onClick={() => setIsOpen(false)}
+          className="absolute top-4 right-4 text-[#8B6A4F] hover:text-white p-1 rounded-lg z-10"
+        >
+          <X size={18} />
+        </button>
+        <ItemSelector
+          items={catItems}
+          loading={loading}
+          activeId={selectedItem?._id}
+          activeCat={activeCat}
+          onCatChange={setActiveCat}
+          onSelect={loadItem}
+          setIsOpen={setIsOpen}
+        />
+      </aside>
+     
       {/* ── Right: form ──────────────────────────────────── */}
       <div className="flex-1 flex flex-col overflow-hidden">
-
+         <button
+          type="button"
+          onClick={() => setIsOpen(true)}
+          className="fixed -mt-6 md:hidden p-1.5 -ml-6 rounded-lg text-[#2D1400] hover:bg-gray-100 transition-colors"
+        >
+          <MenuSquare   size={20} />
+        </button>
         {/* No item selected */}
         {!form ? (
           <div className="flex-1 flex flex-col items-center justify-center gap-4 text-[#8B6A4F]">
             <div className="text-6xl">🍽️</div>
             <p className="text-sm font-semibold">Select an item from the left to edit it</p>
             <p className="text-xs text-[#BBA890]">
-              Showing {catItems.length} items in {CATS.find(c=>c.key===activeCat)?.label}
+              Showing {catItems.length} items in {CATS.find(c => c.key === activeCat)?.label}
             </p>
           </div>
         ) : (
@@ -428,39 +470,37 @@ export default function ManageItemDetail() {
             <div className="flex items-center justify-between px-6 py-3 bg-white/80 backdrop-blur border-b border-[#E8D5C0] shrink-0 sticky top-0 z-10">
               <div className="flex items-center gap-2 min-w-0">
                 <span className="text-xs text-[#8B6A4F]">
-                  {CATS.find(c=>c.key===activeCat)?.emoji} {CATS.find(c=>c.key===activeCat)?.label}
+                  {CATS.find(c => c.key === activeCat)?.emoji} {CATS.find(c => c.key === activeCat)?.label}
                 </span>
                 <ChevronRight size={12} className="text-[#E8D5C0]" />
-                <span className="text-sm font-bold text-[#1A0A00] truncate max-w-[200px]">{form.name}</span>
+                {/* <span className="text-sm font-bold text-[#1A0A00] truncate max-w-[200px]">{form.name}</span> */}
 
                 {/* Quick availability pill */}
                 <button
                   onClick={() => set("available", !form.available)}
-                  className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold border transition-all ${
-                    form.available
+                  className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold border transition-all ${form.available
                       ? "bg-green-50 border-green-200 text-green-700"
                       : "bg-gray-50 border-gray-200 text-gray-500"
-                  }`}
+                    }`}
                 >
-                  {form.available ? <ToggleRight size={12}/> : <ToggleLeft size={12}/>}
+                  {form.available ? <ToggleRight size={12} /> : <ToggleLeft size={12} />}
                   {form.available ? "In Stock" : "Sold Out"}
                 </button>
               </div>
 
               <div className="flex items-center gap-2 shrink-0">
-                <button
+                {/* <button
                   onClick={() => setDeleteModal(true)}
                   className="flex items-center gap-1.5 px-3 py-2 rounded-xl border border-red-200 bg-red-50 text-red-600 text-xs font-bold hover:bg-red-100 transition-colors"
                 >
-                  <Trash2 size={12}/> Delete
-                </button>
+                  <Trash2 size={12} /> Delete
+                </button> */}
                 <button
                   onClick={handleSave}
-                  className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold text-white transition-all ${
-                    saved ? "bg-green-600" : "bg-[#D44B1A] hover:bg-[#b83d13]"
-                  }`}
+                  className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold text-white transition-all ${saved ? "bg-green-600" : "bg-[#D44B1A] hover:bg-[#b83d13]"
+                    }`}
                 >
-                  {saving ? <RefreshCw size={12} className="animate-spin"/> : saved ? <CheckCircle size={12}/> : <Save size={12}/>}
+                  {saving ? <RefreshCw size={12} className="animate-spin" /> : saved ? <CheckCircle size={12} /> : <Save size={12} />}
                   {saving ? "Saving…" : saved ? "Saved!" : "Save Changes"}
                 </button>
               </div>
@@ -468,7 +508,7 @@ export default function ManageItemDetail() {
 
             {/* Scrollable form body */}
             <div className="flex-1 overflow-y-auto">
-              <div className="max-w-4xl mx-auto px-6 py-6 flex flex-col gap-5">
+              <div className="max-w-4xl mx-auto px-1 py-6 flex flex-col gap-5">
 
                 {/* ── Hero row: image + name + quick stats ── */}
                 <div className="flex items-center gap-4 p-4 bg-white rounded-2xl border border-[#E8D5C0]">
@@ -476,13 +516,13 @@ export default function ManageItemDetail() {
                   <div className="relative shrink-0 cursor-pointer" onClick={() => fileRef.current?.click()}>
                     <div className="w-20 h-20 rounded-2xl overflow-hidden bg-[#FFF0E6] border-2 border-dashed border-[#E8D5C0] flex items-center justify-center">
                       {imgPreview
-                        ? <img src={imgPreview} alt="" className="w-full h-full object-cover"/>
+                        ? <img src={imgPreview} alt="" className="w-full h-full object-cover" />
                         : <span className="text-4xl">{EMOJI[form.category] || "🍽️"}</span>}
                     </div>
                     <div className="absolute -bottom-1.5 -right-1.5 w-6 h-6 bg-[#D44B1A] rounded-lg flex items-center justify-center">
-                      <Camera size={11} className="text-white"/>
+                      <Camera size={11} className="text-white" />
                     </div>
-                    <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handleImg}/>
+                    <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handleImg} />
                   </div>
 
                   <div className="flex-1 min-w-0">
@@ -493,7 +533,7 @@ export default function ManageItemDetail() {
                       <span className="text-base font-black text-[#D44B1A]">₹{form.price || 0}</span>
                       {form.isVeg && (
                         <span className="flex items-center gap-1 text-[10px] font-bold text-green-700 bg-green-50 px-2 py-0.5 rounded-full">
-                          <Leaf size={9}/> VEG
+                          <Leaf size={9} /> VEG
                         </span>
                       )}
                     </div>
@@ -505,7 +545,7 @@ export default function ManageItemDetail() {
                   <div className="p-5 grid grid-cols-2 gap-4">
                     <div className="col-span-2">
                       <Field label="Item Name *">
-                        <input className={inp} value={form.name} onChange={e => set("name", e.target.value)} placeholder="e.g. Paneer Tikka Pizza"/>
+                        <input className={inp} value={form.name} onChange={e => set("name", e.target.value)} placeholder="e.g. Paneer Tikka Pizza" />
                       </Field>
                     </div>
                     <Field label="Category *">
@@ -515,20 +555,20 @@ export default function ManageItemDetail() {
                     </Field>
                     <Field label="Price (₹) *">
                       <div className="relative">
-                        <IndianRupee size={12} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#8B6A4F]"/>
-                        <input type="number" className={`${inp} pl-7`} value={form.price} onChange={e => set("price", e.target.value)} min="1"/>
+                        <IndianRupee size={12} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#8B6A4F]" />
+                        <input type="number" className={`${inp} pl-7`} value={form.price} onChange={e => set("price", e.target.value)} min="1" />
                       </div>
                     </Field>
                     <div className="col-span-2">
                       <Field label="Description" hint="Shown on menu cards and detail page">
-                        <textarea className={`${inp} resize-none`} rows={3} value={form.description} onChange={e => set("description", e.target.value)} placeholder="Describe the item…"/>
+                        <textarea className={`${inp} resize-none`} rows={3} value={form.description} onChange={e => set("description", e.target.value)} placeholder="Describe the item…" />
                       </Field>
                     </div>
                     <Field label='Tag / Badge' hint='"Bestseller", "🌶️ Spicy", "New"'>
-                      <input className={inp} value={form.tag} onChange={e => set("tag", e.target.value)} placeholder="Bestseller"/>
+                      <input className={inp} value={form.tag} onChange={e => set("tag", e.target.value)} placeholder="Bestseller" />
                     </Field>
                     <Field label="Sort Order" hint="Lower number = appears first">
-                      <input type="number" className={inp} value={form.sortOrder} onChange={e => set("sortOrder", +e.target.value)} min="0"/>
+                      <input type="number" className={inp} value={form.sortOrder} onChange={e => set("sortOrder", +e.target.value)} min="0" />
                     </Field>
                   </div>
                 </Card>
@@ -537,7 +577,7 @@ export default function ManageItemDetail() {
                 <Card title="Item Photo" sub="Shown on cards and detail page">
                   <div className="p-5">
                     <Field label="Image URL" hint="Paste a Cloudinary URL, or upload above">
-                      <input className={inp} value={form.imageUrl || ""} onChange={e => { set("imageUrl", e.target.value); setImgPreview(e.target.value); }} placeholder="https://res.cloudinary.com/…"/>
+                      <input className={inp} value={form.imageUrl || ""} onChange={e => { set("imageUrl", e.target.value); setImgPreview(e.target.value); }} placeholder="https://res.cloudinary.com/…" />
                     </Field>
                   </div>
                 </Card>
@@ -546,31 +586,30 @@ export default function ManageItemDetail() {
                 <Card title="Detail Page Info" sub="Shown on the public item detail page — add these fields to your Mongoose schema">
                   <div className="p-5 grid grid-cols-2 gap-4">
                     <Field label="Prep Time" hint='e.g. "20–25 min"'>
-                      <input className={inp} value={form.prepTime} onChange={e => set("prepTime", e.target.value)} placeholder="20–25 min"/>
+                      <input className={inp} value={form.prepTime} onChange={e => set("prepTime", e.target.value)} placeholder="20–25 min" />
                     </Field>
                     <Field label="Serves" hint='e.g. "1–2"'>
-                      <input className={inp} value={form.serves} onChange={e => set("serves", e.target.value)} placeholder="1–2"/>
+                      <input className={inp} value={form.serves} onChange={e => set("serves", e.target.value)} placeholder="1–2" />
                     </Field>
                     <Field label="Calories" hint='e.g. "~620 kcal"'>
-                      <input className={inp} value={form.calories} onChange={e => set("calories", e.target.value)} placeholder="~620 kcal"/>
+                      <input className={inp} value={form.calories} onChange={e => set("calories", e.target.value)} placeholder="~620 kcal" />
                     </Field>
 
                     {/* Veg toggle */}
                     <Field label="Food Type">
                       <button
                         onClick={() => set("isVeg", !form.isVeg)}
-                        className={`flex items-center justify-between w-full px-4 py-2.5 rounded-xl border-2 transition-all ${
-                          form.isVeg ? "border-green-300 bg-green-50" : "border-[#E8D5C0] bg-white"
-                        }`}
+                        className={`flex items-center justify-between w-full px-4 py-2.5 rounded-xl border-2 transition-all ${form.isVeg ? "border-green-300 bg-green-50" : "border-[#E8D5C0] bg-white"
+                          }`}
                       >
                         <div className="flex items-center gap-2">
-                          <Leaf size={14} className={form.isVeg ? "text-green-600" : "text-[#8B6A4F]"}/>
+                          <Leaf size={14} className={form.isVeg ? "text-green-600" : "text-[#8B6A4F]"} />
                           <span className={`text-sm font-bold ${form.isVeg ? "text-green-700" : "text-[#8B6A4F]"}`}>
                             {form.isVeg ? "Pure Veg" : "Non-Veg"}
                           </span>
                         </div>
                         <div className={`w-10 h-5 rounded-full relative transition-colors ${form.isVeg ? "bg-green-500" : "bg-[#E8D5C0]"}`}>
-                          <div className={`absolute top-0.5 w-4 h-4 rounded-full bg-white shadow transition-transform ${form.isVeg ? "translate-x-5" : "translate-x-0.5"}`}/>
+                          <div className={`absolute top-0.5 w-4 h-4 rounded-full bg-white shadow transition-transform ${form.isVeg ? "translate-x-5" : "translate-x-0.5"}`} />
                         </div>
                       </button>
                     </Field>
@@ -595,9 +634,9 @@ export default function ManageItemDetail() {
                         <span className="text-[10px] font-bold text-[#8B6A4F] uppercase">Size Label</span>
                         <span className="text-[10px] font-bold text-[#8B6A4F] uppercase">Price (₹)</span>
                         <span className="text-[10px] font-bold text-[#8B6A4F] uppercase">Tag</span>
-                        <span/>
+                        <span />
                       </div>
-                      <SizesEditor value={form.sizes} onChange={v => set("sizes", v)}/>
+                      <SizesEditor value={form.sizes} onChange={v => set("sizes", v)} />
                     </div>
                   </Card>
                 )}
@@ -608,9 +647,9 @@ export default function ManageItemDetail() {
                     <div className="grid grid-cols-[2fr_1fr_auto] gap-2 mb-2">
                       <span className="text-[10px] font-bold text-[#8B6A4F] uppercase">Extra Name</span>
                       <span className="text-[10px] font-bold text-[#8B6A4F] uppercase">Price (₹ / 0=Free)</span>
-                      <span/>
+                      <span />
                     </div>
-                    <ExtrasEditor value={form.extras} onChange={v => set("extras", v)}/>
+                    <ExtrasEditor value={form.extras} onChange={v => set("extras", v)} />
                   </div>
                 </Card>
 
@@ -622,19 +661,18 @@ export default function ManageItemDetail() {
                       <div className="flex items-center justify-between">
                         <div>
                           <p className="text-sm font-bold text-[#1A0A00]">In Stock</p>
-                          <p className="text-xs text-[#8B6A4F] mt-0.5">Visible on public menu</p>
+                         
                         </div>
                         <button onClick={() => set("available", !form.available)}>
                           {form.available
-                            ? <ToggleRight size={30} className="text-green-500"/>
-                            : <ToggleLeft  size={30} className="text-[#E8D5C0]"/>}
+                            ? <ToggleRight size={30} className="text-green-500" />
+                            : <ToggleLeft size={30} className="text-[#E8D5C0]" />}
                         </button>
                       </div>
-                      <div className={`text-xs font-semibold px-3 py-2 rounded-xl border ${
-                        form.available
+                      <div className={`text-xs font-semibold px-3 py-2 rounded-xl border ${form.available
                           ? "bg-green-50 border-green-200 text-green-700"
                           : "bg-red-50 border-red-200 text-red-600"
-                      }`}>
+                        }`}>
                         {form.available ? "✅ Visible to customers" : "⚠️ Hidden from menu"}
                       </div>
                     </div>
@@ -644,21 +682,20 @@ export default function ManageItemDetail() {
                   <Card title="Delivery Rule">
                     <div className="p-5 flex flex-col gap-2">
                       {[
-                        { v: true,   label: "🚚 Always deliverable",       sub: "Pizza, Bakes, Cakes" },
-                        { v: "cond", label: "🍦 Only with Pizza/Bake/Cake", sub: "Ice Cream" },
-                        { v: false,  label: "🏪 Store pickup only",         sub: "Bread, Toast, Biscuits" },
+                        { v: true, label: "🚚 Always deliverable", sub: "Pizza, Bakes, Cakes" },
+                        { v: "cond", label: "🍦 Only with Pizza/Cake", sub: "Ice Cream" },
+                        { v: false, label: "🏪 Store pickup only", sub: "Bread, Toast, Biscuits" },
                       ].map(opt => {
                         const sel = form.deliverable === opt.v;
                         return (
                           <button
                             key={String(opt.v)}
                             onClick={() => set("deliverable", opt.v)}
-                            className={`flex items-start gap-2.5 p-2.5 rounded-xl border-2 text-left transition-all ${
-                              sel ? "border-[#D44B1A] bg-[#FFF0E6]" : "border-[#E8D5C0] bg-white hover:bg-[#FFF8F0]"
-                            }`}
+                            className={`flex items-start gap-2.5 p-2.5 rounded-xl border-2 text-left transition-all ${sel ? "border-[#D44B1A] bg-[#FFF0E6]" : "border-[#E8D5C0] bg-white hover:bg-[#FFF8F0]"
+                              }`}
                           >
                             <div className={`w-4 h-4 rounded-full border-2 mt-0.5 flex items-center justify-center shrink-0 ${sel ? "border-[#D44B1A] bg-[#D44B1A]" : "border-[#C4A882]"}`}>
-                              {sel && <div className="w-1.5 h-1.5 rounded-full bg-white"/>}
+                              {sel && <div className="w-1.5 h-1.5 rounded-full bg-white" />}
                             </div>
                             <div>
                               <p className={`text-xs font-bold ${sel ? "text-[#D44B1A]" : "text-[#1A0A00]"}`}>{opt.label}</p>
@@ -675,30 +712,22 @@ export default function ManageItemDetail() {
                 <div className="rounded-2xl border border-red-200 overflow-hidden">
                   <div className="px-5 py-3 border-b border-red-200 bg-red-50">
                     <p className="text-sm font-bold text-red-700 flex items-center gap-1.5">
-                      <AlertTriangle size={13}/> Danger Zone
+                      <AlertTriangle size={13} /> Danger Zone
                     </p>
                   </div>
                   <div className="p-5 bg-white flex items-center justify-between gap-4">
-                    <p className="text-xs text-[#8B6A4F] leading-relaxed">
-                      Permanently delete <strong>{form.name}</strong>. This cannot be undone.
-                    </p>
+                    
                     <button
                       onClick={() => setDeleteModal(true)}
                       className="flex items-center gap-1.5 px-4 py-2 rounded-xl border border-red-200 bg-red-50 text-red-600 text-xs font-bold hover:bg-red-100 transition-colors shrink-0"
                     >
-                      <Trash2 size={12}/> Delete Item
+                      <Trash2 size={12} /> Delete Item
                     </button>
                   </div>
                 </div>
 
-                {/* Schema reminder */}
-                <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 text-xs text-amber-800 leading-relaxed">
-                  <strong>📋 Add these fields to your MenuItem Mongoose schema</strong> so they save to the DB:
-                  <code className="block mt-2 bg-amber-100 rounded p-2 font-mono text-[11px]">
-                    {`prepTime: String,\nisVeg: { type: Boolean, default: true },\ncalories: String,\nserves: String,\nsizes: [{ label: String, price: Number, tag: String }],\nextras: [{ label: String, price: Number }],\ningredients: [String],`}
-                  </code>
-                </div>
-
+       
+                
               </div>
             </div>
           </>
@@ -710,7 +739,7 @@ export default function ManageItemDetail() {
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: "rgba(0,0,0,0.5)", backdropFilter: "blur(4px)" }}>
           <div className="bg-white rounded-2xl border border-[#E8D5C0] p-6 w-full max-w-sm shadow-2xl">
             <div className="w-12 h-12 bg-red-50 rounded-xl flex items-center justify-center mb-4">
-              <Trash2 size={22} className="text-red-600"/>
+              <Trash2 size={22} className="text-red-600" />
             </div>
             <p className="font-bold text-base text-[#1A0A00] mb-2">Delete "{form?.name}"?</p>
             <p className="text-xs text-[#8B6A4F] leading-relaxed mb-4">
@@ -732,9 +761,8 @@ export default function ManageItemDetail() {
               <button
                 disabled={deleteConfirm !== "delete item"}
                 onClick={handleDelete}
-                className={`flex-1 py-2.5 rounded-xl text-sm font-bold text-white transition-colors ${
-                  deleteConfirm === "delete item" ? "bg-red-600 hover:bg-red-700" : "bg-red-200 cursor-not-allowed"
-                }`}
+                className={`flex-1 py-2.5 rounded-xl text-sm font-bold text-white transition-colors ${deleteConfirm === "delete item" ? "bg-red-600 hover:bg-red-700" : "bg-red-200 cursor-not-allowed"
+                  }`}
               >
                 Delete
               </button>

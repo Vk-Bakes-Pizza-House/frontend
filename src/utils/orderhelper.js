@@ -114,18 +114,13 @@ export const toOrderItemsPayload = (cartItems) =>
 //   onDone                  → callback after WhatsApp opens (e.g. onClose)
 //
 export const confirmAndSendOrder = async ({
-  customer: { name, phone, addr },
+  customer: { name, whatsappNumber, addr },
   mainItem,
   addonLines,
   priceSummary: { subtotal, deliveryFee, total },
   onDone,
 }) => {
-  // ── Validate customer fields ────────────────────────────────
-  if (!name.trim() || !phone.trim() || !addr.trim()) {
-    toast.warning("Please fill in name, phone and address before confirming.");
-    return false;
-  }
-
+  
   // ── Build backend payload ───────────────────────────────────
   const allCartItems   = mainItem ? [mainItem, ...addonLines] : [...addonLines];
   const itemsPayload   = toOrderItemsPayload(allCartItems);
@@ -137,9 +132,9 @@ export const confirmAndSendOrder = async ({
 
   const payload = {
     customer: {
-      name:    name.trim(),
-      phone:   phone.trim(),
-      address: addr.trim(),
+       name:    name || "",
+      whatsappNumber:   whatsappNumber || "",
+      address: addr || "",
     },
     items:          itemsPayload,
     orderType:      isDlv(mainItem, allCartItems) ? "delivery" : "pickup",
@@ -149,7 +144,7 @@ export const confirmAndSendOrder = async ({
     paymentMethod:  "Cash on Delivery",
   };
 
-  // ── Save to backend (non-blocking — WA opens regardless) ────
+  // ── Save to backend (non-blocking — WA opens regardless) ────  
   try {
     await api.post(endpoints.orders.create, payload);
     toast.success("Order saved! Opening WhatsApp…");
@@ -159,7 +154,7 @@ export const confirmAndSendOrder = async ({
   }
 
   // ── Open WhatsApp ───────────────────────────────────────────
-  const msg = buildMsg(allCartItems, addr, name, phone);
+  const msg = buildMsg(allCartItems, addr, name, whatsappNumber);
   window.open(`https://wa.me/${getWhatsApp()}?text=${msg}`, "_blank");
 
   onDone?.();
