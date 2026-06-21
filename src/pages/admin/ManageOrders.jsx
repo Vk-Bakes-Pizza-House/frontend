@@ -29,7 +29,7 @@ function StatusBadge({ status }) {
 }
 
 // ── Order Card ───────────────────────────────────────────────
-function OrderCard({ order, onStatus }) {
+function OrderCard({ order, onStatus,deleteOrder }) {
   const [open, setOpen] = useState(false);
   const sub    = order.items.reduce((s, i) => s + i.qty * i.price, 0);
   const hasDlv = order.type === "delivery";
@@ -46,6 +46,8 @@ const msg = {
       Delivered:  `🚚 VK Bakes\n\nYour order (${item}) has been delivered.\nHope you enjoy it! 😊\nThank you ❤️ — VK Bakes`,
       Cancelled:  `❌ VK Bakes\n\nYour order (${item}) has been cancelled.\nPlease contact us for support.`,
     };
+
+
 
   return (
     <div className={`bg-white border border-stone-200 rounded-xl overflow-hidden border-l-4 ${meta.left}`}>
@@ -162,8 +164,19 @@ const msg = {
                 className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-orange-50 border border-orange-200 text-orange-700 hover:bg-orange-100 transition-colors"
               >
                 <MessageCircle size={12} /> WhatsApp Delivered
+
               </button>
             )}
+            {order.status == "Cancelled" && (
+            <button
+              onClick={deleteOrder.bind(null, order.id)}
+              title={order.status !== "Cancelled" ? "Are you sure you want to cancel this order?" : "Are you sure you want to delete this order?"}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-red-50 border border-red-200 text-red-700 hover:bg-red-100 transition-colors"
+            >
+                <MessageCircle size={12} /> Delete Order
+            
+            </button>
+           )}
           </div>
         </div>
       )}
@@ -176,7 +189,7 @@ export default function ManageOrders() {
   const {
     orders, loading, error, filters,
     pagination, fetchOrders, updateStatus,
-    setFilter, goToPage, clearError,
+    setFilter, goToPage, clearError,deleteOrder,
   } = useOrderStore();
 
   const [q, setQ] = useState("");
@@ -271,6 +284,7 @@ export default function ManageOrders() {
               ts: new Date(o.createdAt).getTime(),
             }}
             onStatus={handleStatusUpdate}
+            deleteOrder={deleteOrder}
           />
         ))}
         {visible.length === 0 && !loading && (
