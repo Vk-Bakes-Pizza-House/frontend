@@ -70,8 +70,7 @@ const [selectedSize, setSize] = useState(
 
   const subtotal = itemPrice * mainQty + addonTotal;
   const deliveryFee = subtotal >= getFreeDeliveryAbove() ? 0 : getDeliveryFees();
-  const total = subtotal + deliveryFee+addonTotal + cheeseAdd;
-  const remaining = Math.max(0, getFreeDeliveryAbove() - subtotal);
+  const total = subtotal + deliveryFee + cheeseAdd;  const remaining = Math.max(0, getFreeDeliveryAbove() - subtotal);
 
   const { handleAddToCart, handleConfirmOrder } = useOrderSubmit({
     item, isPizza,  selectedSize,

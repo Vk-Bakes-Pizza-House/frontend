@@ -1,6 +1,8 @@
 // src/utils/endpoints.js
 // VK Bakes API Endpoints (React + Tailwind Project)
 
+
+
 const API_BASE =
   import.meta.env.VITE_API_URL || "http://localhost:5000/api";
 
@@ -42,6 +44,7 @@ const endpointsPathsDev = {
       `${API_BASE}/orders/${id}/status`,
     delete: (id) => `${API_BASE}/orders/${id}`,
     deleteAll: `${API_BASE}/orders`,
+    revenue : `${API_BASE}/revenue`
   },
 
   reviews: {
@@ -107,6 +110,7 @@ const endpointsPathsProd = {
       `/api/orders/${id}/status`,
     delete: (id) => `/api/orders/${id}`,
     deleteAll: `/api/orders`,
+    revenue: `/api/orders/revenue`
   },
 
   reviews: {

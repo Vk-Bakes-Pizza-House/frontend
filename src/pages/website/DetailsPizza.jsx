@@ -176,6 +176,7 @@ export default function PizzaDetail({ onBack, onNavigate }) {
       extras,
       size: selectedSize.label,
       image: item.image || item.imageUrl || "",
+    
     };
 
     // Remaining add to cart logic...
@@ -397,7 +398,7 @@ export default function PizzaDetail({ onBack, onNavigate }) {
                 {/* Qty picker */}
                 <div className="flex items-center gap-2 bg-white border border-stone-200 rounded-2xl p-1.5">
                   <button
-                    onDec={() => setQty(q => Math.max(minQtyRequired, q - 1))}
+                    onClick={() => setQty(q => Math.max(minQtyRequired, q - 1))}
                     className="w-9 h-9 rounded-xl bg-stone-100 hover:bg-stone-200 flex items-center justify-center transition-colors"
                   >
                     <Minus size={14} className="text-stone-600" />

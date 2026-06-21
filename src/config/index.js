@@ -14,7 +14,7 @@ export const getWhatsApp = () => useStoreStore.getState().store?.phone1 || "";
 export const getPhone1 = () => useStoreStore.getState().store?.phone1 || "";
 export const getPhone2 = () => useStoreStore.getState().store?.phone2 || "";
 export const getFreeDeliveryAbove = () => useStoreStore.getState().store?.freeDeliveryFee || 300;
-export const getDeliveryFees = () => useStoreStore.getState().store?.deliveryFee || 300;
+export const getDeliveryFees = () => useStoreStore.getState().store?.deliveryFee || 20;
 // ── Field-name normalizers ────────────────────────────────────
 // DB returns `category` & `deliverable`; old static data used `cat` & `dlv`
 export const getCategory    = (item) => {

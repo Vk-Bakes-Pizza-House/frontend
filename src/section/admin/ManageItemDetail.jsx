@@ -123,10 +123,7 @@ function ItemSelector({ items, loading, activeId, activeCat, onCatChange, onSele
     i.name.toLowerCase().includes(search.toLowerCase())
   );
 
-  const openMenuSelector = () => {
-    setIsOpen(!isOpen);
-  }
-
+  return (
   return (
     <div className="flex flex-col h-full bg-white border-r border-[#E8D5C0]" style={{ width: 240, flexShrink: 0 }}>
       {/* Header */}

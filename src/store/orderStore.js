@@ -48,6 +48,7 @@ const useOrderStore = create(
     (set, get) => ({
       // ── State ─────────────────────────────────────────────
       orders:     [],
+      revenue:     0,
       stats:      null,       // { total, pending, delivered, cancelled, revenue, todayOrders, todayRevenue }
       pagination: { page: 1, pages: 1, total: 0, limit: 20 },
       filters:    { status: "all", q: "", orderType: "all" },
@@ -241,7 +242,21 @@ const useOrderStore = create(
           return { success: false, message };
         }
       },
+
+      // fetchRevenue = async () => {
+      //   try {
+      //     const { data } = await api.get(endpoints.orders.revenue);
+      //     set({ revenue: data.data });
+      //     return { success: true, data: data.data };
+      //   } catch (err) {
+      //     console.warn("Revenue fetch failed:", err.message);
+      //     return { success: false };
+      //   }
+      // },
     }),
+
+  
+
     { name: "OrderStore" }
   )
 );

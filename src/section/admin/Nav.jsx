@@ -22,11 +22,13 @@ export const NAV = [
       { key: "addMenu", label: "Add Menu Category", icon: ListTree },
       { key: "addItem", label: "Add Menu Items", icon: PlusCircle },
       { key: "itemDetails", label: "Menu Item Details", icon: FileText },
+      { key: "combos", label: "Manage Combos", icon: ListTree }
     ]
   },
   { key: "store", label: "Store Management", icon: StoreIcon },
   { key: "orders", label: "Orders", icon: ShoppingBag },
   { key: "reviews", label: "Reviews", icon: Star },
   { key: "howToOrder", label: "How To Order", icon: Truck },
+  { key: "profile", label: "Profile", icon: Settings },
 
 ];

@@ -27,8 +27,7 @@ export default function useOrderSubmit({
   onClose,
 }) {
 
-  const handleAddToCart =
-    useCallback(() => {
+  const handleAddToCart =useCallback(() => {
 
       const mainItem =
         buildMainItem({
@@ -70,11 +69,10 @@ export default function useOrderSubmit({
     ]);
 
 
-  const handleConfirmOrder =
-    useCallback(
+  const handleConfirmOrder = useCallback(
       async (data) => {
         const { name:name, whatsappNumber: phone, address: addr } = data || {};
-console.log("confrim",data)
+
         const mainItem =
           buildMainItem({
             item,

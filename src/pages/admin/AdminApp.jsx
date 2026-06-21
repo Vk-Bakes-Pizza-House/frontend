@@ -10,6 +10,7 @@ import ManageHowToOrder from "./ManageHowtoOrder";
 import AddMenu from "./AddMenu";
 import { AdminShell } from "../../section/admin/AdminShell";
 import ManageItemDetail from "../../section/admin/ManageItemDetail";
+import ManageCombos from "../../section/admin/ManageCombo";
 import useAuthStore from "../../store/authStore";
 import StoreManagementPanel from "./ManageStore";
 
@@ -41,6 +42,7 @@ export default function AdminApp() {
       addMenu: "/admin/add-menu",
       addItem: "/admin/add-item",
       itemDetails: "/admin/add-item-details",
+      combos: "/admin/combos",
       orders: "/admin/orders",
       reviews: "/admin/reviews",
       store: "/admin/store",
@@ -64,6 +66,7 @@ export default function AdminApp() {
       "orders": "orders",
       "reviews": "reviews",
       "add-item-details": "itemDetails",
+      "combos": "combos",
       "store": "store",
       "how-to-order": "howToOrder",
       "profile": "profile"
@@ -90,6 +93,7 @@ export default function AdminApp() {
         <Route path="orders" element={<ManageOrders />} />
         <Route path="reviews" element={<ManageReviews />} />
         <Route path="add-item-details" element={<ManageItemDetail />} />
+        <Route path="combos" element={<ManageCombos />} />
         <Route path="store" element={<StoreManagementPanel />} />
         <Route path="how-to-order" element={<ManageHowToOrder />} />
         <Route path="profile" element={<AdminProfile onLogout={logout} />} />

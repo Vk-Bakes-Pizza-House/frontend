@@ -304,7 +304,7 @@ export function AddressBox({
       // ✅ FIX 4: close only after success
       onCancel?.();             // preferred
       setIsOpen?.(false);       // legacy fallback
- console.log("Order confirmed with data:", data);
+
     } catch (err) {
       console.error("AddressBox submit error:", err);
       toast.error(err?.message || "Order failed. Please try again.");

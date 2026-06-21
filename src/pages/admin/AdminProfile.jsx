@@ -31,7 +31,7 @@ const TABS = [
 // ─────────────────────────────────────────────────────────────
 // ROOT — AdminProfile
 // ─────────────────────────────────────────────────────────────
-export default function AdminProfile({ onLogout }) {
+export default function AdminProfile({ onLogout ,onProfileClick }) {
   const [tab, setTab] = useState("profile");
   const { profile, fetchProfile } = useProfileStore();
 
@@ -55,7 +55,9 @@ export default function AdminProfile({ onLogout }) {
         {/* ── Page header ─────────────────────────────────── */}
         <div className="bg-gradient-to-r from-stone-900 via-stone-900 to-stone-950 border-b border-stone-800">
           <div className="max-w-4xl mx-auto px-5 py-8">
-            <div className="flex items-center gap-5">
+            <div className="flex items-center gap-5"
+            onClick={onProfileClick}
+            >
               {/* Avatar */}
               <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-orange-600 to-red-700 flex items-center justify-center ring-2 ring-orange-500/30 flex-shrink-0">
                 <span className="text-2xl font-black text-white">VK</span>

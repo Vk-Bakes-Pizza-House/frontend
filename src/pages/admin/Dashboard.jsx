@@ -60,47 +60,43 @@ function StatCard({ label, value, sub, icon, colorHex }) {
 
 // ── Dashboard page ───────────────────────────────────────────
 export default function Dashboard() {
-  const { orders, stats, loading: ordersLoading, fetchOrders, fetchStats } = useOrderStore();
+  const { orders,stats, loading: ordersLoading, fetchOrders, fetchStats  } = useOrderStore();
   const { pendingCount } = useReviewStore();
   const navigate = useNavigate();
 
-  useEffect(() => {
-    fetchStats();
-    fetchOrders({ page: 1, limit: 5 });
-  }, [fetchStats, fetchOrders]);
+ // ── Dashboard stats logic (fixed) ──────────────────────────────
+useEffect(() => {
+  fetchStats();
+  fetchOrders({ page: 1, limit: 5 });
+ 
+}, [fetchStats, fetchOrders]);
 
-  const todayStats = stats ? {
-    totalOrders: stats.totalOrders || 0,
-    pendingOrders: orders.filter(o => o.status === 'Pending').length,
-    completedToday: orders.filter(o => o.status === 'Delivered').length,
+const todayStats = stats
+  ? {
+      totalOrders:    stats.totalOrders || 0,
+      pendingOrders:  orders.filter((o) => o.status === "Pending").length,
+      completedToday: orders.filter((o) => o.status === "Delivered").length,
+      todayRevenue : stats.today?.revenue || 0,
+      totalRevenue: stats.totalRevenue || 0,
+    }
+  : { totalOrders: 0, pendingOrders: 0, completedToday: 0, todayRevenue: 0, totalRevenue: 0 };
+  const RECENT_ORDERS_DATA = orders.slice(0, 5).map((o) => ({
+  id:       o._id,
+  customer: o.customer?.name || "Unknown",
+  items:    o.items?.map((i) => `${i.name} × ${i.qty}`).join(", ") || "",
+  total:    `₹${o.total || 0}`,
+  status:   o.status,
+  date:     new Date(o.createdAt).toLocaleDateString("en-IN"),
+}));
 
-  } : { totalOrders: 0, pendingOrders: 0, completedToday: 0, revenue: 0 
-    
-  };
 
-
-
-  const RECENT_ORDERS_DATA = orders.slice(0, 5).map(o => ({
-    id: o._id,
-    customer: o.customer?.name || "Unknown",
-    items: o.items?.map(i => `${i.name} × ${i.qty}`).join(", ") || "",
-    total: `₹${o.total || 0}`,
-    status: o.status,
-    date: new Date(o.createdAt).toLocaleDateString("en-IN")
-  }));
-
-  const allRevenue = RECENT_ORDERS_DATA.reduce((sum, o) => sum + parseInt(o.total.replace('₹', '')), 0);
-  const todayRevenue = orders.reduce((sum, o) => {
-    const isToday = new Date(o.createdAt).toDateString() === new Date().toDateString();
-    return sum + (isToday ? parseInt(o.total || 0) : 0);
-  }, 0);
-  const STATS_DATA = [
-    { label: "Revenue", value: `₹${allRevenue}`, sub: "Total revenue generated", icon: "💰", colorHex: "#D44B1A" },
-    { label: "Today's Orders", value: todayStats.totalOrders.toString(), sub: "Total orders received", icon: "🛒", colorHex: "#D44B1A" },
-    { label: "Pending", value: todayStats.pendingOrders.toString(), sub: "Awaiting confirmation", icon: "⏳", colorHex: "#D97706" },
-    { label: "Completed Today", value: todayStats.completedToday.toString(), sub: `₹${todayRevenue} revenue`, icon: "✅", colorHex: "#16A34A" },
-    { label: "Pending Reviews", value: pendingCount.toString(), sub: "Awaiting approval", icon: "⭐", colorHex: "#F5A623" },
-  ];
+const STATS_DATA = [
+  { label: "Revenue",          value: `₹${todayStats.totalRevenue}`,   sub: "Total revenue (delivered orders)", icon: "💰", colorHex: "#D44B1A" },
+  { label: "Today's Orders",   value: todayStats.totalOrders.toString(), sub: "Total orders received",                       icon: "🛒", colorHex: "#D44B1A" },
+  { label: "Pending",          value: todayStats.pendingOrders.toString(), sub: "Awaiting confirmation",                     icon: "⏳", colorHex: "#D97706" },
+  { label: "Completed Today",  value: todayStats.completedToday.toString(), sub: `₹ ${todayStats.todayRevenue} revenue`,                  icon: "✅", colorHex: "#16A34A" },
+  { label: "Pending Reviews",  value: pendingCount.toString(),           sub: "Awaiting approval",                            icon: "⭐", colorHex: "#F5A623" },
+];
   return (
     <div className="flex flex-col gap-6">
 

@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { C, REVIEWS, FRESH_BOARD } from "../../data/menu";
 import { HelpCircle } from "lucide-react"
 import Footer from "../../components/Footer";
+import HomeComboSection from "../../components/homeCombo";
 import ReviewsSection from "../website/Reviews";
 import { useFQAStore, useStoreStore, useMenuStore } from "../../store";
 import ItemCard from "../../components/ItemCard";
@@ -165,6 +166,7 @@ const Home = ({ go, cart, add }) => {
       </div>
     )}
   </div>
+  {/* <HomeComboSection  onNavigate={(page, params) => setPage(page)} /> */}
 </div>
 
       {/* ── Category filter + Items grid ─────────────────────── */}

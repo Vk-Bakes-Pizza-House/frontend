@@ -13,11 +13,8 @@ export default function useCartOrderSubmit({
 
   const handleConfirmOrder =
     useCallback(
-      async (
-        name,
-        phone,
-        addr
-      ) => {
+     async (data) => {
+        const { name:name, whatsappNumber: phone, address: addr } = data || {};
 
         if (!cart || cart.length === 0) {
           toast.error("Cart is empty. Please add items before confirming.");
@@ -29,9 +26,9 @@ export default function useCartOrderSubmit({
         const addonLines =
           cart.slice(1);
         await confirmAndSendOrder({
-          customer: {
+           customer: {
             name,
-            phone,
+            whatsappNumber: phone,
             addr,
           },
 

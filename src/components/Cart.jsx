@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { AlertCircle, Plus, Minus, Trash2, X, Loader2 } from "lucide-react"; // X icon add kiya modal close karne ke liyeimport { C, EMOJI } from "../data/menu";
 import { isDlv, hasPCB, buildMsg } from "../config";
 import { getWhatsApp, getDeliveryFees, getFreeDeliveryAbove } from "../config";
-import { AddressBox, CartSummary } from "../components/Order"
+import { AddressBox, CartSummary,OrderSummary } from "../components/Order"
 import { Link } from "react-router-dom";
 import useCartStore from "../store/cartStore";
 import useCartOrderSubmit from "../hooks/useCartOrderSubmit";
@@ -13,7 +13,7 @@ import { C} from "../data/menu"
 function Cart() {
   const { items: cart, addItem: add, logOrder } = useCartStore();
   const [name, setName] = useState("");
-  const [whatsappnumber, setWhatsappNumber] = useState("");
+  const [phone, setPhone] = useState("");
   const [addr, setAddr] = useState("");
 
   // Popup modal ko open/close karne ki state
@@ -26,6 +26,7 @@ function Cart() {
 
 
   const { handleConfirmOrder } = useCartOrderSubmit({
+    
     cart,
     subtotal: sub,
     deliveryFee,
@@ -137,10 +138,10 @@ function Cart() {
               <AddressBox
                 value={addr}
                 name={name}
-                phone={whatsappnumber}
+                phone={phone}
                 onChange={setAddr}
                 setName={setName}
-                setPhone={setWhatsappNumber}
+                setPhone={setPhone}
                 setIsOpen={setIsOpen}
                 onConfirm={handleConfirmOrder}
               />
