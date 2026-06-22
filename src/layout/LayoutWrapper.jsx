@@ -38,7 +38,8 @@ export default function LayoutWrapper() {
 
   // Check admin page
   const isAdminPage =
-    location.pathname.startsWith("/login"&&("/admin"));
+  location.pathname.startsWith("/admin") ||
+  location.pathname === "/login";
 
   // Current page key
   const currentPage =
@@ -92,8 +93,10 @@ export default function LayoutWrapper() {
               />
             }
           />
-
-          <Route
+<Route
+  path="/reviews"
+  element={<Home go={handleNavigation} />}
+/>          <Route
             path="/menu"
             element={
               <Menu />
@@ -130,12 +133,15 @@ export default function LayoutWrapper() {
             element={<HowToOrder />}
           />
 
-          <Route path="/login" element={<AdminLogin />} />
-          {/* Admin */}
           <Route
-            path="/admin/*"
-            element={<AdminApp />}
-          />
+  path="/login"
+  element={<AdminLogin />}
+/>
+
+<Route
+  path="/admin/*"
+  element={<AdminApp />}
+/>
 
         <Route
           path="*"

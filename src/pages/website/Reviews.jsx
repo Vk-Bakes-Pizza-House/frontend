@@ -293,7 +293,7 @@
 
 // export default Reviews;
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { Star, MessageCircle } from "lucide-react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
@@ -305,8 +305,39 @@ import { C } from "../../data/menu";
 import useReviewStore from "../../store/reviewStore";
 import reviewSchema from "../../validation/reviewValidation";
 
-const ReviewsSection = () => {
 
+const ReviewsSection = ({
+  autoOpen = false,
+}) => {
+
+  const sectionRef =
+    useRef(null);
+
+  const [
+    showForm,
+    setShowForm,
+  ] = useState(false);
+
+  useEffect(() => {
+
+    if (autoOpen) {
+
+      setShowForm(true);
+
+      setTimeout(() => {
+
+        sectionRef.current
+          ?.scrollIntoView({
+            behavior:
+              "smooth",
+            block: "start",
+          });
+
+      }, 100);
+
+    }
+
+  }, [autoOpen]);
   // ─────────────────────────────
   // STORE
   // ─────────────────────────────
@@ -318,8 +349,8 @@ const ReviewsSection = () => {
     submitReview,
   } = useReviewStore();
 
-  const [showForm, setShowForm] =
-    useState(false);
+  // const [showForm, setShowForm] =
+  //   useState(false);
 
   const {
     register,
@@ -352,49 +383,49 @@ const ReviewsSection = () => {
   // ─────────────────────────────
   // FETCH REVIEWS
   // ─────────────────────────────
-
+  const displayReview = reviews.slice(0, 3)
   useEffect(() => {
     fetchApprovedReviews();
   }, [fetchApprovedReviews]);
 
-  
+
   return (
 
-    <section className="bg-[#3D1A00] py-14 px-4">
+    <section ref={sectionRef}
+      className="bg-[#3D1A00] py-14 px-4">
 
-      <div className="max-w-6xl mx-auto">
+      {/* <div className="max-w-4xl mx-auto"> */}
 
-        {/* HEADER */}
+      {/* HEADER */}
 
-        <div className="text-center mb-12">
+      <div className="max-w-5xl mx-auto">
 
-          <p className="text-[#D4A574] tracking-[4px] text-xs font-semibold uppercase">
+        <div className="text-center mb-8">
+
+          <p className="text-[#D4A574] tracking-[3px] text-[10px] font-semibold uppercase">
             Customer Feedback
           </p>
 
-          <h2 className="text-4xl font-bold text-white mt-3">
+          <h2 className="text-2xl md:text-3xl font-bold text-white mt-2">
             Reviews & Ratings
           </h2>
+
         </div>
 
-        <div style={{ textAlign: "center", marginBottom: 24 }}>
+        <div className="flex justify-center mb-6">
           <button
             onClick={() => setShowForm(!showForm)}
-            style={{
-              padding: "10px 20px",
-              background: C.red,
-              color: "white",
-              border: "none",
-              borderRadius: 8,
-              fontFamily: C.f2,
-              fontSize: 14,
-              fontWeight: 600,
-              cursor: "pointer",
-              display: "flex",
-              alignItems: "center",
-              gap: 8,
-              margin: "0 auto"
-            }}
+            className="
+        flex items-center gap-2
+        px-4 py-2
+        rounded-lg
+        bg-[#D44B1A]
+        hover:bg-[#c43f12]
+        text-white
+        text-sm
+        font-semibold
+        transition
+      "
           >
             <MessageCircle size={16} />
             {showForm ? "Cancel Review" : "Write a Review"}
@@ -402,129 +433,169 @@ const ReviewsSection = () => {
         </div>
         {/* REVIEW FORM */}
         {showForm && (
-          <div style={{
-            background: "white",
-            border: `1px solid ${C.border}`,
-            borderRadius: 12,
-            padding: 24,
-            marginBottom: 24
-          }}>
-            <h3 style={{ fontFamily: C.f1, color: C.mid, fontSize: 20, marginBottom: 16 }}>
+          <div
+            className="
+      bg-white
+      border border-[#E8D5C0]
+      rounded-xl
+      p-4 md:p-5
+      mb-6
+      shadow-sm
+    "
+          >
+
+            <h3 className="text-lg font-bold text-[#2D1400] mb-4">
               Share Your Experience
             </h3>
+
             <form onSubmit={handleSubmit(onSubmit)}>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 16 }}>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+
                 <div>
-                  <label style={{ display: "block", fontFamily: C.f2, fontSize: 14, fontWeight: 600, color: C.mid, marginBottom: 6 }}>
+                  <label className="block text-xs font-semibold text-[#2D1400] mb-1">
                     Name *
                   </label>
+
                   <input
                     type="text"
                     {...register("name")}
-                    className="w-full border rounded-md p-3"
+                    className="
+              w-full
+              rounded-lg
+              border border-[#E8D5C0]
+              p-2.5
+              text-sm
+              focus:outline-none
+              focus:ring-2
+              focus:ring-[#D44B1A]
+            "
                   />
 
                   {errors.name && (
-                    <p className="text-red-500 text-sm mt-1">
+                    <p className="text-red-500 text-xs mt-1">
                       {errors.name.message}
                     </p>
                   )}
                 </div>
+
                 <div>
-                  <label style={{ display: "block", fontFamily: C.f2, fontSize: 14, fontWeight: 600, color: C.mid, marginBottom: 6 }}>
+                  <label className="block text-xs font-semibold text-[#2D1400] mb-1">
                     Phone (optional)
                   </label>
+
                   <input
                     type="tel"
                     {...register("phone")}
-                    className="w-full border rounded-md p-3"
+                    className="
+              w-full
+              rounded-lg
+              border border-[#E8D5C0]
+              p-2.5
+              text-sm
+              focus:outline-none
+              focus:ring-2
+              focus:ring-[#D44B1A]
+            "
                   />
 
                   {errors.phone && (
-                    <p className="text-red-500 text-sm mt-1">
+                    <p className="text-red-500 text-xs mt-1">
                       {errors.phone.message}
                     </p>
                   )}
                 </div>
+
               </div>
-              <div style={{ marginBottom: 16 }}>
-                <label style={{ display: "block", fontFamily: C.f2, fontSize: 14, fontWeight: 600, color: C.mid, marginBottom: 6 }}>
+
+              <div className="mb-4">
+
+                <label className="block text-xs font-semibold text-[#2D1400] mb-2">
                   Rating *
                 </label>
+
                 <Controller
                   name="rating"
                   control={control}
                   render={({ field }) => (
-                    <div className="flex gap-2">
-                      {[1, 2, 3, 4, 5].map(
-                        (star) => (
-                          <button
-                            key={star}
-                            type="button"
-                            onClick={() =>
-                              field.onChange(star)
+                    <div className="flex gap-1">
+                      {[1, 2, 3, 4, 5].map((star) => (
+                        <button
+                          key={star}
+                          type="button"
+                          onClick={() => field.onChange(star)}
+                        >
+                          <Star
+                            size={20}
+                            fill={
+                              star <= field.value
+                                ? C.gold
+                                : "transparent"
                             }
-                          >
-                            <Star
-                              size={24}
-                              fill={
-                                star <= field.value
-                                  ? C.gold
-                                  : "transparent"
-                              }
-                              color={
-                                star <= field.value
-                                  ? C.gold
-                                  : C.border
-                              }
-                            />
-                          </button>
-                        )
-                      )}
+                            color={
+                              star <= field.value
+                                ? C.gold
+                                : "#D6D3D1"
+                            }
+                          />
+                        </button>
+                      ))}
                     </div>
                   )}
                 />
 
-                {errors.rating && (
-                  <p className="text-red-500 text-sm mt-1">
-                    {errors.rating.message}
-                  </p>
-                )}
               </div>
-              <div style={{ marginBottom: 20 }}>
-                <label style={{ display: "block", fontFamily: C.f2, fontSize: 14, fontWeight: 600, color: C.mid, marginBottom: 6 }}>
+
+              <div className="mb-5">
+
+                <label className="block text-xs font-semibold text-[#2D1400] mb-1">
                   Your Review *
                 </label>
+
                 <textarea
-                  rows={4}
+                  rows={3}
                   {...register("text")}
-                  className="w-full border rounded-md p-3"
+                  className="
+            w-full
+            rounded-lg
+            border border-[#E8D5C0]
+            p-2.5
+            text-sm
+            resize-none
+            focus:outline-none
+            focus:ring-2
+            focus:ring-[#D44B1A]
+          "
                 />
 
                 {errors.text && (
-                  <p className="text-red-500 text-sm mt-1">
+                  <p className="text-red-500 text-xs mt-1">
                     {errors.text.message}
                   </p>
                 )}
+
               </div>
+
               <button
                 type="submit"
                 disabled={submitLoading}
-                style={{
-                  padding: "12px 24px",
-                  background: C.red,
-                  color: "white",
-                  border: "none",
-                  borderRadius: 8,
-                  fontFamily: C.f2,
-                  fontSize: 14,
-                  fontWeight: 600,
-                  cursor: submitLoading ? "not-allowed" : "pointer",
-                  opacity: submitLoading ? 0.7 : 1
-                }}
+                className="
+          px-5 py-2.5
+          rounded-lg
+          bg-[#D44B1A]
+          hover:bg-[#c43f12]
+          text-white
+          text-sm
+          font-semibold
+          transition
+          disabled:opacity-70
+        "
               >
-                {submitLoading ? "Submitting..." : "Submit Review"}
+                {submitLoading
+                  ? "Submitting..."
+                  : "Submit Review"}
               </button>
+
             </form>
           </div>
         )}
@@ -537,7 +608,7 @@ const ReviewsSection = () => {
             Loading reviews...
           </div>
 
-        ) : reviews.length === 0 ? (
+        ) : displayReview.length === 0 ? (
 
           <div className="text-center text-white/70">
             No reviews yet.
@@ -545,13 +616,18 @@ const ReviewsSection = () => {
 
         ) : (
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
 
-            {reviews.map((r) => (
-
+            {displayReview.map((r) => (
               <div
                 key={r._id}
-                className="bg-white rounded-2xl p-5 shadow-md"
+                className="
+    bg-white
+    rounded-xl
+    p-4
+    border border-[#E8D5C0]
+    shadow-sm
+  "
               >
 
                 {/* STARS */}
@@ -576,15 +652,15 @@ const ReviewsSection = () => {
 
                 {/* REVIEW */}
 
-                <p className="text-gray-700 leading-relaxed mb-4">
+                <p className="text-sm text-stone-700 leading-6 mb-3">
                   "{r.text}"
                 </p>
-                <span style={{ fontFamily: C.f2, fontSize: 12, color: C.muted }}>
+                {/* <span style={{ fontFamily: C.f2, fontSize: 12, color: C.muted }}>
                   {new Date(r.createdAt).toLocaleDateString()}
-                </span>
+                </span> */}
                 {/* NAME */}
 
-                <div className="font-semibold text-red-500">
+                <div className="text-sm font-semibold text-[#D44B1A]">
                   {r.name}
                 </div>
               </div>

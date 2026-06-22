@@ -1,19 +1,25 @@
 import React, { useState } from "react";
 import { ShoppingCart, Menu, X } from "lucide-react";
-import useCartStore from "../store/cartStore";
+import {useCartStore,useAuthStore} from "../store";
+
 
 function Navbar({ page, go }) {
   const [isOpen, setIsOpen] = useState(false); // Controls mobile drawer visibility
   const cartQty = useCartStore((state) => state.items.reduce((sum, item) => sum + (item.qty || 0), 0));
 
-  const links = [
-    ["home", "Home"],
-    ["menu", "Menu"],
-    ["cake", "Custom Cake"],
-    ["contact", "Contact"],
-    ["how-to-order", "How to Order"],
-    ["login", "Login"],
-  ];
+  const admin = useAuthStore(
+  (s) => s.admin
+);
+const links = [
+  ["home", "Home"],
+  ["menu", "Menu"],
+  ["cake", "Custom Cake"],
+  ["contact", "Contact"],
+  ["how-to-order", "How to Order"],
+  admin
+    ? ["admin", "Admin"]
+    : ["login", "Login"],
+];
 
   const handleNavClick = (route) => {
     go(route);
@@ -80,7 +86,7 @@ function Navbar({ page, go }) {
       </div>
 
       {/* Mobile Drawer (Smooth drop down based on state) */}
-      <div className={`md:hidden overflow-hidden transition-all duration-300 max-h-0 bg-white ${isOpen ? "max-h-64 border-t border-[#E8D5C0]" : ""}`}>
+      <div className={`md:hidden overflow-hidden transition-all duration-300 max-h-0 bg-white ${isOpen ? "max-h-[17rem] border-t border-[#E8D5C0]" : ""}`}>
         <div className="px-4 py-2 flex flex-col gap-1 bg-[#FFF8F0]/50">
           {links.map(([k, l]) => (
             <button

@@ -30,5 +30,6 @@ export const NAV = [
   { key: "reviews", label: "Reviews", icon: Star },
   { key: "howToOrder", label: "How To Order", icon: Truck },
   { key: "profile", label: "Profile", icon: Settings },
+  { key: "gotToWebsite", label: "Go to Website", icon: LayoutDashboard }
 
 ];

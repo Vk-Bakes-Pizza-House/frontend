@@ -28,8 +28,8 @@ export default function AdminApp() {
 
   // Auth Gate check: Redirect instantly to login if state keys are unverified
   if (!isLoggedIn()) {
-    return <AdminLogin onLogin={() => { }} />;
-  }
+  return <Navigate to="/login" replace />;
+}
 
   const logout = () => {
     useAuthStore.getState().logout();
@@ -48,6 +48,7 @@ export default function AdminApp() {
       store: "/admin/store",
       howToOrder: "/admin/how-to-order",
       profile: "/admin/profile",
+      gotToWebsite: "/"
     };
 
     navigate(routeMap[pageKey] || "/admin");
@@ -69,7 +70,8 @@ export default function AdminApp() {
       "combos": "combos",
       "store": "store",
       "how-to-order": "howToOrder",
-      "profile": "profile"
+     
+      
     };
     return slugMap[currentSlug] || "dashboard";
   };
@@ -98,8 +100,6 @@ export default function AdminApp() {
         <Route path="how-to-order" element={<ManageHowToOrder />} />
         <Route path="profile" element={<AdminProfile onLogout={logout} />} />
         
-        {/* Wildcard catch-all: redirects any unknown routes back to the main dashboard safely */}
-        <Route path="*" element={<Navigate to="/admin" replace />} />
       </Route>
     </Routes>
   );

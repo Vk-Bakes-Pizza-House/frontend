@@ -1,5 +1,6 @@
 // src/pages/Home.jsx
-import { useEffect, useState } from "react";
+import { useEffect, useState, } from "react";
+import { useLocation } from "react-router-dom";
 import { C, REVIEWS, FRESH_BOARD } from "../../data/menu";
 import { HelpCircle } from "lucide-react"
 import Footer from "../../components/Footer";
@@ -34,12 +35,15 @@ const Home = ({ go, cart, add }) => {
   } = useMenuStore();
 
   const [cat, setCat] = useState("pizza");
+const location =
+  useLocation();
 
   // ── Fetch store info once ─────────────────────────────────
   useEffect(() => {
     fetchStore();
     fetchFaqs();
   }, []);
+
 
   // ── Fetch menu on mount and when category changes ─────────
   useEffect(() => {
@@ -55,6 +59,7 @@ const Home = ({ go, cart, add }) => {
   // Featured = Bestseller tag, or first 6 if none tagged
   const featured = items.filter((i) => i.tag === "Bestseller").slice(0, 6);
   const displayItems = items.slice(0, 4);
+
 
 
 
@@ -240,7 +245,12 @@ const Home = ({ go, cart, add }) => {
         </div>
       </div>
       {/* <Reviews /> */}
-      <ReviewsSection />
+  <ReviewsSection
+  autoOpen={
+    location.pathname ===
+    "/reviews"
+  }
+/>
 
       {/* FAQ Section */}
       <div className="mt-12 px-5 mx-auto mb-4">

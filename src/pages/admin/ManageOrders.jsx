@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import {
   Search, MessageCircle, ChevronDown,
   Clock, CheckCircle, Truck, XCircle, Package,
+  Send,
 } from "lucide-react";
 import useOrderStore from "../../store/orderStore";
 
@@ -45,6 +46,7 @@ const msg = {
       Preparing:  `👨‍🍳 VK Bakes\n\nYour order (${item}) is now being prepared.\nReady soon!`,
       Delivered:  `🚚 VK Bakes\n\nYour order (${item}) has been delivered.\nHope you enjoy it! 😊\nThank you ❤️ — VK Bakes`,
       Cancelled:  `❌ VK Bakes\n\nYour order (${item}) has been cancelled.\nPlease contact us for support.`,
+      ReviewFrom: `🍕 VK Bakes\n\nHii! We hope you enjoyed your order (${item}).\nWe'd love to hear your feedback!\nPlease leave a review here: https://vk-bakes.vercel.app/reviews\nThank you ❤️`,
     };
 
 
@@ -59,7 +61,8 @@ const msg = {
       >
         {/* Order ID + Time */}
         <div className="w-16 flex-shrink-0">
-          <div className="text-[#D44B1A] font-bold text-sm">{order.id.toString().slice(-6).toUpperCase()}</div>
+          {/* <div className="text-[#D44B1A] font-bold text-sm">{order.id.toString().slice(-6).toUpperCase()}</div> */}
+          <div className="text-[#D44B1A] font-bold text-sm">{order.orderId}</div>
           <div className="text-stone-400 text-[11px] mt-0.5">{order.time}</div>
         </div>
 
@@ -177,6 +180,15 @@ const msg = {
             
             </button>
            )}
+           {order.status =="Delivered" && (
+            <button
+            onClick={() => waReply(msg.ReviewFrom)}
+                          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-red-50 border border-red-200 text-red-700 hover:bg-red-100 transition-colors"
+
+            >
+<Send size={12}/> Send Review From
+            </button>
+           )}
           </div>
         </div>
       )}
@@ -200,7 +212,7 @@ export default function ManageOrders() {
     await updateStatus(id, status);
     fetchOrders();
   };
-
+  console.log(orders)
   const visible = orders.filter(o =>
     (filters.status === "all" || o.status === filters.status) &&
     (!q || o.customer?.name?.toLowerCase().includes(q.toLowerCase()) || o._id?.includes(q))
@@ -276,7 +288,7 @@ export default function ManageOrders() {
               ...o,
               id: o._id,
               customer: o.customer?.name || "Unknown",
-              phone: o.customer?.number || "",
+              phone: o.customer?.whatsappNumber || "",
               address: o.customer?.address || "",
               items: o.items || [],
               type: o.orderType,
