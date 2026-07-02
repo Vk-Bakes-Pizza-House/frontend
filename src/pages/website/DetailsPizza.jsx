@@ -12,7 +12,8 @@ import {
 } from "lucide-react";
 import useCartStore from "../../store/cartStore";
 import { useSearchParams } from "react-router-dom";
-import api from "../../store/api";
+import api  from "../../services/api";
+;
 import { endpoints } from "../../utils/endpoints";
 import { toast } from "sonner";
 

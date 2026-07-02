@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import { devtools, persist } from "zustand/middleware";
-import api from "./api"; // Aapka axios wrapper instance
+import api  from "../services/api";
 import { endpoints } from "../utils/endpoints";
 
   const useFQAStore = create(

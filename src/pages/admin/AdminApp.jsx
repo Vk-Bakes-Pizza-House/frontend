@@ -13,6 +13,8 @@ import ManageItemDetail from "../../section/admin/ManageItemDetail";
 import ManageCombos from "../../section/admin/ManageCombo";
 import useAuthStore from "../../store/authStore";
 import StoreManagementPanel from "./ManageStore";
+import { SalesOverview, AddSale, SalesHistory, Payments, SalesRefunds } from "../../section/admin/Sales/index"; 
+import ManageExpenses from "../../section/admin/Expense/ManageExpense";
 
 export default function AdminApp() {
   const { isLoggedIn, fetchMe } = useAuthStore();
@@ -44,6 +46,12 @@ export default function AdminApp() {
       itemDetails: "/admin/add-item-details",
       combos: "/admin/combos",
       orders: "/admin/orders",
+      sales: "/admin/sales/overview",
+      addSale: "/admin/sales/add",
+      salesHistory: "/admin/sales/history",
+      payment: "/admin/sales/payments",
+      salesRefunds: "/admin/sales/refunds",
+      expenses: "/admin/expenses",
       reviews: "/admin/reviews",
       store: "/admin/store",
       howToOrder: "/admin/how-to-order",
@@ -56,24 +64,29 @@ export default function AdminApp() {
 
   // Helper function to extract current path context for the menu active styling highlights
   const getCurrentPageKey = () => {
-    const segments = location.pathname.replace(/^\/admin\/?/, "").split("/");
-    const currentSlug = segments[0] || "";
-    
+    const segments = location.pathname.replace(/^\/admin\/?/, "").split("/").filter(Boolean);
+    const currentPath = segments.join("/");
+
     // Map paths directly back to string key highlights within your layout menu links
     const slugMap = {
       "": "dashboard",
       "add-menu": "addMenu",
       "add-item": "addItem",
       "orders": "orders",
+      "sales": "overview",
+      "sales/overview": "overview",
+      "sales/add": "add",
+      "sales/payments": "payments",
+      "sales/history": "history",
+      "sales/refunds": "refunds",
+      "expenses": "expenses",
       "reviews": "reviews",
       "add-item-details": "itemDetails",
       "combos": "combos",
       "store": "store",
       "how-to-order": "howToOrder",
-     
-      
     };
-    return slugMap[currentSlug] || "dashboard";
+    return slugMap[currentPath] || "dashboard";
   };
 
   return (
@@ -93,6 +106,12 @@ export default function AdminApp() {
         <Route path="add-menu" element={<AddMenu />} />
         <Route path="add-item" element={<ManageMenu />} />
         <Route path="orders" element={<ManageOrders />} />
+        <Route path="sales/overview" element={<SalesOverview/>} />
+        <Route path="sales/add" element={<AddSale/>} />
+        <Route path="sales/payments" element={<Payments />} />
+        <Route path="sales/history" element={<SalesHistory />} />
+        <Route path="sales/refunds" element={<SalesRefunds />} />
+        <Route path="expenses" element={<ManageExpenses />} />
         <Route path="reviews" element={<ManageReviews />} />
         <Route path="add-item-details" element={<ManageItemDetail />} />
         <Route path="combos" element={<ManageCombos />} />

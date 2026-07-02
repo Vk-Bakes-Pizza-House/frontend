@@ -3,7 +3,7 @@
 // orders from OrderNowModal (and any future order flow).
 // ─────────────────────────────────────────────────────────────
 import { toast }       from "sonner";
-import api             from "../store/api";
+import api  from "../services/api";
 import { endpoints }   from "./endpoints";
 import { buildMsg, getWhatsApp, isDlv } from "../config";
 

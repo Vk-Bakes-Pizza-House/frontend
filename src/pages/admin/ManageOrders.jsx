@@ -212,7 +212,7 @@ export default function ManageOrders() {
     await updateStatus(id, status);
     fetchOrders();
   };
-  console.log(orders)
+ 
   const visible = orders.filter(o =>
     (filters.status === "all" || o.status === filters.status) &&
     (!q || o.customer?.name?.toLowerCase().includes(q.toLowerCase()) || o._id?.includes(q))

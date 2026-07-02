@@ -12,7 +12,7 @@
 // ─────────────────────────────────────────────────────────────
 import { create } from "zustand";
 import { devtools, persist } from "zustand/middleware";
-import api from "./api";
+import api  from "../services/api";
 import { endpoints } from "../utils/endpoints";
 
 const WA = import.meta.env.VITE_WA_NUMBER || "919999999999";

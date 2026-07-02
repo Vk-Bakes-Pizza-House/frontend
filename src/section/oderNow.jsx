@@ -5,7 +5,7 @@ import { useState, useEffect, useRef } from "react";
 import { X, ArrowRight, ShoppingBag, ShoppingCart, Loader2 } from "lucide-react";
 import { buildMsg, isDlv, getWhatsApp, getDeliveryFees, getFreeDeliveryAbove, getCategory } from "../config";
 import { EMOJI, C } from "../data/menu";
-import api from "../store/api";
+import api from "../services/api";
 import { endpoints } from "../utils/endpoints";
 import {
   QtyControl,

@@ -46,7 +46,32 @@ const endpointsPathsDev = {
     deleteAll: `${API_BASE}/orders`,
     revenue : `${API_BASE}/revenue`
   },
+ sales: {
+    // CRUD
+    create: `${API_BASE}/sales`,
+    getAll: `${API_BASE}/sales`,
+    getById: (id) => `${API_BASE}/sales/${id}`,
+    update: (id) => `${API_BASE}/sales/${id}`,
+    delete: (id) => `${API_BASE}/sales/${id}`,
 
+    // Analytics
+    overview: `${API_BASE}/sales/overview`,
+    daily: `${API_BASE}/sales/daily`,
+    monthly: `${API_BASE}/sales/monthly`,
+    payments: `${API_BASE}/sales/payments`,
+    topProducts: `${API_BASE}/sales/top-products`,
+  },
+expense:{
+    // CRUD
+    create: `${API_BASE}/expenses`,
+    getAll: `${API_BASE}/expenses`,
+    getById: (id) => `${API_BASE}/expenses/${id}`,
+    update: (id) => `${API_BASE}/expenses/${id}`,
+    delete: (id) => `${API_BASE}/expenses/${id}`,
+
+    // Analytics
+    overview: `${API_BASE}/expenses/overview`,
+},
   reviews: {
     getApproved: `${API_BASE}/reviews`,
     submit: `${API_BASE}/reviews`,
@@ -113,6 +138,31 @@ const endpointsPathsProd = {
     revenue: `/api/orders/revenue`
   },
 
+   sales: {
+    // CRUD
+    create: "/sales",
+    getAll: "/sales",
+    getById: (id) => `/sales/${id}`,
+    update: (id) => `/sales/${id}`,
+    delete: (id) => `/sales/${id}`,
+
+    // Analytics
+    overview: "/sales/overview",
+    daily: "/sales/daily",
+    monthly: "/sales/monthly",
+    payments: "/sales/payments",
+    topProducts: "/sales/top-products",
+  },
+expense:{
+    // CRUD
+    create: "/expenses",
+    getAll: "/expenses",
+    getById: (id) => `/expenses/${id}`,
+    update: (id) => `/expenses/${id}`,
+    delete: (id) => `/expenses/${id}`,
+    // Analytics
+    overview: "/expenses/overview",
+},
   reviews: {
     getApproved: `/api/reviews`,
     submit: `/api/reviews`,
