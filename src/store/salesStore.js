@@ -79,6 +79,31 @@ const useSalesStore = create((set) => ({
       return [];
     }
   },
+getSalesSummary: async (granularity = "month", year = null) => {
+  set({ loading: true });
+  try {
+    const params = { granularity };
+    if (year) params.year = year;
+    const data = await apiRequest("get", "/sales/summary", null, { params });
+    set({ salesSummary: data.data, loading: false });
+    return data.data;
+  } catch (err) {
+    toast.error(err.message || "Failed to fetch summary");
+    set({ loading: false });
+    return [];
+  }
+},
+
+getSalesByPeriod: async (granularity, period) => {
+  try {
+    const data = await apiRequest("get", "/sales/by-period", null, { params: { granularity, period } });
+    return data.data;
+  } catch (err) {
+    toast.error(err.message || "Failed to fetch period data");
+    return [];
+  }
+},
+
 }));
 
 export default useSalesStore;

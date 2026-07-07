@@ -1,113 +1,88 @@
 import { toast } from "sonner";
 import { apiRequest } from "./apiRequest";
 
-export const createCrudActions = (
-    set,
-    endpoint,
-    stateKey
-) => ({
+const normalizeListData = (data, stateKey) => {
+  const payload = data?.data ?? data;
 
-    fetchAll: async () => {
-        set({ loading: true });
+  if (Array.isArray(payload)) return payload;
+  if (Array.isArray(payload?.[stateKey])) return payload[stateKey];
+  if (Array.isArray(payload?.results)) return payload.results;
+  if (Array.isArray(payload?.items)) return payload.items;
+  if (Array.isArray(payload?.expenses)) return payload.expenses;
+  if (Array.isArray(payload?.categories)) return payload.categories;
 
-        try {
-            const data = await apiRequest(
-                "get",
-                endpoint
-            );
+  return [];
+};
 
-            set({
-                [stateKey]: data.data,
-                loading: false,
-            });
+const normalizeSingleData = (data) => data?.data ?? data;
 
-        } catch (err) {
+export const createCrudActions = (set, endpoint, stateKey) => ({
+  fetchAll: async () => {
+    set({ loading: true });
 
-            toast.error(err.message);
+    try {
+      const data = await apiRequest("get", endpoint);
+      set({
+        [stateKey]: normalizeListData(data, stateKey),
+        loading: false,
+      });
+    } catch (err) {
+      toast.error(err.message);
+      set({ loading: false });
+    }
+  },
 
-            set({
-                loading: false,
-            });
-        }
-    },
+  create: async (payload) => {
+    set({ submitting: true });
+    try {
+      const data = await apiRequest("post", endpoint, payload);
+      const createdItem = normalizeSingleData(data);
+      set((state) => ({
+        [stateKey]: [createdItem, ...(Array.isArray(state[stateKey]) ? state[stateKey] : [])],
+        submitting: false,
+      }));
+      toast.success("Created");
+      return createdItem;
+    } catch (err) {
+      toast.error(err.message);
+      set({ submitting: false });
+      throw err;
+    }
+  },
 
-    create: async (payload) => {
+  update: async (id, payload) => {
+    set({ submitting: true });
+    try {
+      const data = await apiRequest("put", `${endpoint}/${id}`, payload);
+      const updatedItem = normalizeSingleData(data);
+      set((state) => ({
+        [stateKey]: (Array.isArray(state[stateKey]) ? state[stateKey] : []).map((item) =>
+          item?._id === id ? { ...item, ...updatedItem } : item
+        ),
+        submitting: false,
+      }));
+      toast.success("Updated");
+      return updatedItem;
+    } catch (err) {
+      toast.error(err.message);
+      set({ submitting: false });
+      throw err;
+    }
+  },
 
-        try {
-
-            const data = await apiRequest(
-                "post",
-                endpoint,
-                payload
-            );
-
-            set((state) => ({
-                [stateKey]: [
-                    data.data,
-                    ...state[stateKey],
-                ],
-            }));
-
-            toast.success("Created");
-
-        } catch (err) {
-
-            toast.error(err.message);
-
-        }
-    },
-
-    update: async (id, payload) => {
-
-        try {
-
-            const data = await apiRequest(
-                "put",
-                `${endpoint}/${id}`,
-                payload
-            );
-
-            set((state) => ({
-                [stateKey]:
-                    state[stateKey].map((item) =>
-                        item._id === id
-                            ? data.data
-                            : item
-                    ),
-            }));
-
-            toast.success("Updated");
-
-        } catch (err) {
-
-            toast.error(err.message);
-
-        }
-    },
-
-    remove: async (id) => {
-
-        try {
-
-            await apiRequest(
-                "delete",
-                `${endpoint}/${id}`
-            );
-
-            set((state) => ({
-                [stateKey]:
-                    state[stateKey].filter(
-                        (i) => i._id !== id
-                    ),
-            }));
-
-            toast.success("Deleted");
-
-        } catch (err) {
-
-            toast.error(err.message);
-
-        }
-    },
-
+  delete: async (id) => {
+    set({ submitting: true });
+    try {
+      await apiRequest("delete", `${endpoint}/${id}`);
+      set((state) => ({
+        [stateKey]: (Array.isArray(state[stateKey]) ? state[stateKey] : []).filter((item) => item?._id !== id),
+        submitting: false,
+      }));
+      toast.success("Deleted");
+    } catch (err) {
+      toast.error(err.message);
+      set({ submitting: false });
+      throw err;
+    }
+  },
 });

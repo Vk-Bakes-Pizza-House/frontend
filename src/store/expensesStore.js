@@ -1,35 +1,44 @@
 import { create } from "zustand";
-import { createCrudActions } from "../lib/createCrudActions"; // adjust path to match your project
-import {apiRequest} from "../lib/apiRequest"; // adjust path to match your project
+import { createCrudActions } from "../lib/createCrudActions";
+import { apiRequest } from "../lib/apiRequest";
 
 /**
- * Assumes createCrudActions("/expenses", "expenses") exposes:
- *   fetchExpenses(query?)   -> GET /expenses
- *   createExpense(payload)  -> POST /expenses
- *   updateExpense(id, data) -> PUT /expenses/:id
- *   deleteExpense(id)       -> DELETE /expenses/:id
+ * Assumes createCrudActions(set, endpoint, stateKey) exposes, per call:
+ *   fetch{StateKey}(query?)   -> GET {endpoint}
+ *   create{Singular}(payload) -> POST {endpoint}
+ *   update{Singular}(id, data)-> PUT {endpoint}/:id
+ *   delete{Singular}(id)      -> DELETE {endpoint}/:id
  * Rename below if your generator uses different verbs.
+ *
  */
-export const useExpenseStore = create((set, get) => ({
-  // ---- Expenses -----------------------------------------------------
-  expenses: [],
-  loading: false,
-  error: null,
- 
-  ...createCrudActions(set, "/expenses", "expenses"),
- 
-  getActiveExpenses: () => get().expenses.filter((e) => !e.isDeleted),
- 
+export const useExpenseStore = create((set, get) => {
+  const expenseCrud = createCrudActions(set, "/expenses", "expenses");
+  const categoryCrud = createCrudActions(set, "/expenses/categories", "categories");
+
+  return {
+    // ---- Expenses ---------------------------------------------------
+    expenses: [],
+    loading: false,
+    error: null,
+
+    ...expenseCrud,
+    fetchExpenses: expenseCrud.fetchAll,
+    createExpense: expenseCrud.create,
+    updateExpense: expenseCrud.update,
+    deleteExpense: expenseCrud.delete,
+
+    getActiveExpenses: () => get().expenses.filter((e) => !e.isDeleted),
+
   // Soft delete: flip isDeleted instead of a hard DELETE, since the model
   // carries an isDeleted flag for exactly this purpose.
   softDeleteExpense: async (id) => {
     return get().updateExpense(id, { isDeleted: true });
   },
- 
+
   restoreExpense: async (id) => {
     return get().updateExpense(id, { isDeleted: false });
   },
- 
+
   // Optional server-side aggregation for analytics at scale. Falls back to
   // client-side aggregation in ExpenseAnalytics.jsx if you haven't wired up
   // a GET /expenses/stats endpoint yet.
@@ -49,18 +58,21 @@ export const useExpenseStore = create((set, get) => ({
       throw err;
     }
   },
- 
-  // ---- Expense Categories --------------------------------------------
-  categories: [],
- 
-  ...createCrudActions(set, "/expenses/categories", "categories"),
- 
-  getActiveCategories: () => get().categories.filter((c) => c.isActive),
- 
-  // Deactivate rather than hard-delete (handled server-side by the
-  // DELETE /expense-categories/:id route), so past expenses that
-  // reference a category by name aren't orphaned.
-  deactivateCategory: async (id) => {
-    return get().deleteCategory(id);
-  },
-}));
+
+    // ---- Expense Categories ----------------------------------------
+    categories: [],
+
+    ...categoryCrud,
+    fetchCategories: categoryCrud.fetchAll,
+    createCategory: categoryCrud.create,
+
+    getActiveCategories: () => get().categories.filter((c) => c.isActive),
+
+    // Deactivate rather than hard-delete (handled server-side by the
+    // DELETE /expense-categories/:id route), so past expenses that
+    // reference a category by name aren't orphaned.
+    deactivateCategory: async (id) => {
+      return get().deleteCategory(id);
+    },
+  };
+});

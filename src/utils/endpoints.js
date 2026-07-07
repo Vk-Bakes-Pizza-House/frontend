@@ -61,17 +61,20 @@ const endpointsPathsDev = {
     payments: `${API_BASE}/sales/payments`,
     topProducts: `${API_BASE}/sales/top-products`,
   },
-expense:{
-    // CRUD
-    create: `${API_BASE}/expenses`,
-    getAll: `${API_BASE}/expenses`,
-    getById: (id) => `${API_BASE}/expenses/${id}`,
-    update: (id) => `${API_BASE}/expenses/${id}`,
-    delete: (id) => `${API_BASE}/expenses/${id}`,
+ expense: {
+    // Expense CRUD
+    getAll: `${API_BASE}/expense`,
+    create: `${API_BASE}/expense`,
+    getById: (id) => `${API_BASE}/expense/${id}`,
+    update: (id) => `${API_BASE}/expense/${id}`,
+    delete: (id) => `${API_BASE}/expense/${id}`,
 
-    // Analytics
-    overview: `${API_BASE}/expenses/overview`,
-},
+    // Categories
+    fetchAll: "${API_BASE}/expense/categories",
+    createCategory: "${API_BASE}/expense/categories",
+    updateCategory: (id) => `${API_BASE}/expense/categories/${id}`,
+    deleteCategory: (id) => `${API_BASE}/expense/categories/${id}`,
+  },
   reviews: {
     getApproved: `${API_BASE}/reviews`,
     submit: `${API_BASE}/reviews`,
@@ -153,16 +156,20 @@ const endpointsPathsProd = {
     payments: "/sales/payments",
     topProducts: "/sales/top-products",
   },
-expense:{
-    // CRUD
-    create: "/expenses",
-    getAll: "/expenses",
-    getById: (id) => `/expenses/${id}`,
-    update: (id) => `/expenses/${id}`,
-    delete: (id) => `/expenses/${id}`,
-    // Analytics
-    overview: "/expenses/overview",
-},
+ expense: {
+    // Expense CRUD
+    getAll: "/expense",
+    create: "/expense",
+    getById: (id) => `/expense/${id}`,
+    update: (id) => `/expense/${id}`,
+    delete: (id) => `/expense/${id}`,
+
+    // Categories
+    categories: "/expense/categories",
+    createCategory: "/expense/categories",
+    updateCategory: (id) => `/expense/categories/${id}`,
+    deleteCategory: (id) => `/expense/categories/${id}`,
+  },
   reviews: {
     getApproved: `/api/reviews`,
     submit: `/api/reviews`,

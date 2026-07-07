@@ -19,7 +19,6 @@ import {
   FileCheck,
  ClipboardCheck,
  Undo2,
- HandCoins,
  Handshake,
  Package
 } from "lucide-react";
@@ -61,8 +60,7 @@ export const NAV = [
           { key: "sales", label: "Sales Overview", icon: ShoppingBag },
         { key: "addSale", label: "Add Sale", icon: PlusCircle },
         { key: "salesHistory", label: "Sales History", icon: FileText },
-        { key: "payment", label: "Payment", icon:DollarSign },
-        { key: "salesRefunds", label: "Sales Refunds", icon: HandCoins }
+
       ]
     },
     {

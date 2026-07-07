@@ -1,13 +1,12 @@
-import { useState,useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useExpenseStore } from "../../../store/expensesStore";
-
 
 const PAYMENT_METHODS = ["Cash", "UPI", "Card", "Bank Transfer"];
 const BRANCHES = ["VK Bakes", "Morning Star Cafe"];
 const STATUSES = ["Paid", "Pending"];
- 
+
 const todayInputValue = () => new Date().toISOString().slice(0, 10);
- 
+
 const emptyForm = {
   title: "",
   category: "",
@@ -20,27 +19,27 @@ const emptyForm = {
   notes: "",
   status: "Paid",
 };
- 
+
 export default function AddExpense({ onDone }) {
   const createExpense = useExpenseStore((s) => s.createExpense);
   const categories = useExpenseStore((s) => s.categories);
   const fetchCategories = useExpenseStore((s) => s.fetchCategories);
- 
+
   useEffect(() => {
     fetchCategories?.();
   }, [fetchCategories]);
- 
+
   const [form, setForm] = useState(emptyForm);
   const [submitting, setSubmitting] = useState(false);
   const [errors, setErrors] = useState({});
   const [successMsg, setSuccessMsg] = useState("");
- 
+
   const update = (field) => (e) => {
     const value = e.target.value;
     setForm((f) => ({ ...f, [field]: value }));
     setErrors((err) => ({ ...err, [field]: undefined }));
   };
- 
+
   const validate = () => {
     const next = {};
     if (!form.title.trim()) next.title = "Title is required";
@@ -51,20 +50,28 @@ export default function AddExpense({ onDone }) {
     setErrors(next);
     return Object.keys(next).length === 0;
   };
- 
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSuccessMsg("");
     if (!validate()) return;
- 
+
     setSubmitting(true);
     try {
-      await createExpense({
+      const payload = {
         ...form,
         amount: Number(form.amount),
         title: form.title.trim(),
-        category: form.category.trim(),
-      });
+        category: form.category,
+        vendor: form.vendor?.trim() || "",
+        billNumber: form.billNumber?.trim() || "",
+        notes: form.notes?.trim() || "",
+        quantity: form.quantity ? Number(form.quantity) : undefined,
+        pricePerUnit: form.pricePerUnit ? Number(form.pricePerUnit) : undefined,
+        unit: form.unit || "pcs",
+      };
+
+      await createExpense(payload);
       setSuccessMsg(`"${form.title.trim()}" added successfully.`);
       setForm(emptyForm);
       // Uncomment to jump straight to history after saving:
@@ -73,11 +80,12 @@ export default function AddExpense({ onDone }) {
       setErrors({
         submit: err?.response?.data?.message || "Could not save the expense. Try again.",
       });
+      console.error("Error creating expense:", err);
     } finally {
       setSubmitting(false);
     }
   };
- 
+
   return (
     <div className="max-w-2xl">
       <form onSubmit={handleSubmit} className="bg-white border border-gray-200 rounded-xl p-5 md:p-6 space-y-5">
@@ -91,7 +99,7 @@ export default function AddExpense({ onDone }) {
             {errors.submit}
           </div>
         )}
- 
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -107,29 +115,31 @@ export default function AddExpense({ onDone }) {
             />
             {errors.title && <p className="text-xs text-red-600 mt-1">{errors.title}</p>}
           </div>
- 
+
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Category <span className="text-red-500">*</span>
             </label>
-            <input
-              type="text"
-              list="expense-category-suggestions"
+            <select
               value={form.category}
               onChange={update("category")}
-              placeholder="e.g. Ingredients, Rent, Utilities"
               className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
-            />
-            <datalist id="expense-category-suggestions">
+            >
+              <option value="">Select a category</option>
               {categories
                 .filter((c) => c.isActive)
                 .map((c) => (
-                  <option key={c._id} value={c.name} />
+                  <option key={c._id} value={c._id}>{c.name}</option>
                 ))}
-            </datalist>
+            </select>
+            {categories.length === 0 && (
+              <p className="text-xs text-gray-400 mt-1">
+                No categories yet — add one on the Categories tab first.
+              </p>
+            )}
             {errors.category && <p className="text-xs text-red-600 mt-1">{errors.category}</p>}
           </div>
- 
+
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Amount (₹) <span className="text-red-500">*</span>
@@ -137,7 +147,7 @@ export default function AddExpense({ onDone }) {
             <input
               type="number"
               min="0"
-              step="0.01"
+
               value={form.amount}
               onChange={update("amount")}
               placeholder="0.00"
@@ -145,7 +155,46 @@ export default function AddExpense({ onDone }) {
             />
             {errors.amount && <p className="text-xs text-red-600 mt-1">{errors.amount}</p>}
           </div>
- 
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Quantity</label>
+            <input
+              type="number"
+              min="0"
+
+              value={form.quantity}
+              onChange={update("quantity")}
+              placeholder="0.00"
+              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
+            />
+            {errors.quantity && <p className="text-xs text-red-600 mt-1">{errors.quantity}</p>}
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Unit</label>
+            <select
+              value={form.unit}
+              onChange={update("unit")}
+              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
+            >
+              <option value="kg">kg</option>
+              <option value="g">g</option>
+              <option value="L">L</option>
+              <option value="Q">Q</option>
+              <option value="pcs">pcs</option>
+            </select>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Price per Unit (₹)</label>
+            <input
+              type="number"
+
+              value={form.pricePerUnit}
+              onChange={update("pricePerUnit")}
+              placeholder="0.00"
+              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
+            />
+            {errors.pricePerUnit && <p className="text-xs text-red-600 mt-1">{errors.pricePerUnit}</p>}
+          </div>
+
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Expense Date</label>
             <input
@@ -157,7 +206,7 @@ export default function AddExpense({ onDone }) {
             />
             <p className="text-xs text-gray-400 mt-1">Backdate this if the expense happened earlier.</p>
           </div>
- 
+
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Branch <span className="text-red-500">*</span>
@@ -172,7 +221,7 @@ export default function AddExpense({ onDone }) {
               ))}
             </select>
           </div>
- 
+
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Payment Method</label>
             <select
@@ -185,7 +234,7 @@ export default function AddExpense({ onDone }) {
               ))}
             </select>
           </div>
- 
+
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Vendor</label>
             <input
@@ -196,7 +245,7 @@ export default function AddExpense({ onDone }) {
               className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
             />
           </div>
- 
+
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Bill Number</label>
             <input
@@ -207,7 +256,7 @@ export default function AddExpense({ onDone }) {
               className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
             />
           </div>
- 
+
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
             <div className="flex gap-2">
@@ -216,13 +265,12 @@ export default function AddExpense({ onDone }) {
                   type="button"
                   key={s}
                   onClick={() => setForm((f) => ({ ...f, status: s }))}
-                  className={`px-3 py-2 rounded-lg text-sm font-medium border transition-colors ${
-                    form.status === s
+                  className={`px-3 py-2 rounded-lg text-sm font-medium border transition-colors ${form.status === s
                       ? s === "Paid"
                         ? "bg-green-50 border-green-300 text-green-700"
                         : "bg-yellow-50 border-yellow-300 text-yellow-700"
                       : "bg-white border-gray-300 text-gray-600 hover:bg-gray-50"
-                  }`}
+                    }`}
                 >
                   {s}
                 </button>
@@ -230,7 +278,7 @@ export default function AddExpense({ onDone }) {
             </div>
           </div>
         </div>
- 
+
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">Notes</label>
           <textarea
@@ -242,7 +290,7 @@ export default function AddExpense({ onDone }) {
             className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
           />
         </div>
- 
+
         <div className="flex justify-end gap-3 pt-2">
           <button
             type="button"

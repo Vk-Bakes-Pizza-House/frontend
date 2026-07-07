@@ -10,6 +10,12 @@ const COLORS = ["#D97706", "#F59E0B", "#FBBF24", "#B45309", "#92400E", "#78350F"
 const formatINR = (n) =>
   `₹${Number(n || 0).toLocaleString("en-IN", { maximumFractionDigits: 0 })}`;
 
+const getCategoryLabel = (category) => {
+  if (!category) return "Uncategorized";
+  if (typeof category === "object") return category.name || "Uncategorized";
+  return category;
+};
+
 export default function ExpenseAnalytics() {
   const { expenses, loading, fetchExpenses } = useExpenseStore();
 
@@ -24,7 +30,8 @@ export default function ExpenseAnalytics() {
     const pending = active.filter((e) => e.status === "Pending").length;
     const byCategory = {};
     active.forEach((e) => {
-      byCategory[e.category] = (byCategory[e.category] || 0) + Number(e.amount || 0);
+      const label = getCategoryLabel(e.category);
+      byCategory[label] = (byCategory[label] || 0) + Number(e.amount || 0);
     });
     const top = Object.entries(byCategory).sort((a, b) => b[1] - a[1])[0];
     return {
@@ -38,7 +45,8 @@ export default function ExpenseAnalytics() {
   const categoryData = useMemo(() => {
     const map = {};
     active.forEach((e) => {
-      map[e.category] = (map[e.category] || 0) + Number(e.amount || 0);
+      const label = getCategoryLabel(e.category);
+      map[label] = (map[label] || 0) + Number(e.amount || 0);
     });
     return Object.entries(map)
       .map(([name, value]) => ({ name, value }))

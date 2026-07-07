@@ -1,9 +1,13 @@
 import { useEffect, useMemo, useState } from "react";
-import { Plus, X, Trash2 } from "lucide-react";
+import { Plus, X, Trash2, Pencil } from "lucide-react";
 import { useExpenseStore } from "../../../store/expensesStore";
 
 const formatINR = (n) =>
   `₹${Number(n || 0).toLocaleString("en-IN", { maximumFractionDigits: 2 })}`;
+
+// expense.category can arrive as a populated { _id, name } object or, if
+// unpopulated, as a bare id string — this handles both.
+const categoryId = (c) => (c && typeof c === "object" ? c._id : c);
 
 export default function ExpenseCategories() {
   const {
@@ -14,27 +18,30 @@ export default function ExpenseCategories() {
     error,
     fetchCategories,
     createCategory,
+    updateCategory,
     deactivateCategory,
   } = useExpenseStore();
 
   const [sortBy, setSortBy] = useState("amount"); // amount | count | name
   const [showInactive, setShowInactive] = useState(false);
   const [showAddForm, setShowAddForm] = useState(false);
+  const [editingCategory, setEditingCategory] = useState(null);
 
   useEffect(() => {
     fetchExpenses?.();
     fetchCategories?.();
   }, [fetchExpenses, fetchCategories]);
 
-  // Spend rollup per category name, from actual expenses
+  // Spend rollup per category id, from actual expenses
   const spendByCategory = useMemo(() => {
     const map = new Map();
     for (const e of expenses) {
-      if (e.isDeleted || !e.category) continue;
-      if (!map.has(e.category)) {
-        map.set(e.category, { total: 0, count: 0, pending: 0, lastDate: null });
+      const id = categoryId(e.category);
+      if (e.isDeleted || !id) continue;
+      if (!map.has(id)) {
+        map.set(id, { total: 0, count: 0, pending: 0, lastDate: null });
       }
-      const row = map.get(e.category);
+      const row = map.get(id);
       row.total += Number(e.amount || 0);
       row.count += 1;
       if (e.status === "Pending") row.pending += 1;
@@ -49,7 +56,7 @@ export default function ExpenseCategories() {
     const list = categories
       .filter((c) => (showInactive ? true : c.isActive))
       .map((c) => {
-        const spend = spendByCategory.get(c.name) || { total: 0, count: 0, pending: 0, lastDate: null };
+        const spend = spendByCategory.get(c._id) || { total: 0, count: 0, pending: 0, lastDate: null };
         return { ...c, ...spend };
       });
 
@@ -123,13 +130,22 @@ export default function ExpenseCategories() {
                     </span>
                   )}
                   {r.isActive && (
-                    <button
-                      onClick={() => handleDeactivate(r)}
-                      className="p-1 rounded text-gray-400 hover:bg-red-50 hover:text-red-600"
-                      title="Deactivate category"
-                    >
-                      <Trash2 size={14} />
-                    </button>
+                    <>
+                      <button
+                        onClick={() => setEditingCategory(r)}
+                        className="p-1 rounded text-gray-400 hover:bg-gray-100 hover:text-gray-700"
+                        title="Edit category"
+                      >
+                        <Pencil size={14} />
+                      </button>
+                      <button
+                        onClick={() => handleDeactivate(r)}
+                        className="p-1 rounded text-gray-400 hover:bg-red-50 hover:text-red-600"
+                        title="Deactivate category"
+                      >
+                        <Trash2 size={14} />
+                      </button>
+                    </>
                   )}
                 </div>
               </div>
@@ -153,11 +169,27 @@ export default function ExpenseCategories() {
       </div>
 
       {showAddForm && (
-        <AddCategoryModal
+        <CategoryFormModal
+          title="New Category"
+          submitLabel="Add Category"
           onClose={() => setShowAddForm(false)}
-          onCreate={async (data) => {
+          onSubmit={async (data) => {
             await createCategory(data);
             setShowAddForm(false);
+          }}
+        />
+      )}
+
+      {editingCategory && (
+        <CategoryFormModal
+          title="Edit Category"
+          submitLabel="Save Changes"
+          initialName={editingCategory.name}
+          initialDescription={editingCategory.description}
+          onClose={() => setEditingCategory(null)}
+          onSubmit={async (data) => {
+            await updateCategory(editingCategory._id, data);
+            setEditingCategory(null);
           }}
         />
       )}
@@ -165,9 +197,16 @@ export default function ExpenseCategories() {
   );
 }
 
-function AddCategoryModal({ onClose, onCreate }) {
-  const [name, setName] = useState("");
-  const [description, setDescription] = useState("");
+function CategoryFormModal({
+  title,
+  submitLabel,
+  initialName = "",
+  initialDescription = "",
+  onClose,
+  onSubmit,
+}) {
+  const [name, setName] = useState(initialName);
+  const [description, setDescription] = useState(initialDescription);
   const [saving, setSaving] = useState(false);
   const [err, setErr] = useState("");
 
@@ -180,9 +219,10 @@ function AddCategoryModal({ onClose, onCreate }) {
     setSaving(true);
     setErr("");
     try {
-      await onCreate({ name: name.trim(), description: description.trim() });
+      await onSubmit({ name: name.trim(), description: description.trim() });
     } catch (e) {
-      setErr(e?.response?.data?.message || "Could not create category");
+      setErr(e?.response?.data?.message || "Could not save category");
+      console.error("Error saving category:", e);
     } finally {
       setSaving(false);
     }
@@ -192,7 +232,7 @@ function AddCategoryModal({ onClose, onCreate }) {
     <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-xl w-full max-w-sm">
         <div className="flex items-center justify-between px-5 py-4 border-b border-gray-200">
-          <h3 className="font-semibold text-gray-900">New Category</h3>
+          <h3 className="font-semibold text-gray-900">{title}</h3>
           <button onClick={onClose} className="text-gray-400 hover:text-gray-700"><X size={18} /></button>
         </div>
         <form onSubmit={handleSubmit} className="p-5 space-y-4">
@@ -227,7 +267,7 @@ function AddCategoryModal({ onClose, onCreate }) {
               disabled={saving}
               className="px-4 py-2 rounded-lg text-sm font-medium bg-amber-600 text-white hover:bg-amber-700 disabled:opacity-50"
             >
-              {saving ? "Adding..." : "Add Category"}
+              {saving ? "Saving..." : submitLabel}
             </button>
           </div>
         </form>

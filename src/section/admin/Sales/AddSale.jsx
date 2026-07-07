@@ -18,6 +18,11 @@ export default function AddSale() {
   const [qty, setQty] = useState(1);
   const [cartItems, setCartItems] = useState([]);
 
+  // Conditional extras (reset on every item pick)
+  const [extraCheese, setExtraCheese] = useState("");
+  const [deliveryFee, setDeliveryFee] = useState("");
+  const [itemDiscount, setItemDiscount] = useState("");
+
   // Sale meta
   const [saleType, setSaleType] = useState("Counter");
   const [branch, setBranch] = useState("VK Bakes");
@@ -40,6 +45,8 @@ export default function AddSale() {
   }, [fetchMenu]);
 
   const selectedMenuItem = menuItems.find((m) => m._id === selectedItemId);
+  const isPizza = (selectedMenuItem?.category ?? "").toLowerCase() === "pizza";
+
   const hasSizes = Array.isArray(selectedMenuItem?.sizes) && selectedMenuItem.sizes.length > 0;
   const normalizedSizes = (selectedMenuItem?.sizes ?? []).map((size) => ({
     value: size?.label ?? size?.size ?? size?.name ?? "",
@@ -55,6 +62,9 @@ export default function AddSale() {
     setSelectedItemId("");
     setSelectedSize("");
     setQty(1);
+    setExtraCheese("");
+    setDeliveryFee("");
+    setItemDiscount("");
   };
 
   const addToCart = () => {
@@ -62,15 +72,37 @@ export default function AddSale() {
     if (hasSizes && !selectedSize) return toast.error("Please select a size.");
     if (!currentPrice) return toast.error("This item has no valid price.");
 
-    setCartItems((prev) => [
-      ...prev,
+    const newLines = [
       {
         product: selectedMenuItem._id,
         name: hasSizes ? `${selectedMenuItem.name} (${selectedSize})` : selectedMenuItem.name,
         price: currentPrice,
         quantity: qty,
       },
-    ]);
+    ];
+
+    if (isPizza) {
+      const cheese = Number(extraCheese) || 0;
+      const delivery = Number(deliveryFee) || 0;
+      if (cheese > 0) {
+        newLines.push({ product: selectedMenuItem._id, name: "Extra Cheese", price: cheese, quantity: 1 });
+      }
+      if (delivery > 0) {
+        newLines.push({ product: selectedMenuItem._id, name: "Delivery Fee", price: delivery, quantity: 1 });
+      }
+    } else {
+      const disc = Number(itemDiscount) || 0;
+      if (disc > 0) {
+        newLines.push({
+          product: selectedMenuItem._id,
+          name: `Discount - ${selectedMenuItem.name}`,
+          price: -disc,
+          quantity: 1,
+        });
+      }
+    }
+
+    setCartItems((prev) => [...prev, ...newLines]);
     resetPicker();
   };
 
@@ -102,7 +134,6 @@ export default function AddSale() {
     });
     setSaving(false);
 
-    // reset form
     setCartItems([]);
     setDiscount(0);
     setTax(0);
@@ -124,7 +155,13 @@ export default function AddSale() {
           <select
             className="flex-1 min-w-[180px] px-3 py-2 rounded-xl border border-[#E8D5C0] text-sm bg-white"
             value={selectedItemId}
-            onChange={(e) => { setSelectedItemId(e.target.value); setSelectedSize(""); }}
+            onChange={(e) => {
+              setSelectedItemId(e.target.value);
+              setSelectedSize("");
+              setExtraCheese("");
+              setDeliveryFee("");
+              setItemDiscount("");
+            }}
             disabled={menuLoading}
           >
             <option value="" disabled>{menuLoading ? "Loading items…" : "Select item"}</option>
@@ -162,6 +199,43 @@ export default function AddSale() {
             <Plus size={14} /> Add
           </button>
         </div>
+
+        {/* Conditional extras based on item type */}
+        {selectedMenuItem && isPizza && (
+          <div className="flex gap-3 flex-wrap bg-[#FFF8F0] p-3 rounded-xl border border-[#E8D5C0]/70">
+            <div className="flex-1 min-w-[140px]">
+              <label className="block text-[10px] font-bold text-[#8B6A4F] uppercase mb-1">Extra Cheese (₹)</label>
+              <input
+                type="number" min="0" placeholder="0"
+                className="w-full px-3 py-1.5 rounded-lg border border-[#E8D5C0] text-sm"
+                value={extraCheese}
+                onChange={(e) => setExtraCheese(e.target.value)}
+              />
+            </div>
+            <div className="flex-1 min-w-[140px]">
+              <label className="block text-[10px] font-bold text-[#8B6A4F] uppercase mb-1">Delivery Fee (₹)</label>
+              <input
+                type="number" min="0" placeholder="0"
+                className="w-full px-3 py-1.5 rounded-lg border border-[#E8D5C0] text-sm"
+                value={deliveryFee}
+                onChange={(e) => setDeliveryFee(e.target.value)}
+              />
+            </div>
+          </div>
+        )}
+
+        {selectedMenuItem && !isPizza && (
+          <div className="bg-[#FFF8F0] p-3 rounded-xl border border-[#E8D5C0]/70 max-w-[220px]">
+            <label className="block text-[10px] font-bold text-[#8B6A4F] uppercase mb-1">Discount on this item (₹)</label>
+            <input
+              type="number" min="0" placeholder="0"
+              className="w-full px-3 py-1.5 rounded-lg border border-[#E8D5C0] text-sm"
+              value={itemDiscount}
+              onChange={(e) => setItemDiscount(e.target.value)}
+            />
+          </div>
+        )}
+
         {!menuLoading && menuItems.length === 0 && (
           <p className="text-xs text-red-500">No available items found in menu.</p>
         )}
@@ -177,11 +251,13 @@ export default function AddSale() {
             {cartItems.map((item, idx) => (
               <div key={idx} className="flex items-center justify-between px-4 py-2.5 text-xs">
                 <div>
-                  <span className="font-bold text-[#2D1400]">{item.name}</span>
-                  <span className="text-[#8B6A4F]"> × {item.quantity}</span>
+                  <span className={`font-bold ${item.price < 0 ? "text-red-600" : "text-[#2D1400]"}`}>{item.name}</span>
+                  {item.quantity > 1 && <span className="text-[#8B6A4F]"> × {item.quantity}</span>}
                 </div>
                 <div className="flex items-center gap-3">
-                  <span className="font-bold text-[#2D1400]">₹{(item.price * item.quantity).toFixed(2)}</span>
+                  <span className={`font-bold ${item.price < 0 ? "text-red-600" : "text-[#2D1400]"}`}>
+                    {item.price < 0 ? "-" : ""}₹{Math.abs(item.price * item.quantity).toFixed(2)}
+                  </span>
                   <button type="button" onClick={() => removeCartItem(idx)} className="text-red-500 hover:bg-red-50 p-1.5 rounded-lg">
                     <Trash2 size={14} />
                   </button>
@@ -273,10 +349,10 @@ export default function AddSale() {
         </div>
       </div>
 
-      {/* Discount / Tax / Notes */}
+      {/* Order-level discount / tax / notes */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
-          <label className="block text-xs font-bold text-[#2D1400] uppercase tracking-wider mb-2">Discount (₹)</label>
+          <label className="block text-xs font-bold text-[#2D1400] uppercase tracking-wider mb-2">Overall Discount (₹)</label>
           <input type="number" min="0" className="w-full px-3 py-2 rounded-xl border border-[#E8D5C0] text-sm" value={discount} onChange={(e) => setDiscount(e.target.value)} />
         </div>
         <div>
@@ -296,7 +372,7 @@ export default function AddSale() {
             <span>Subtotal</span><span>₹{subTotal.toFixed(2)}</span>
           </div>
           <div className="flex justify-between text-xs text-[#8B6A4F]">
-            <span>Discount</span><span>-₹{Number(discount || 0).toFixed(2)}</span>
+            <span>Overall Discount</span><span>-₹{Number(discount || 0).toFixed(2)}</span>
           </div>
           <div className="flex justify-between text-xs text-[#8B6A4F]">
             <span>Tax</span><span>+₹{Number(tax || 0).toFixed(2)}</span>

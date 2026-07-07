@@ -12,38 +12,49 @@ const formatINR = (n) =>
 const formatDate = (d) =>
   d ? new Date(d).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" }) : "-";
 
+// expense.category can arrive as a populated { _id, name } object (after
+// backend .populate("category", "name")) or, if unpopulated, as a bare id
+// string — these helpers handle both.
+const categoryId = (c) => (c && typeof c === "object" ? c._id : c);
+const categoryName = (c) => (c && typeof c === "object" ? c.name : c) || "-";
+
 export default function ExpenseHistory() {
-  const { expenses, loading, error, fetchExpenses, softDeleteExpense, restoreExpense, updateExpense } =
-    useExpenseStore();
+  const {
+    expenses,
+    loading,
+    error,
+    fetchExpenses,
+    softDeleteExpense,
+    restoreExpense,
+    updateExpense,
+    categories,
+    fetchCategories,
+  } = useExpenseStore();
 
   const [branch, setBranch] = useState("All");
   const [status, setStatus] = useState("All");
-  const [category, setCategory] = useState("All");
+  const [category, setCategory] = useState("All"); // holds a category _id or "All"
   const [search, setSearch] = useState("");
   const [showDeleted, setShowDeleted] = useState(false);
   const [editingExpense, setEditingExpense] = useState(null);
 
   useEffect(() => {
     fetchExpenses?.();
-  }, [fetchExpenses]);
-
-  const categories = useMemo(() => {
-    const set = new Set(expenses.map((e) => e.category).filter(Boolean));
-    return ["All", ...Array.from(set).sort()];
-  }, [expenses]);
-
+    fetchCategories?.();
+  }, [fetchExpenses, fetchCategories]);
+console.log("expenses", expenses);
   const filtered = useMemo(() => {
     return expenses
       .filter((e) => (showDeleted ? true : !e.isDeleted))
       .filter((e) => (branch === "All" ? true : e.branch === branch))
       .filter((e) => (status === "All" ? true : e.status === status))
-      .filter((e) => (category === "All" ? true : e.category === category))
+      .filter((e) => (category === "All" ? true : categoryId(e.category) === category))
       .filter((e) => {
         if (!search.trim()) return true;
         const q = search.toLowerCase();
         return (
           e.title?.toLowerCase().includes(q) ||
-          e.category?.toLowerCase().includes(q) ||
+          categoryName(e.category).toLowerCase().includes(q) ||
           e.vendor?.toLowerCase().includes(q) ||
           e.billNumber?.toLowerCase().includes(q)
         );
@@ -73,7 +84,8 @@ export default function ExpenseHistory() {
           {BRANCHES.map((b) => <option key={b} value={b}>{b}</option>)}
         </select>
         <select value={category} onChange={(e) => setCategory(e.target.value)} className="rounded-lg border border-gray-300 px-3 py-2 text-sm">
-          {categories.map((c) => <option key={c} value={c}>{c}</option>)}
+          <option value="All">All</option>
+          {categories.map((c) => <option key={c._id} value={c._id}>{c.name}</option>)}
         </select>
         <select value={status} onChange={(e) => setStatus(e.target.value)} className="rounded-lg border border-gray-300 px-3 py-2 text-sm">
           {STATUSES.map((s) => <option key={s} value={s}>{s}</option>)}
@@ -118,7 +130,7 @@ export default function ExpenseHistory() {
                 <tr key={e._id} className={e.isDeleted ? "opacity-50" : ""}>
                   <td className="px-4 py-3 whitespace-nowrap text-gray-600">{formatDate(e.expenseDate)}</td>
                   <td className="px-4 py-3 font-medium text-gray-900">{e.title}</td>
-                  <td className="px-4 py-3 text-gray-600">{e.category}</td>
+                  <td className="px-4 py-3 text-gray-600">{categoryName(e.category)}</td>
                   <td className="px-4 py-3 text-gray-600">{e.branch}</td>
                   <td className="px-4 py-3 text-gray-600">{e.paymentMethod}</td>
                   <td className="px-4 py-3 text-right font-medium text-gray-900">{formatINR(e.amount)}</td>
@@ -157,6 +169,7 @@ export default function ExpenseHistory() {
       {editingExpense && (
         <EditExpenseModal
           expense={editingExpense}
+          categories={categories}
           onClose={() => setEditingExpense(null)}
           onSave={async (data) => {
             await updateExpense(editingExpense._id, data);
@@ -168,10 +181,10 @@ export default function ExpenseHistory() {
   );
 }
 
-function EditExpenseModal({ expense, onClose, onSave }) {
+function EditExpenseModal({ expense, categories, onClose, onSave }) {
   const [form, setForm] = useState({
     title: expense.title || "",
-    category: expense.category || "",
+    category: categoryId(expense.category) || "",
     amount: expense.amount ?? "",
     paymentMethod: expense.paymentMethod || "Cash",
     branch: expense.branch || "VK Bakes",
@@ -209,7 +222,10 @@ function EditExpenseModal({ expense, onClose, onSave }) {
             </div>
             <div>
               <label className="block text-xs font-medium text-gray-500 mb-1">Category</label>
-              <input value={form.category} onChange={update("category")} className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm" />
+              <select value={form.category} onChange={update("category")} className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
+                <option value="">Select a category</option>
+                {categories.map((c) => <option key={c._id} value={c._id}>{c.name}</option>)}
+              </select>
             </div>
             <div>
               <label className="block text-xs font-medium text-gray-500 mb-1">Amount (₹)</label>
