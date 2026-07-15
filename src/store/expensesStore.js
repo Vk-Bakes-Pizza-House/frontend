@@ -22,7 +22,7 @@ export const useExpenseStore = create((set, get) => {
     error: null,
 
     ...expenseCrud,
-    fetchExpenses: expenseCrud.fetchAll,
+    fetchExpenses: (query = {}) => expenseCrud.fetchAll({ limit: 10000, ...query }),
     createExpense: expenseCrud.create,
     updateExpense: expenseCrud.update,
     deleteExpense: expenseCrud.delete,
@@ -63,7 +63,7 @@ export const useExpenseStore = create((set, get) => {
     categories: [],
 
     ...categoryCrud,
-    fetchCategories: categoryCrud.fetchAll,
+    fetchCategories: (query = {}) => categoryCrud.fetchAll({ limit: 10000, ...query }),
     createCategory: categoryCrud.create,
 
     getActiveCategories: () => get().categories.filter((c) => c.isActive),

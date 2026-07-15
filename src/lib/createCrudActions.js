@@ -17,11 +17,11 @@ const normalizeListData = (data, stateKey) => {
 const normalizeSingleData = (data) => data?.data ?? data;
 
 export const createCrudActions = (set, endpoint, stateKey) => ({
-  fetchAll: async () => {
+  fetchAll: async (query = {}) => {
     set({ loading: true });
 
     try {
-      const data = await apiRequest("get", endpoint);
+      const data = await apiRequest("get", endpoint, null, { params: query });
       set({
         [stateKey]: normalizeListData(data, stateKey),
         loading: false,

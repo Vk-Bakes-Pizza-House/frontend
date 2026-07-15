@@ -22,7 +22,7 @@ export default function ExpenseAnalytics() {
   useEffect(() => {
     fetchExpenses?.();
   }, [fetchExpenses]);
-
+console.log("expenses", expenses);
   const active = useMemo(() => expenses.filter((e) => !e.isDeleted), [expenses]);
 
   const { totalSpend, avgExpense, pendingCount, topCategory } = useMemo(() => {
