@@ -14,7 +14,7 @@
 // ─────────────────────────────────────────────────────────────
 import { create } from "zustand";
 import { devtools } from "zustand/middleware";
-import api from "./api";
+import api  from "../services/api";
 
 const useComboStore = create(
   devtools(

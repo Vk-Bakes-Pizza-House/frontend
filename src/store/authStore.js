@@ -17,7 +17,7 @@
 // ─────────────────────────────────────────────────────────────
 import { create } from "zustand";
 import { devtools } from "zustand/middleware";
-import api from "./api";
+import api  from "../services/api";
 import { endpoints } from "../utils/endpoints";
 
 const useAuthStore = create(

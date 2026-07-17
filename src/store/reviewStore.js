@@ -5,7 +5,7 @@ import {
   createJSONStorage,
 } from "zustand/middleware";
 
-import api from "./api";
+import api  from "../services/api";
 import { endpoints } from "../utils/endpoints";
 import {toast} from "sonner"
 

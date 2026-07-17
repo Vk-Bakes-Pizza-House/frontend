@@ -11,7 +11,7 @@
 import { create }                        from "zustand";
 import { devtools, persist, createJSONStorage } from "zustand/middleware";
 import { toast }                         from "sonner";
-import api                               from "./api";
+import api                               from "../services/api";
 import { endpoints }                     from "../utils/endpoints";
 
 // ── Resolve FormData → plain JSON (drops File objects) ───────

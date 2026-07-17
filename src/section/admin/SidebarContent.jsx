@@ -10,12 +10,12 @@ function AdminProfile({ onProfileClick }) {
       onClick={onProfileClick}
       className="flex items-center gap-3 p-3 mx-2 rounded-xl bg-white/5 border border-white/10 cursor-pointer hover:bg-white/10 transition-all group"
     >
-      <div className="w-9 h-9 rounded-full bg-[#D44B1A] flex items-center justify-center font-sans font-bold text-white text-sm shadow-md group-hover:scale-105 transition-transform">
+      <div className="w-7 h-7 rounded-full bg-[#D44B1A] flex items-center justify-center font-sans font-bold text-white text-sm shadow-md group-hover:scale-105 transition-transform">
         VK
       </div>
       <div className="flex flex-col min-w-0">
         <span className="font-sans font-bold text-sm text-[#FFF8F0] truncate">VK Admin</span>
-        <span className="font-sans text-[11px] text-[#8B6A4F] truncate">Store Owner</span>
+        <span className="font-sans text-[9px] text-[#8B6A4F] truncate">Store Owner</span>
       </div>
     </div>
   );
@@ -23,8 +23,11 @@ function AdminProfile({ onProfileClick }) {
 
 
 export function SidebarContent({ page, onNavigate, onLogout, onProfileClick, setOpen }) {
-  // Dropdown open/close state works perfectly now without resetting on clicks
-  const [menuDropdownOpen, setMenuDropdownOpen] = useState(false);
+  const [openDropdownKey, setOpenDropdownKey] = useState(null);
+
+  const toggleDropdown = (key) => {
+    setOpenDropdownKey((prev) => (prev === key ? null : key));
+  };
 
   return (
     <div className="flex flex-col h-full bg-[#1A0A00]">
@@ -35,19 +38,21 @@ export function SidebarContent({ page, onNavigate, onLogout, onProfileClick, set
       </div>
 
       {/* Primary Links Nav Block */}
-      <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
+      <nav className="flex-1 p-4 space-y-1 overflow-y-auto whitespace-nowrap [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
         {NAV.map((item) => {
           const Icon = item.icon;
 
           if (item.isDropdown) {
+            const isDropdownOpen = openDropdownKey === item.key;
+
             return (
               <div key={item.key} className="space-y-1">
                 {/* Parent Dropdown Button */}
                 <button
                   type="button"
-                  onClick={() => setMenuDropdownOpen(!menuDropdownOpen)}
-                  className={`w-full flex items-center justify-between px-4 py-3 rounded-xl font-sans text-sm font-semibold transition-all duration-150 text-left ${
-                    menuDropdownOpen
+                  onClick={() => toggleDropdown(item.key)}
+                  className={`w-full flex items-center justify-between px-4 py-3 rounded-xl font-sans text-xs font-semibold transition-all duration-150 text-left ${
+                    isDropdownOpen
                       ? "bg-white/10 text-[#FFF8F0]"
                       : "text-[#C8A882] hover:bg-white/5 hover:text-[#FFF8F0]"
                   }`}
@@ -59,7 +64,7 @@ export function SidebarContent({ page, onNavigate, onLogout, onProfileClick, set
                   <ChevronDown
                     size={14}
                     className={`transition-transform duration-200 ${
-                      menuDropdownOpen ? "rotate-180 text-[#F5A623]" : "text-[#C8A882]"
+                      isDropdownOpen ? "rotate-180 text-[#F5A623]" : "text-[#C8A882]"
                     }`}
                   />
                 </button>
@@ -67,7 +72,7 @@ export function SidebarContent({ page, onNavigate, onLogout, onProfileClick, set
                 {/* Sub-menu Dropdown List Box Wrapper */}
                 <div
                   className={`grid transition-all duration-200 ease-in-out ${
-                    menuDropdownOpen ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"
+                    isDropdownOpen ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"
                   }`}
                 >
                   <div className="overflow-hidden pl-4 border-l border-white/10 ml-6 space-y-1 mt-1">
@@ -81,7 +86,8 @@ export function SidebarContent({ page, onNavigate, onLogout, onProfileClick, set
                           key={child.key}
                           onClick={() => {
                             onNavigate(child.key);
-                            setOpen(false); // Mobile drawer collapses safely
+                            setOpen(false);
+                            setOpenDropdownKey(null);
                           }}
                           className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-lg font-sans text-xs font-semibold transition-all duration-150 text-left ${
                             isChildActive
@@ -110,7 +116,7 @@ export function SidebarContent({ page, onNavigate, onLogout, onProfileClick, set
                 onNavigate(item.key);
                 setOpen(false);
               }}
-              className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-sans text-sm font-semibold transition-all duration-150 text-left ${
+              className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-sans text-xs font-semibold transition-all duration-150 text-left ${
                 isActive
                   ? "bg-[#F5A623] text-[#1A0A00] shadow-md shadow-[#F5A623]/10"
                   : "text-[#C8A882] hover:bg-white/5 hover:text-[#FFF8F0]"
@@ -127,14 +133,14 @@ export function SidebarContent({ page, onNavigate, onLogout, onProfileClick, set
       <div className="p-4 border-t border-white/10 space-y-3 bg-black/20">
         <AdminProfile onProfileClick={onProfileClick} />
 
-        <button
+        {/* <button
           type="button"
           onClick={onLogout}
-          className="w-full flex items-center gap-3 px-4 py-2.5 rounded-xl font-sans text-sm font-medium text-[#8B6A4F] hover:text-red-400 hover:bg-red-500/10 transition-colors text-left"
+          className="w-full flex items-center gap-3 px-4 py-2.5 rounded-xl font-sans text-xs font-medium text-[#8B6A4F] hover:text-red-400 hover:bg-red-500/10 transition-colors text-left"
         >
           <LogOut size={16} />
           <span>Sign Out</span>
-        </button>
+        </button> */}
       </div>
     </div>
   );

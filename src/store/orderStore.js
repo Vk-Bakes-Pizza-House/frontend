@@ -1,29 +1,9 @@
-// src/store/useOrderStore.js
-// ─────────────────────────────────────────────────────────────
-// Admin order management store — matched to Order.js schema.
-//
-// Order model fields used here:
-//   orderId, customer{name,phone,address}, items[], orderType,
-//   subtotal, deliveryCharge, total, paymentMethod,
-//   status, statusHistory[], note, cakeDetails{}
-//
-// Actions:
-//   fetchOrders(filters?)         → GET    /api/orders
-//   fetchStats()                  → GET    /api/orders/stats
-//   fetchOrderById(id)            → GET    /api/orders/:id
-//   createOrder(payload)          → POST   /api/orders
-//   updateStatus(id,status,note)  → PATCH  /api/orders/:id/status
-//   deleteOrder(id)               → DELETE /api/orders/:id
-//   setFilter(key, value)         → local filter + auto-refetch
-//   goToPage(page)                → pagination helper
-// ─────────────────────────────────────────────────────────────
 import { create } from "zustand";
 import { devtools } from "zustand/middleware";
 import { toast } from "sonner";
-import api from "./api";
+import api from "../services/api";
 import { endpoints } from "../utils/endpoints";
 
-// ── Status flow allowed by the model ─────────────────────────
 export const ORDER_STATUSES = [
   "Pending",
   "Confirmed",
@@ -32,16 +12,17 @@ export const ORDER_STATUSES = [
   "Cancelled",
 ];
 
-// ── Status badge style map (for UI) ──────────────────────────
 export const STATUS_STYLES = {
   Pending:   { bg: "bg-yellow-100", text: "text-yellow-800", dot: "bg-yellow-400" },
   Confirmed: { bg: "bg-blue-100",   text: "text-blue-800",   dot: "bg-blue-400"   },
   Preparing: { bg: "bg-orange-100", text: "text-orange-800", dot: "bg-orange-400" },
   Delivered: { bg: "bg-green-100",  text: "text-green-800",  dot: "bg-green-400"  },
-  Cancelled: { bg: "bg-red-100",    text: "text-red-700",    dot: "bg-red-400"    },
+  Cancelled: { bg: "bg-red-100",   text: "text-red-700",    dot: "bg-red-400"    },
 };
 
-// ─────────────────────────────────────────────────────────────
+// Cache Expiration Configurations (in Milliseconds)
+const CACHE_DURATION_ORDERS = 2 * 60 * 1000; // 2 Minutes
+const CACHE_DURATION_STATS  = 5 * 60 * 1000; // 5 Minutes
 
 const useOrderStore = create(
   devtools(
@@ -49,34 +30,52 @@ const useOrderStore = create(
       // ── State ─────────────────────────────────────────────
       orders:     [],
       revenue:     0,
-      stats:      null,       // { total, pending, delivered, cancelled, revenue, todayOrders, todayRevenue }
+      stats:      null,
       pagination: { page: 1, pages: 1, total: 0, limit: 20 },
       filters:    { status: "all", q: "", orderType: "all" },
       loading:    false,
       error:      null,
 
+      // ── Cache Timestamps State ────────────────────────────
+      ordersLastFetched: null,
+      statsLastFetched:  null,
+
       // ── Helpers ───────────────────────────────────────────
       clearError: () => set({ error: null }),
+
+      // Manual Cache Invalidation Helper
+      invalidateCache: () => set({ ordersLastFetched: null, statsLastFetched: null }),
 
       setFilter: (key, value) => {
         set((s) => ({
           filters:    { ...s.filters, [key]: value },
-          pagination: { ...s.pagination, page: 1 },   // reset to page 1 on filter change
+          pagination: { ...s.pagination, page: 1 },
+          ordersLastFetched: null, // Force a network refetch when filters change
         }));
         get().fetchOrders();
       },
 
-      goToPage: (page) => get().fetchOrders({ page }),
+      goToPage: (page) => {
+        set({ ordersLastFetched: null }); // Force network fetch for different pages
+        return get().fetchOrders({ page });
+      },
 
       // ── GET /api/orders ───────────────────────────────────
-      // Query params mapped to Order model:
-      //   status    → order.status  (Pending|Confirmed|…)
-      //   orderType → order.orderType (delivery|pickup)
-      //   q         → search customer.name / customer.phone / orderId
-      //   page, limit → pagination
       fetchOrders: async (overrides = {}) => {
+        const { filters, pagination, ordersLastFetched, orders } = get();
+        const now = Date.now();
+
+        // 1. Check if valid data exists in cache and no pagination/filter override is sent
+        if (
+          !overrides.page && 
+          ordersLastFetched && 
+          (now - ordersLastFetched < CACHE_DURATION_ORDERS) && 
+          orders.length > 0
+        ) {
+          return { success: true, cached: true };
+        }
+
         set({ loading: true, error: null });
-        const { filters, pagination } = get();
 
         const params = {
           page:  overrides.page || pagination.page,
@@ -97,6 +96,7 @@ const useOrderStore = create(
               total: data.total,
               limit: pagination.limit,
             },
+            ordersLastFetched: Date.now(), // Save successful timestamp
             loading: false,
           });
           return { success: true };
@@ -109,11 +109,21 @@ const useOrderStore = create(
       },
 
       // ── GET /api/orders/stats ─────────────────────────────
-      // Returns: { total, pending, delivered, cancelled, revenue, todayOrders, todayRevenue }
       fetchStats: async () => {
+        const { statsLastFetched, stats } = get();
+        const now = Date.now();
+
+        // Check if stats are freshly cached
+        if (statsLastFetched && (now - statsLastFetched < CACHE_DURATION_STATS) && stats) {
+          return { success: true, data: stats, cached: true };
+        }
+
         try {
           const { data } = await api.get(endpoints.orders.getStats);
-          set({ stats: data.data });
+          set({ 
+            stats: data.data,
+            statsLastFetched: Date.now() // Save stats timestamp
+          });
           return { success: true, data: data.data };
         } catch (err) {
           console.warn("Stats fetch failed:", err.message);
@@ -123,6 +133,12 @@ const useOrderStore = create(
 
       // ── GET /api/orders/:id ───────────────────────────────
       fetchOrderById: async (id) => {
+        // First check inside current local orders list state array to skip network hit
+        const localOrder = get().orders.find((o) => o._id === id);
+        if (localOrder) {
+          return { success: true, data: localOrder, cached: true };
+        }
+
         set({ loading: true, error: null });
         try {
           const { data } = await api.get(endpoints.orders.getById(id));
@@ -136,27 +152,16 @@ const useOrderStore = create(
       },
 
       // ── POST /api/orders ──────────────────────────────────
-      // Payload must match Order.js schema exactly:
-      // {
-      //   customer:       { name, phone, address }
-      //   items:          [{ name, price, qty, menuItem? }]
-      //   orderType:      "delivery" | "pickup"
-      //   subtotal:       Number
-      //   deliveryCharge: Number
-      //   total:          Number
-      //   paymentMethod:  "Cash on Delivery"  (default)
-      //   note:           String (optional)
-      //   cakeDetails:    { size, flavour, message, design, deliveryDate } (optional)
-      // }
       createOrder: async (payload) => {
         set({ loading: true, error: null });
         const toastId = toast.loading("Placing order…");
         try {
           const { data } = await api.post(endpoints.orders.create, payload);
-          // Prepend new order to top of list
           set((s) => ({
             orders:  [data.data, ...s.orders],
             loading: false,
+            // Reset stats timestamp so revenue dashboards pull fresh math updates
+            statsLastFetched: null, 
           }));
           toast.success(`Order ${data.data.orderId} placed!`, { id: toastId });
           return { success: true, data: data.data };
@@ -169,12 +174,10 @@ const useOrderStore = create(
       },
 
       // ── PATCH /api/orders/:id/status ──────────────────────
-      // Body: { status: "Confirmed"|"Preparing"|"Delivered"|"Cancelled", note? }
-      // Optimistic update → revert on error
       updateStatus: async (id, status, note = "") => {
         const prev = get().orders.find((o) => o._id === id);
 
-        // Optimistic update
+        // Optimistic update handles UI transition instantly
         set((s) => ({
           orders: s.orders.map((o) =>
             o._id === id
@@ -185,14 +188,13 @@ const useOrderStore = create(
 
         try {
           const { data } = await api.patch(endpoints.orders.updateStatus(id), { status, note });
-          // Sync with real server response
           set((s) => ({
             orders: s.orders.map((o) => (o._id === id ? data.data : o)),
+            statsLastFetched: null, // Reset dashboard aggregate stats metric values
           }));
           toast.success(`Order marked as ${status}`);
           return { success: true, data: data.data };
         } catch (err) {
-          // Revert optimistic update
           if (prev) {
             set((s) => ({
               orders: s.orders.map((o) => (o._id === id ? prev : o)),
@@ -214,6 +216,7 @@ const useOrderStore = create(
           set((s) => ({
             orders:  s.orders.filter((o) => o._id !== id),
             loading: false,
+            statsLastFetched: null, // Clear stats metrics out
           }));
           toast.success("Order deleted", { id: toastId });
           return { success: true };
@@ -224,15 +227,19 @@ const useOrderStore = create(
           return { success: false, message };
         }
       },
+
       clearOrderHistory: async () => {
         set({ loading: true, error: null });
         const toastId = toast.loading("Deleting all orders…");
         try {
           await api.delete(endpoints.orders.deleteAll);
-          set((s) => ({
+          set({
             orders: [],
+            stats: null,
+            ordersLastFetched: null,
+            statsLastFetched: null,
             loading: false,
-          }));
+          });
           toast.success("All orders deleted", { id: toastId });
           return { success: true };
         } catch (err) {
@@ -242,21 +249,7 @@ const useOrderStore = create(
           return { success: false, message };
         }
       },
-
-      // fetchRevenue = async () => {
-      //   try {
-      //     const { data } = await api.get(endpoints.orders.revenue);
-      //     set({ revenue: data.data });
-      //     return { success: true, data: data.data };
-      //   } catch (err) {
-      //     console.warn("Revenue fetch failed:", err.message);
-      //     return { success: false };
-      //   }
-      // },
     }),
-
-  
-
     { name: "OrderStore" }
   )
 );

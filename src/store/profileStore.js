@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import api from "./api";
+import api  from "../services/api";
 import { endpoints } from "../utils/endpoints";
 
 
