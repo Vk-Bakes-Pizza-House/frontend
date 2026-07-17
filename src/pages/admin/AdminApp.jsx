@@ -15,6 +15,7 @@ import useAuthStore from "../../store/authStore";
 import StoreManagementPanel from "./ManageStore";
 import { SalesOverview, AddSale, SalesHistory, } from "../../section/admin/Sales/index"; 
 import {AddExpense,ExpenseAnalytics,ExpenseCategories,ExpenseHistory} from "../../section/admin/Expense";
+import ManageProducts from "../../section/admin/Inventory/Products/Products";
 
 export default function AdminApp() {
   const { isLoggedIn, fetchMe } = useAuthStore();
@@ -46,6 +47,10 @@ export default function AdminApp() {
       itemDetails: "/admin/add-item-details",
       combos: "/admin/combos",
       orders: "/admin/orders",
+      product: "/admin/products",
+      stock: "/admin/stock",
+      purchases: "/admin/purchases",
+      suppliers: "/admin/suppliers",
       sales: "/admin/sales/overview",
       addSale: "/admin/sales/add",
       salesHistory: "/admin/sales/history",
@@ -74,6 +79,10 @@ export default function AdminApp() {
       "add-menu": "addMenu",
       "add-item": "addItem",
       "orders": "orders",
+      "products": "product",
+      "stock": "stock",
+      "purchases": "purchases",
+      "suppliers": "suppliers",
       "sales": "overview",
       "sales/overview": "overview",
       "sales/add": "add",
@@ -121,7 +130,7 @@ export default function AdminApp() {
         <Route path="store" element={<StoreManagementPanel />} />
         <Route path="how-to-order" element={<ManageHowToOrder />} />
         <Route path="profile" element={<AdminProfile onLogout={logout} />} />
-        
+        <Route path="products" element={<ManageProducts />} />
       </Route>
     </Routes>
   );
