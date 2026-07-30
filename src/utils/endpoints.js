@@ -61,19 +61,22 @@ const endpointsPathsDev = {
     payments: `${API_BASE}/sales/payments`,
     topProducts: `${API_BASE}/sales/top-products`,
   },
- expense: {
-    // Expense CRUD
-    getAll: `${API_BASE}/expense`,
-    create: `${API_BASE}/expense`,
-    getById: (id) => `${API_BASE}/expense/${id}`,
-    update: (id) => `${API_BASE}/expense/${id}`,
-    delete: (id) => `${API_BASE}/expense/${id}`,
+ expenses: {
+    // expenses CRUD
+    getAll: `${API_BASE}/expenses`,
+    create: `${API_BASE}/expenses`,
+    getById: (id) => `${API_BASE}/expenses/${id}`,
+    update: (id) => `${API_BASE}/expenses/${id}`,
+    delete: (id) => `${API_BASE}/expenses/${id}`,
+    analytics: `${API_BASE}/expenses/analytics`,
 
     // Categories
-    fetchAll: "${API_BASE}/expense/categories",
-    createCategory: "${API_BASE}/expense/categories",
-    updateCategory: (id) => `${API_BASE}/expense/categories/${id}`,
-    deleteCategory: (id) => `${API_BASE}/expense/categories/${id}`,
+    categories: `${API_BASE}/expenses/categories`,
+    fetchAll: `${API_BASE}/expenses/categories`,
+    createCategory: `${API_BASE}/expenses/categories`,
+    updateCategory: (id) => `${API_BASE}/expenses/categories/${id}`,
+    deleteCategory: (id) => `${API_BASE}/expenses/categories/${id}`,
+    summary: `${API_BASE}/expenses/category-summary`
   },
   reviews: {
     getApproved: `${API_BASE}/reviews`,
@@ -143,32 +146,35 @@ const endpointsPathsProd = {
 
    sales: {
     // CRUD
-    create: "/sales",
-    getAll: "/sales",
+    create: `/sales`,
+    getAll: `/sales`,
     getById: (id) => `/sales/${id}`,
     update: (id) => `/sales/${id}`,
     delete: (id) => `/sales/${id}`,
 
     // Analytics
-    overview: "/sales/overview",
-    daily: "/sales/daily",
-    monthly: "/sales/monthly",
-    payments: "/sales/payments",
-    topProducts: "/sales/top-products",
+    overview: `/sales/overview`,
+    daily: `/sales/daily`,
+    monthly: `/sales/monthly`,
+    payments: `/sales/payments`,
+    topProducts: `/sales/top-products`,
   },
- expense: {
-    // Expense CRUD
-    getAll: "/expense",
-    create: "/expense",
-    getById: (id) => `/expense/${id}`,
-    update: (id) => `/expense/${id}`,
-    delete: (id) => `/expense/${id}`,
+ expenses: {
+    // expenses CRUD
+    getAll: `/expenses`,
+    create: `/expenses`,
+    getById: (id) => `/expenses/${id}`,
+    update: (id) => `/expenses/${id}`,
+    delete: (id) => `/expenses/${id}`,
+analytics: `/expenses/analytics`,
 
     // Categories
-    categories: "/expense/categories",
-    createCategory: "/expense/categories",
-    updateCategory: (id) => `/expense/categories/${id}`,
-    deleteCategory: (id) => `/expense/categories/${id}`,
+    categories: `/expenses/categories`,
+    fetchAll: `/expenses/categories`,
+    createCategory: `/expenses/categories`,
+    updateCategory: (id) => `/expenses/categories/${id}`,
+    deleteCategory: (id) => `/expenses/categories/${id}`,
+    summary: `/expenses/category-summary`
   },
   reviews: {
     getApproved: `/api/reviews`,

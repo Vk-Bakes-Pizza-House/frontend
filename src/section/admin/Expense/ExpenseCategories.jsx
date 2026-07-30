@@ -5,66 +5,53 @@ import { useExpenseStore } from "../../../store/expensesStore";
 const formatINR = (n) =>
   `₹${Number(n || 0).toLocaleString("en-IN", { maximumFractionDigits: 2 })}`;
 
-// expense.category can arrive as a populated { _id, name } object or, if
-// unpopulated, as a bare id string — this handles both.
-const categoryId = (c) => (c && typeof c === "object" ? c._id : c);
-
 export default function ExpenseCategories() {
   const {
-    expenses,
-    fetchExpenses,
     categories,
+    categorySpend,
     loading,
     error,
     fetchCategories,
+    getCategorySpendSummary,
     createCategory,
     updateCategory,
     deactivateCategory,
   } = useExpenseStore();
 
-  const [sortBy, setSortBy] = useState("amount"); // amount | count | name
+  const [sortBy, setSortBy] = useState("amount");
   const [showInactive, setShowInactive] = useState(false);
   const [showAddForm, setShowAddForm] = useState(false);
   const [editingCategory, setEditingCategory] = useState(null);
 
   useEffect(() => {
-    fetchExpenses?.();
     fetchCategories?.();
-  }, [fetchExpenses, fetchCategories]);
+    getCategorySpendSummary?.();
+  }, [fetchCategories, getCategorySpendSummary]);
 
-  // Spend rollup per category id, from actual expenses
-  const spendByCategory = useMemo(() => {
-    const map = new Map();
-    for (const e of expenses) {
-      const id = categoryId(e.category);
-      if (e.isDeleted || !id) continue;
-      if (!map.has(id)) {
-        map.set(id, { total: 0, count: 0, pending: 0, lastDate: null });
-      }
-      const row = map.get(id);
-      row.total += Number(e.amount || 0);
-      row.count += 1;
-      if (e.status === "Pending") row.pending += 1;
-      const d = new Date(e.expenseDate);
-      if (!row.lastDate || d > row.lastDate) row.lastDate = d;
-    }
-    return map;
-  }, [expenses]);
-
-  // Every category shows up here, even ones with zero expenses logged yet
+console.log(categorySpend)
+// console.log("sample expense.category:", expenses[0]?.category);
+console.log("sample category._id:", categories[0]?._id);
+  // Every category shows up here; spend rollup now comes from the
+  // server-side category-summary API rather than the expense list pagination.
   const rows = useMemo(() => {
     const list = categories
       .filter((c) => (showInactive ? true : c.isActive))
       .map((c) => {
-        const spend = spendByCategory.get(c._id) || { total: 0, count: 0, pending: 0, lastDate: null };
-        return { ...c, ...spend };
+        const spend = categorySpend[c._id] || { total: 0, count: 0, pending: 0, lastDate: null };
+        return {
+          ...c,
+          total: spend.total,
+          count: spend.count,
+          pending: spend.pending,
+          lastDate: spend.lastDate ? new Date(spend.lastDate) : null,
+        };
       });
 
     if (sortBy === "amount") list.sort((a, b) => b.total - a.total);
     if (sortBy === "count") list.sort((a, b) => b.count - a.count);
     if (sortBy === "name") list.sort((a, b) => a.name.localeCompare(b.name));
     return list;
-  }, [categories, spendByCategory, sortBy, showInactive]);
+  }, [categories, categorySpend, sortBy, showInactive]);
 
   const grandTotal = rows.reduce((sum, r) => sum + r.total, 0);
 
@@ -131,18 +118,10 @@ export default function ExpenseCategories() {
                   )}
                   {r.isActive && (
                     <>
-                      <button
-                        onClick={() => setEditingCategory(r)}
-                        className="p-1 rounded text-gray-400 hover:bg-gray-100 hover:text-gray-700"
-                        title="Edit category"
-                      >
+                      <button onClick={() => setEditingCategory(r)} className="p-1 rounded text-gray-400 hover:bg-gray-100 hover:text-gray-700" title="Edit category">
                         <Pencil size={14} />
                       </button>
-                      <button
-                        onClick={() => handleDeactivate(r)}
-                        className="p-1 rounded text-gray-400 hover:bg-red-50 hover:text-red-600"
-                        title="Deactivate category"
-                      >
+                      <button onClick={() => handleDeactivate(r)} className="p-1 rounded text-gray-400 hover:bg-red-50 hover:text-red-600" title="Deactivate category">
                         <Trash2 size={14} />
                       </button>
                     </>
@@ -197,14 +176,7 @@ export default function ExpenseCategories() {
   );
 }
 
-function CategoryFormModal({
-  title,
-  submitLabel,
-  initialName = "",
-  initialDescription = "",
-  onClose,
-  onSubmit,
-}) {
+function CategoryFormModal({ title, submitLabel, initialName = "", initialDescription = "", onClose, onSubmit }) {
   const [name, setName] = useState(initialName);
   const [description, setDescription] = useState(initialDescription);
   const [saving, setSaving] = useState(false);
@@ -222,7 +194,6 @@ function CategoryFormModal({
       await onSubmit({ name: name.trim(), description: description.trim() });
     } catch (e) {
       setErr(e?.response?.data?.message || "Could not save category");
-      console.error("Error saving category:", e);
     } finally {
       setSaving(false);
     }
@@ -259,14 +230,8 @@ function CategoryFormModal({
             />
           </div>
           <div className="flex justify-end gap-3 pt-2">
-            <button type="button" onClick={onClose} className="px-4 py-2 text-sm text-gray-600 hover:text-gray-900">
-              Cancel
-            </button>
-            <button
-              type="submit"
-              disabled={saving}
-              className="px-4 py-2 rounded-lg text-sm font-medium bg-amber-600 text-white hover:bg-amber-700 disabled:opacity-50"
-            >
+            <button type="button" onClick={onClose} className="px-4 py-2 text-sm text-gray-600 hover:text-gray-900">Cancel</button>
+            <button type="submit" disabled={saving} className="px-4 py-2 rounded-lg text-sm font-medium bg-amber-600 text-white hover:bg-amber-700 disabled:opacity-50">
               {saving ? "Saving..." : submitLabel}
             </button>
           </div>
