@@ -21,6 +21,7 @@ const categoryName = (c) => (c && typeof c === "object" ? c.name : c) || "-";
 export default function ExpenseHistory() {
   const {
     expenses,
+    pagination,
     loading,
     error,
     fetchExpenses,
@@ -37,32 +38,38 @@ export default function ExpenseHistory() {
   const [search, setSearch] = useState("");
   const [showDeleted, setShowDeleted] = useState(false);
   const [editingExpense, setEditingExpense] = useState(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const perPage = 25;
 
   useEffect(() => {
-    fetchExpenses?.();
     fetchCategories?.();
-  }, [fetchExpenses, fetchCategories]);
-console.log("expenses", expenses);
-  const filtered = useMemo(() => {
-    return expenses
-      .filter((e) => (showDeleted ? true : !e.isDeleted))
-      .filter((e) => (branch === "All" ? true : e.branch === branch))
-      .filter((e) => (status === "All" ? true : e.status === status))
-      .filter((e) => (category === "All" ? true : categoryId(e.category) === category))
-      .filter((e) => {
-        if (!search.trim()) return true;
-        const q = search.toLowerCase();
-        return (
-          e.title?.toLowerCase().includes(q) ||
-          categoryName(e.category).toLowerCase().includes(q) ||
-          e.vendor?.toLowerCase().includes(q) ||
-          e.billNumber?.toLowerCase().includes(q)
-        );
-      })
-      .sort((a, b) => new Date(b.expenseDate) - new Date(a.expenseDate));
-  }, [expenses, branch, status, category, search, showDeleted]);
+  }, [fetchCategories]);
 
-  const total = filtered.reduce((sum, e) => sum + (e.isDeleted ? 0 : Number(e.amount || 0)), 0);
+  useEffect(() => {
+    const params = {
+      page: currentPage,
+      limit: perPage,
+      search: search.trim(),
+      branch: branch === "All" ? "" : branch,
+      status: status === "All" ? "" : status,
+      category: category === "All" ? "" : category,
+    };
+
+    fetchExpenses?.(params);
+  }, [branch, category, currentPage, fetchExpenses, search, status]);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [branch, status, category, search, showDeleted]);
+
+  const visibleExpenses = useMemo(() => {
+    return expenses.filter((e) => (showDeleted ? true : !e.isDeleted));
+  }, [expenses, showDeleted]);
+
+  const total = visibleExpenses.reduce((sum, e) => sum + (e.isDeleted ? 0 : Number(e.amount || 0)), 0);
+  const totalPages = Math.max(1, pagination?.totalPages || 1);
+  const safePage = Math.min(currentPage, totalPages);
+  const startIndex = (safePage - 1) * perPage;
 
   const handleDelete = async (exp) => {
     if (!confirm(`Remove "${exp.title}" from expense history?`)) return;
@@ -100,7 +107,7 @@ console.log("expenses", expenses);
 
       {/* Summary */}
       <div className="mb-4 text-sm text-gray-600">
-        {filtered.length} expense{filtered.length !== 1 ? "s" : ""} · Total {formatINR(total)}
+        {pagination?.total || 0} expense{(pagination?.total || 0) !== 1 ? "s" : ""} · Current page total {formatINR(total)}
       </div>
 
       {/* Table */}
@@ -123,10 +130,10 @@ console.log("expenses", expenses);
               {loading && (
                 <tr><td colSpan={8} className="px-4 py-8 text-center text-gray-400">Loading expenses...</td></tr>
               )}
-              {!loading && filtered.length === 0 && (
+              {!loading && visibleExpenses.length === 0 && (
                 <tr><td colSpan={8} className="px-4 py-8 text-center text-gray-400">No expenses match these filters.</td></tr>
               )}
-              {!loading && filtered.map((e) => (
+              {!loading && visibleExpenses.map((e) => (
                 <tr key={e._id} className={e.isDeleted ? "opacity-50" : ""}>
                   <td className="px-4 py-3 whitespace-nowrap text-gray-600">{formatDate(e.expenseDate)}</td>
                   <td className="px-4 py-3 font-medium text-gray-900">{e.title}</td>
@@ -165,6 +172,33 @@ console.log("expenses", expenses);
           </table>
         </div>
       </div>
+
+      {!loading && (pagination?.total || 0) > perPage && (
+        <div className="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-gray-200 bg-white px-4 py-3 text-sm text-gray-600">
+          <div>
+            Showing {startIndex + 1}-{Math.min(startIndex + perPage, pagination?.total || 0)} of {pagination?.total || 0} expenses
+          </div>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+              disabled={safePage === 1}
+              className="rounded-lg border border-gray-300 px-3 py-1.5 text-sm disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              Previous
+            </button>
+            <span className="rounded-lg bg-gray-100 px-3 py-1.5 text-sm font-medium">
+              Page {safePage} of {totalPages}
+            </span>
+            <button
+              onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+              disabled={safePage === totalPages}
+              className="rounded-lg border border-gray-300 px-3 py-1.5 text-sm disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              Next
+            </button>
+          </div>
+        </div>
+      )}
 
       {editingExpense && (
         <EditExpenseModal
