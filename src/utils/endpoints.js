@@ -146,35 +146,35 @@ const endpointsPathsProd = {
 
    sales: {
     // CRUD
-    create: `/sales`,
-    getAll: `/sales`,
-    getById: (id) => `/sales/${id}`,
-    update: (id) => `/sales/${id}`,
-    delete: (id) => `/sales/${id}`,
+    create: `/api/sales`,
+    getAll: `/api/sales`,
+    getById: (id) => `/api/sales/${id}`,
+    update: (id) => `/api/sales/${id}`,
+    delete: (id) => `/api/sales/${id}`,
 
     // Analytics
-    overview: `/sales/overview`,
-    daily: `/sales/daily`,
-    monthly: `/sales/monthly`,
-    payments: `/sales/payments`,
-    topProducts: `/sales/top-products`,
+    overview: `/api/sales/overview`,
+    daily: `/api/sales/daily`,
+    monthly: `/api/sales/monthly`,
+    payments: `/api/sales/payments`,
+    topProducts: `/api/sales/top-products`,
   },
  expenses: {
     // expenses CRUD
-    getAll: `/expenses`,
-    create: `/expenses`,
-    getById: (id) => `/expenses/${id}`,
-    update: (id) => `/expenses/${id}`,
-    delete: (id) => `/expenses/${id}`,
-analytics: `/expenses/analytics`,
+    getAll: `/api/expenses`,
+    create: `/api/expenses`,
+    getById: (id) => `/api/expenses/${id}`,
+    update: (id) => `/api/expenses/${id}`,
+    delete: (id) => `/api/expenses/${id}`,
+analytics: `/api/expenses/analytics`,
 
     // Categories
-    categories: `/expenses/categories`,
-    fetchAll: `/expenses/categories`,
-    createCategory: `/expenses/categories`,
-    updateCategory: (id) => `/expenses/categories/${id}`,
-    deleteCategory: (id) => `/expenses/categories/${id}`,
-    summary: `/expenses/category-summary`
+    categories: `/api/expenses/categories`,
+    fetchAll: `/api/expenses/categories`,
+    createCategory: `/api/expenses/categories`,
+    updateCategory: (id) => `/api/expenses/categories/${id}`,
+    deleteCategory: (id) => `/api/expenses/categories/${id}`,
+    summary: `/api/expenses/category-summary`
   },
   reviews: {
     getApproved: `/api/reviews`,
