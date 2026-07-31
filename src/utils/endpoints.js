@@ -1,7 +1,3 @@
-// src/utils/endpoints.js
-// VK Bakes API Endpoints (React + Tailwind Project)
-
-
 
 const resolveApiBase = () => {
   const configured = import.meta.env.VITE_API_URL?.trim();

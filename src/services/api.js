@@ -1,22 +1,7 @@
-// src/store/api.js
-// ─────────────────────────────────────────────────────────────
-// Central Axios instance used by ALL stores.
-// • Reads base URL from VITE_API_URL env var
-// • Auto-attaches JWT token to every request
-// • Normalises error messages into a single string
-// ─────────────────────────────────────────────────────────────
+
 import axios from "axios";
 
-const resolveBaseURL = () => {
-  const configured = import.meta.env.VITE_API_URL?.trim();
-
-  if (!configured) return "/api";
-
-  const normalized = configured.replace(/\/+$/, "");
-  return normalized.endsWith("/api") ? normalized : `${normalized}/api`;
-};
-
-const BASE_URL = resolveBaseURL();
+const BASE_URL = import.meta.env.VITE_API_URL ;
 
 const api = axios.create({
   baseURL: BASE_URL,
