@@ -75,7 +75,6 @@ export default function AdminApp() {
       "add-item": "addItem",
       "orders": "orders",
       "sales": "overview",
-      "sales/overview": "overview",
       "sales/add": "add",
       "sales/history": "history",
       "expenses/add": "add",

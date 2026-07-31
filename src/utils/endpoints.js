@@ -1,6 +1,14 @@
 
-const API_BASE =
-  import.meta.env.VITE_API_URL || "http://localhost:5000/api";
+const resolveApiBase = () => {
+  const configured = import.meta.env.VITE_API_URL?.trim();
+
+  if (!configured) return "/api";
+
+  const normalized = configured.replace(/\/+$/, "");
+  return normalized.endsWith("/api") ? normalized : `${normalized}/api`;
+};
+
+const API_BASE = resolveApiBase();
 
 // ─────────────────────────────────────────────
 // DEVELOPMENT ENDPOINTS
