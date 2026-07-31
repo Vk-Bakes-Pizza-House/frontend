@@ -1,7 +1,3 @@
-// src/utils/endpoints.js
-// VK Bakes API Endpoints (React + Tailwind Project)
-
-
 
 const API_BASE =
   import.meta.env.VITE_API_URL || "http://localhost:5000/api";

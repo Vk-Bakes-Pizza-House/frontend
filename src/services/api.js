@@ -1,15 +1,6 @@
-// src/store/api.js
-// ─────────────────────────────────────────────────────────────
-// Central Axios instance used by ALL stores.
-// • Reads base URL from VITE_API_URL env var
-// • Auto-attaches JWT token to every request
-// • Normalises error messages into a single string
-// ─────────────────────────────────────────────────────────────
+
 import axios from "axios";
 
-// Set VITE_API_URL in your .env file:
-//   .env.development  → VITE_API_URL=http://localhost:5000/api
-//   .env.production   → VITE_API_URL=https://vk-bakes-api.railway.app/api
 const BASE_URL = import.meta.env.VITE_API_URL ;
 
 const api = axios.create({
