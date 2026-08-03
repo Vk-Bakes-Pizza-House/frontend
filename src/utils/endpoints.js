@@ -67,6 +67,7 @@ const endpointsPathsDev = {
   },
  expenses: {
     // expenses CRUD
+    base: `${API_BASE}/expenses`,
     getAll: `${API_BASE}/expenses`,
     create: `${API_BASE}/expenses`,
     getById: (id) => `${API_BASE}/expenses/${id}`,
@@ -75,7 +76,7 @@ const endpointsPathsDev = {
     analytics: `${API_BASE}/expenses/analytics`,
 
     // Categories
-    categories: `${API_BASE}/expenses/categories`,
+    base: `${API_BASE}/expenses/categories`,
     fetchAll: `${API_BASE}/expenses/categories`,
     createCategory: `${API_BASE}/expenses/categories`,
     updateCategory: (id) => `${API_BASE}/expenses/categories/${id}`,

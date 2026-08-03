@@ -29,12 +29,15 @@ api.interceptors.response.use(
       sessionStorage.removeItem("vk_token");
       sessionStorage.removeItem("vk_admin");
     }
-    // Attach a readable message to the error object
-    error.message =
+    // Create a custom error with readable message (error.message is read-only)
+    const customError = new Error(
       error.response?.data?.message ||
       error.message ||
-      "Something went wrong. Please try again.";
-    return Promise.reject(error);
+      "Something went wrong. Please try again."
+    );
+    customError.response = error.response;
+    customError.status = error.response?.status;
+    return Promise.reject(customError);
   }
 );
 
