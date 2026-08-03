@@ -1,6 +1,7 @@
 import { create } from "zustand";
-import  {createCrudActions}  from "../lib/createCrudActions";
-import  {apiRequest}  from "../lib/apiRequest";
+import { endpoints } from "../utils/endpoints"; 
+import { createCrudActions } from "../lib/createCrudActions";
+import { apiRequest } from "../lib/apiRequest";
 import { toast } from "sonner";
 
 const useSalesStore = create((set) => ({
@@ -13,12 +14,12 @@ const useSalesStore = create((set) => ({
   loading: false,
   error: null,
 
-  ...createCrudActions(set, "/sales", "sales"),
+  ...createCrudActions(set, endpoints.sales.getAll, "sales"),
 
   getOverview: async () => {
     set({ loading: true });
     try {
-      const data = await apiRequest("get", "/sales/overview");
+      const data = await apiRequest("get", endpoints.sales.overview);
       set({ overview: data.data, loading: false });
       return data.data;
     } catch (err) {
@@ -31,7 +32,7 @@ const useSalesStore = create((set) => ({
   getDailySales: async (date = "") => {
     set({ loading: true });
     try {
-      const data = await apiRequest("get", "/sales/daily", null, { params: { date } });
+      const data = await apiRequest("get", endpoints.sales.daily, null, { params: { date } });
       set({ dailySales: data.data, loading: false });
       return data.data;
     } catch (err) {
@@ -44,7 +45,7 @@ const useSalesStore = create((set) => ({
   getMonthlySales: async (year = new Date().getFullYear()) => {
     set({ loading: true });
     try {
-      const data = await apiRequest("get", "/sales/monthly", null, { params: { year } });
+      const data = await apiRequest("get", endpoints.sales.monthly, null, { params: { year } });
       set({ monthlySales: data.data, loading: false });
       return data.data;
     } catch (err) {
@@ -57,7 +58,7 @@ const useSalesStore = create((set) => ({
   getPaymentReport: async () => {
     set({ loading: true });
     try {
-      const data = await apiRequest("get", "/sales/payments");
+      const data = await apiRequest("get", endpoints.sales.payments);
       set({ paymentReport: data.data, loading: false });
       return data.data;
     } catch (err) {
@@ -70,7 +71,7 @@ const useSalesStore = create((set) => ({
   getTopSellingProducts: async (limit = 10) => {
     set({ loading: true });
     try {
-      const data = await apiRequest("get", "/sales/top-products", null, { params: { limit } });
+      const data = await apiRequest("get", endpoints.sales.topProducts, null, { params: { limit } });
       set({ topProducts: data.data, loading: false });
       return data.data;
     } catch (err) {
@@ -79,31 +80,6 @@ const useSalesStore = create((set) => ({
       return [];
     }
   },
-getSalesSummary: async (granularity = "month", year = null) => {
-  set({ loading: true });
-  try {
-    const params = { granularity };
-    if (year) params.year = year;
-    const data = await apiRequest("get", "/sales/summary", null, { params });
-    set({ salesSummary: data.data, loading: false });
-    return data.data;
-  } catch (err) {
-    toast.error(err.message || "Failed to fetch summary");
-    set({ loading: false });
-    return [];
-  }
-},
-
-getSalesByPeriod: async (granularity, period) => {
-  try {
-    const data = await apiRequest("get", "/sales/by-period", null, { params: { granularity, period } });
-    return data.data;
-  } catch (err) {
-    toast.error(err.message || "Failed to fetch period data");
-    return [];
-  }
-},
-
 }));
 
 export default useSalesStore;
