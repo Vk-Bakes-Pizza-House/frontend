@@ -2,6 +2,8 @@ import { create } from "zustand";
 import { createCrudActions } from "../lib/createCrudActions";
 import { apiRequest } from "../lib/apiRequest";
 import { toast } from "sonner";
+import { endpoints } from "../utils/endpoints"; 
+
 
 /**
  * Assumes createCrudActions(set, endpoint, stateKey) exposes, per call:
@@ -13,9 +15,8 @@ import { toast } from "sonner";
  *
  */
 export const useExpenseStore = create((set, get) => {
-  const expenseCrud = createCrudActions(set, "/expenses", "expenses");
-  const categoryCrud = createCrudActions(set, "/expenses/categories", "categories");
-
+const expenseCrud = createCrudActions(set, endpoints.expenses.getAll, "expenses");
+const categoryCrud = createCrudActions(set, endpoints.expenses.categories, "categories");
   return {
     // ---- Expenses ---------------------------------------------------
     expenses: [],
@@ -36,7 +37,7 @@ export const useExpenseStore = create((set, get) => {
           limit: 25,
           ...query,
         };
-        const res = await apiRequest("get", "/expenses", null, { params });
+        const res = await apiRequest("get", endpoints.expenses.getAll, null, { params });
         const payload = res?.data ?? res;
         const items = Array.isArray(payload?.expenses) ? payload.expenses : [];
         const pagination = payload?.pagination || {
@@ -98,7 +99,7 @@ export const useExpenseStore = create((set, get) => {
 getExpenseAnalytics: async () => {
   set({ loading: true, error: null });
   try {
-    const res = await apiRequest("get", "/expenses/analytics");
+const res = await apiRequest("get", endpoints.expenses.analytics);
     const payload = res?.data ?? res;
     set({ analytics: payload, loading: false });
     return payload;
@@ -127,7 +128,7 @@ categorySpend: {},
     },
     getCategorySpendSummary: async () => {
       try {
-        const res = await apiRequest("get", "/expenses/category-summary");
+const res = await apiRequest("get", endpoints.expenses.summary);
         const payload = res?.data ?? res;
         const summary = payload && typeof payload === "object" ? payload : {};
 
