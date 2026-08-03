@@ -1,7 +1,14 @@
 
 import axios from "axios";
 
-const BASE_URL = import.meta.env.VITE_API_URL ;
+const resolveApiBase = () => {
+  const configured = import.meta.env.VITE_API_URL?.trim();
+  if (!configured) return "/api";
+  const normalized = configured.replace(/\/+$/, "");
+  return normalized.endsWith("/api") ? normalized : `${normalized}/api`;
+};
+
+const BASE_URL = resolveApiBase();
 
 const api = axios.create({
   baseURL: BASE_URL,
@@ -29,12 +36,15 @@ api.interceptors.response.use(
       sessionStorage.removeItem("vk_token");
       sessionStorage.removeItem("vk_admin");
     }
-    // Attach a readable message to the error object
-    error.message =
+    // Create a custom error with readable message (error.message is read-only)
+    const customError = new Error(
       error.response?.data?.message ||
       error.message ||
-      "Something went wrong. Please try again.";
-    return Promise.reject(error);
+      "Something went wrong. Please try again."
+    );
+    customError.response = error.response;
+    customError.status = error.response?.status;
+    return Promise.reject(customError);
   }
 );
 
