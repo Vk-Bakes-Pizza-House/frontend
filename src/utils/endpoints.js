@@ -1,6 +1,12 @@
 
 const API_BASE = import.meta.env.VITE_API_URL;
 
+// If `API_BASE` already includes the `/api` prefix (e.g. https://host.com/api)
+// we must not add another `/api` when building production endpoint paths.
+const _rawBase = (API_BASE || "").replace(/\/+$/g, "");
+const _baseHasApi = _rawBase.endsWith("/api");
+const API_PREFIX = _baseHasApi ? "" : "/api";
+
 // ─────────────────────────────────────────────
 // DEVELOPMENT ENDPOINTS
 // ─────────────────────────────────────────────
@@ -104,24 +110,24 @@ const endpointsPathsDev = {
 // ─────────────────────────────────────────────
 const endpointsPathsProd = {
   auth: {
-    login: `/api/admin/login`,
-    seed: `/api/admin/seed`,
-    me: `/api/admin/me`,
-    changePassword: `/api/admin/change-password`,
-    updateProfile: `/api/admin/profile`,
-    notifications: `/api/admin/notifications`,
-    sessions: `/api/admin/security/sessions`,
-    session: (id) => `/api/admin/security/sessions/${id}`,
+    login: `${API_PREFIX}/admin/login`,
+    seed: `${API_PREFIX}/admin/seed`,
+    me: `${API_PREFIX}/admin/me`,
+    changePassword: `${API_PREFIX}/admin/change-password`,
+    updateProfile: `${API_PREFIX}/admin/profile`,
+    notifications: `${API_PREFIX}/admin/notifications`,
+    sessions: `${API_PREFIX}/admin/security/sessions`,
+    session: (id) => `${API_PREFIX}/admin/security/sessions/${id}`,
   },
 
   menu: {
-    getAll: `/api/menu/item`,
-    getById: (id) => `/api/menu/item/${id}`,
-    create: `/api/menu/item`,
-    update: (id) => `/api/menu/item/${id}`,
-    delete: (id) => `/api/menu/item/${id}`,
+    getAll: `${API_PREFIX}/menu/item`,
+    getById: (id) => `${API_PREFIX}/menu/item/${id}`,
+    create: `${API_PREFIX}/menu/item`,
+    update: (id) => `${API_PREFIX}/menu/item/${id}`,
+    delete: (id) => `${API_PREFIX}/menu/item/${id}`,
     toggleAvailability: (id) =>
-      `/api/menu/item/${id}/toggle`,
+      `${API_PREFIX}/menu/item/${id}/toggle`,
     //category
     getAllMenu: `/api/menu`,
     createMenu: `/api/menu`,
@@ -129,24 +135,24 @@ const endpointsPathsProd = {
   },
 
   orders: {
-    create: `/api/orders`,
-    getAll: `/api/orders`,
-    getStats: `/api/orders/stats`,
-    getById: (id) => `/api/orders/${id}`,
+    create: `${API_PREFIX}/orders`,
+    getAll: `${API_PREFIX}/orders`,
+    getStats: `${API_PREFIX}/orders/stats`,
+    getById: (id) => `${API_PREFIX}/orders/${id}`,
     updateStatus: (id) =>
-      `/api/orders/${id}/status`,
-    delete: (id) => `/api/orders/${id}`,
-    deleteAll: `/api/orders`,
-    revenue: `/api/orders/revenue`
+      `${API_PREFIX}/orders/${id}/status`,
+    delete: (id) => `${API_PREFIX}/orders/${id}`,
+    deleteAll: `${API_PREFIX}/orders`,
+    revenue: `${API_PREFIX}/orders/revenue`
   },
 
    sales: {
     // CRUD
-    create: `/api/sales`,
-    getAll: `/api/sales`,
-    getById: (id) => `/api/sales/${id}`,
-    update: (id) => `/api/sales/${id}`,
-    delete: (id) => `/api/sales/${id}`,
+    create: `${API_PREFIX}/sales`,
+    getAll: `${API_PREFIX}/sales`,
+    getById: (id) => `${API_PREFIX}/sales/${id}`,
+    update: (id) => `${API_PREFIX}/sales/${id}`,
+    delete: (id) => `${API_PREFIX}/sales/${id}`,
 
     // Analytics
     overview: `/api/sales/overview`,
@@ -157,12 +163,12 @@ const endpointsPathsProd = {
   },
  expenses: {
     // expenses CRUD
-    getAll: `/api/expenses`,
-    create: `/api/expenses`,
-    getById: (id) => `/api/expenses/${id}`,
-    update: (id) => `/api/expenses/${id}`,
-    delete: (id) => `/api/expenses/${id}`,
-analytics: `/api/expenses/analytics`,
+    getAll: `${API_PREFIX}/expenses`,
+    create: `${API_PREFIX}/expenses`,
+    getById: (id) => `${API_PREFIX}/expenses/${id}`,
+    update: (id) => `${API_PREFIX}/expenses/${id}`,
+    delete: (id) => `${API_PREFIX}/expenses/${id}`,
+  analytics: `${API_PREFIX}/expenses/analytics`,
 
     // Categories
     categories: `/api/expenses/categories`,
@@ -173,28 +179,28 @@ analytics: `/api/expenses/analytics`,
     summary: `/api/expenses/category-summary`
   },
   reviews: {
-    getApproved: `/api/reviews`,
-    submit: `/api/reviews`,
-    getAll: `/api/reviews/all`,
+    getApproved: `${API_PREFIX}/reviews`,
+    submit: `${API_PREFIX}/reviews`,
+    getAll: `${API_PREFIX}/reviews/all`,
     updateStatus: (id) =>
-      `/api/reviews/${id}`,
-    delete: (id) => `/api/reviews/${id}`,
+      `${API_PREFIX}/reviews/${id}`,
+    delete: (id) => `${API_PREFIX}/reviews/${id}`,
   },
   FAQ:{
-    getAll: `/api/faqs`,
-    create: `/api/faqs`,
-    update: (id) => `/api/faqs/${id}`,
-    delete: (id) => `/api/faqs/${id}`,
+    getAll: `${API_PREFIX}/faqs`,
+    create: `${API_PREFIX}/faqs`,
+    update: (id) => `${API_PREFIX}/faqs/${id}`,
+    delete: (id) => `${API_PREFIX}/faqs/${id}`,
   },
 
 store:{
-  get: `/api/store`,
-  update: `/api/store/update`,
-  toggle: `/api/store/toggle-status`,
+  get: `${API_PREFIX}/store`,
+  update: `${API_PREFIX}/store/update`,
+  toggle: `${API_PREFIX}/store/toggle-status`,
   },
 
   upload: {
-    image: `/api/upload`,
+    image: `${API_PREFIX}/upload`,
   },
 };
 
