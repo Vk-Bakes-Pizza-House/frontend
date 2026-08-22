@@ -73,7 +73,7 @@ const endpointsPathsDev = {
     analytics: `${API_BASE}/expenses/analytics`,
 
     // Categories
-    base: `${API_BASE}/expenses/categories`,
+    categories: `${API_BASE}/expenses/categories`,
     fetchAll: `${API_BASE}/expenses/categories`,
     createCategory: `${API_BASE}/expenses/categories`,
     updateCategory: (id) => `${API_BASE}/expenses/categories/${id}`,
@@ -163,20 +163,21 @@ const endpointsPathsProd = {
   },
  expenses: {
     // expenses CRUD
+    base: `${API_PREFIX}/expenses`,
     getAll: `${API_PREFIX}/expenses`,
     create: `${API_PREFIX}/expenses`,
     getById: (id) => `${API_PREFIX}/expenses/${id}`,
     update: (id) => `${API_PREFIX}/expenses/${id}`,
     delete: (id) => `${API_PREFIX}/expenses/${id}`,
-  analytics: `${API_PREFIX}/expenses/analytics`,
+    analytics: `${API_PREFIX}/expenses/analytics`,
 
     // Categories
-    categories: `/api/expenses/categories`,
-    fetchAll: `/api/expenses/categories`,
-    createCategory: `/api/expenses/categories`,
-    updateCategory: (id) => `/api/expenses/categories/${id}`,
-    deleteCategory: (id) => `/api/expenses/categories/${id}`,
-    summary: `/api/expenses/category-summary`
+    categories: `${API_PREFIX}/expenses/categories`,
+    fetchAll: `${API_PREFIX}/expenses/categories`,
+    createCategory: `${API_PREFIX}/expenses/categories`,
+    updateCategory: (id) => `${API_PREFIX}/expenses/categories/${id}`,
+    deleteCategory: (id) => `${API_PREFIX}/expenses/categories/${id}`,
+    summary: `${API_PREFIX}/expenses/category-summary`
   },
   reviews: {
     getApproved: `${API_PREFIX}/reviews`,

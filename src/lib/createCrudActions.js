@@ -18,6 +18,11 @@ const normalizeSingleData = (data) => data?.data ?? data;
 
 export const createCrudActions = (set, endpoint, stateKey) => ({
   fetchAll: async (query = {}) => {
+    if (!endpoint) {
+      set({ loading: false });
+      throw new Error(`Missing endpoint config for "${stateKey}"`);
+    }
+
     set({ loading: true });
 
     try {
