@@ -1,10 +1,12 @@
 import { create } from "zustand";
-import { endpoints } from "../utils/endpoints"; 
+import { endpoints } from "../utils/endpoints";
 import { createCrudActions } from "../lib/createCrudActions";
 import { apiRequest } from "../lib/apiRequest";
 import { toast } from "sonner";
 
-const useSalesStore = create((set) => ({
+const useSalesStore= create((set, get) => {
+  const salesCrud = createCrudActions(set, endpoints.sales.getAll, "sales");
+  return{
   sales: [],
   overview: null,
   dailySales: [],
@@ -13,9 +15,11 @@ const useSalesStore = create((set) => ({
   topProducts: [],
   loading: false,
   error: null,
-
-  ...createCrudActions(set, endpoints.sales.getAll, "sales"),
-
+  
+  ...salesCrud,
+   createSale: salesCrud.create,
+    updateSale: salesCrud.update,
+    deleteSale: salesCrud.delete,
   getOverview: async () => {
     set({ loading: true });
     try {
@@ -41,7 +45,6 @@ const useSalesStore = create((set) => ({
       return [];
     }
   },
-
   getMonthlySales: async (year = new Date().getFullYear()) => {
     set({ loading: true });
     try {
@@ -80,6 +83,7 @@ const useSalesStore = create((set) => ({
       return [];
     }
   },
-}));
+}
+});
 
 export default useSalesStore;
