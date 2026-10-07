@@ -1,12 +1,30 @@
 import React, { useState, useEffect, useMemo } from "react";
-import { Calendar, DollarSign, TrendingUp, ChevronDown, ChevronRight } from "lucide-react";
+import { Calendar, DollarSign, TrendingUp, ChevronDown, ChevronRight, Pencil, X } from "lucide-react";
 import useSalesStore from "../../../store/salesStore";
+
+const SALE_TYPES = ["WhatsApp", "Counter", "Instagram", "Other"];
+const BRANCHES = ["VK Bakes", "Morning Star Cafe"];
+const PAYMENT_METHODS = ["Cash", "UPI", "Card", "Bank Transfer"];
+const PAYMENT_STATUSES = ["Paid", "Pending", "Partial"];
+
+const formatLocalDateKey = (date) =>
+  `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+
+const parseSaleDate = (value) => {
+  if (typeof value === "string") {
+    const dateOnly = value.match(/^(\d{4})-(\d{2})-(\d{2})/);
+    if (dateOnly) {
+      return new Date(Number(dateOnly[1]), Number(dateOnly[2]) - 1, Number(dateOnly[3]));
+    }
+  }
+  return new Date(value);
+};
 
 // ── Helpers to build a group key + label for each granularity ──
 const getGroupKey = (date, granularity) => {
-  const d = new Date(date);
+  const d = parseSaleDate(date);
   if (granularity === "Day") {
-    return d.toISOString().slice(0, 10); // yyyy-mm-dd
+    return formatLocalDateKey(d);
   }
   if (granularity === "Week") {
     // ISO week: Monday as start
@@ -14,7 +32,7 @@ const getGroupKey = (date, granularity) => {
     const dayNum = (temp.getDay() + 6) % 7; // Mon=0..Sun=6
     temp.setDate(temp.getDate() - dayNum);
     temp.setHours(0, 0, 0, 0);
-    return temp.toISOString().slice(0, 10); // week start date as key
+    return formatLocalDateKey(temp);
   }
   if (granularity === "Month") {
     return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
@@ -24,10 +42,10 @@ const getGroupKey = (date, granularity) => {
 
 const getGroupLabel = (key, granularity) => {
   if (granularity === "Day") {
-    return new Date(key).toLocaleDateString("en-IN", { day: "2-digit", month: "long", year: "numeric" });
+    return parseSaleDate(key).toLocaleDateString("en-IN", { day: "2-digit", month: "long", year: "numeric" });
   }
   if (granularity === "Week") {
-    const start = new Date(key);
+    const start = parseSaleDate(key);
     const end = new Date(start);
     end.setDate(start.getDate() + 6);
     return `${start.toLocaleDateString("en-IN", { day: "2-digit", month: "short" })} – ${end.toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" })}`;
@@ -42,7 +60,8 @@ const getGroupLabel = (key, granularity) => {
 export default function SalesHistory() {
   const [timeframe, setTimeframe] = useState("Month");
   const [expandedKey, setExpandedKey] = useState(null);
-  const { sales, loading, fetchAll } = useSalesStore();
+  const [editingSale, setEditingSale] = useState(null);
+  const { sales, loading, fetchAll, updateSale } = useSalesStore();
 
   useEffect(() => {
     if (typeof fetchAll === "function") fetchAll();
@@ -55,8 +74,9 @@ export default function SalesHistory() {
     const map = new Map();
 
     for (const rec of sales) {
-      if (!rec.createdAt) continue;
-      const d = new Date(rec.createdAt);
+      const saleDate = rec.saleDate || rec.createdAt;
+      if (!saleDate) continue;
+      const d = parseSaleDate(saleDate);
       if (isNaN(d.getTime())) continue;
 
       const key = getGroupKey(d, timeframe);
@@ -79,7 +99,7 @@ export default function SalesHistory() {
     const now = new Date();
     return sales.reduce(
       (acc, rec) => {
-        const d = new Date(rec.createdAt);
+        const d = parseSaleDate(rec.saleDate || rec.createdAt);
         const amount = Number(rec.grandTotal ?? 0);
         if (d.toDateString() === now.toDateString()) acc.dayTotal += amount;
         if (d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear()) acc.monthTotal += amount;
@@ -192,6 +212,7 @@ export default function SalesHistory() {
                               <th className="py-2">Branch</th>
                               <th className="py-2">Source</th>
                               <th className="py-2 text-right pr-4">Amount</th>
+                              <th className="py-2 text-right pr-4">Actions</th>
                             </tr>
                           </thead>
                           <tbody className="divide-y divide-[#E8D5C0]/30">
@@ -206,6 +227,17 @@ export default function SalesHistory() {
                                 <td className="py-2 text-right pr-4 font-bold">
                                   ₹{Number(rec.grandTotal ?? 0).toFixed(2)}
                                 </td>
+                                <td className="py-2 text-right pr-4">
+                                  <button
+                                    type="button"
+                                    onClick={() => setEditingSale(rec)}
+                                    className="inline-flex p-1.5 rounded-lg text-[#8B6A4F] hover:bg-white hover:text-[#2D1400]"
+                                    title={`Edit sale ${rec.invoiceNo}`}
+                                    aria-label={`Edit sale ${rec.invoiceNo}`}
+                                  >
+                                    <Pencil size={14} />
+                                  </button>
+                                </td>
                               </tr>
                             ))}
                           </tbody>
@@ -219,6 +251,142 @@ export default function SalesHistory() {
           </tbody>
         </table>
       </div>
+      {editingSale && (
+        <EditSaleModal
+          sale={editingSale}
+          onClose={() => setEditingSale(null)}
+          onSave={async (data) => {
+            await updateSale(editingSale._id, data);
+            setEditingSale(null);
+          }}
+        />
+      )}
+    </div>
+  );
+}
+
+function EditSaleModal({ sale, onClose, onSave }) {
+  const [form, setForm] = useState({
+    customerName: sale.customerName || "",
+    customerPhone: sale.customerPhone || "",
+    paymentMethod: sale.paymentMethod || "Cash",
+    paymentStatus: sale.paymentStatus || "Paid",
+    saleType: sale.saleType || "Counter",
+    branch: sale.branch || "VK Bakes",
+    notes: sale.notes || "",
+    saleDate: formatLocalDateKey(parseSaleDate(sale.saleDate || sale.createdAt)),
+  });
+  const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState("");
+
+  const saleUpdateField = (field) => (event) =>
+    setForm((current) => ({ ...current, [field]: event.target.value }));
+
+  const handleSave = async (event) => {
+    event.preventDefault();
+    setSaving(true);
+    setSaveError("");
+    try {
+      await onSave(form);
+    } catch (error) {
+      setSaveError(error.message || "Unable to saleUpdate this sale.");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+      <form
+        onSubmit={handleSave}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="edit-sale-title"
+        className="w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-xl bg-white"
+      >
+        <div className="flex items-center justify-between border-b border-[#E8D5C0] px-5 py-4">
+          <div>
+            <h3 id="edit-sale-title" className="font-bold text-[#2D1400]">Edit Sale</h3>
+            <p className="mt-1 text-xs text-[#8B6A4F]">{sale.invoiceNo}</p>
+          </div>
+          <button type="button" onClick={onClose} className="text-[#8B6A4F] hover:text-[#2D1400]" aria-label="Close edit sale">
+            <X size={18} />
+          </button>
+        </div>
+        <div className="grid grid-cols-1 gap-4 p-5 sm:grid-cols-2">
+          <label className="text-xs font-bold text-[#8B6A4F]">
+            Customer Name
+            <input
+              required
+              value={form.customerName}
+              onChange={saleUpdateField("customerName")}
+              className="mt-1 w-full rounded-lg border border-[#E8D5C0] px-3 py-2 text-sm font-normal text-[#2D1400]"
+            />
+          </label>
+          <label className="text-xs font-bold text-[#8B6A4F]">
+            Customer Phone
+            <input
+              type="tel"
+              value={form.customerPhone}
+              onChange={saleUpdateField("customerPhone")}
+              className="mt-1 w-full rounded-lg border border-[#E8D5C0] px-3 py-2 text-sm font-normal text-[#2D1400]"
+            />
+          </label>
+          <label className="text-xs font-bold text-[#8B6A4F]">
+            Payment Method
+            <select value={form.paymentMethod} onChange={saleUpdateField("paymentMethod")} className="mt-1 w-full rounded-lg border border-[#E8D5C0] bg-white px-3 py-2 text-sm font-normal text-[#2D1400]">
+              {PAYMENT_METHODS.map((method) => <option key={method} value={method}>{method}</option>)}
+            </select>
+
+          </label>
+           <label className="text-xs font-bold text-[#8B6A4F]">
+            Sale Date
+            <input
+              type="date"
+              className="mt-1 w-full rounded-lg border border-[#E8D5C0] px-3 py-2 text-sm font-normal text-[#2D1400]"
+              value={form.saleDate}
+              max={formatLocalDateKey(new Date())}
+              onChange={saleUpdateField("saleDate")}
+            />
+          </label>
+          <label className="text-xs font-bold text-[#8B6A4F]">
+            Payment Status
+            <select value={form.paymentStatus} onChange={saleUpdateField("paymentStatus")} className="mt-1 w-full rounded-lg border border-[#E8D5C0] bg-white px-3 py-2 text-sm font-normal text-[#2D1400]">
+              {PAYMENT_STATUSES.map((status) => <option key={status} value={status}>{status}</option>)}
+            </select>
+          </label>
+          <label className="text-xs font-bold text-[#8B6A4F]">
+            Order Source
+            <select value={form.saleType} onChange={saleUpdateField("saleType")} className="mt-1 w-full rounded-lg border border-[#E8D5C0] bg-white px-3 py-2 text-sm font-normal text-[#2D1400]">
+              {SALE_TYPES.map((type) => <option key={type} value={type}>{type}</option>)}
+            </select>
+          </label>
+          <label className="text-xs font-bold text-[#8B6A4F]">
+            Branch
+            <select value={form.branch} onChange={saleUpdateField("branch")} className="mt-1 w-full rounded-lg border border-[#E8D5C0] bg-white px-3 py-2 text-sm font-normal text-[#2D1400]">
+              {BRANCHES.map((branch) => <option key={branch} value={branch}>{branch}</option>)}
+            </select>
+          </label>
+          <label className="text-xs font-bold text-[#8B6A4F] sm:col-span-2">
+            Notes
+            <textarea
+              rows={3}
+              value={form.notes}
+              onChange={saleUpdateField("notes")}
+              className="mt-1 w-full rounded-lg border border-[#E8D5C0] px-3 py-2 text-sm font-normal text-[#2D1400]"
+            />
+          </label>
+          {saveError && <p role="alert" className="text-sm text-red-700 sm:col-span-2">{saveError}</p>}
+        </div>
+        <div className="flex justify-end gap-3 border-t border-[#E8D5C0] px-5 py-4">
+          <button type="button" onClick={onClose} className="px-4 py-2 text-sm text-[#8B6A4F] hover:text-[#2D1400]">
+            Cancel
+          </button>
+          <button type="submit" disabled={saving} className="rounded-lg bg-[#2D1400] px-4 py-2 text-sm font-bold text-white hover:opacity-90 disabled:opacity-50">
+            {saving ? "Saving..." : "Save Changes"}
+          </button>
+        </div>
+      </form>
     </div>
   );
 }

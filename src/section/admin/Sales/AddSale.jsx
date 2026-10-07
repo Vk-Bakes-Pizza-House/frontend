@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { Plus, Trash2, CheckCircle, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { useSalesStore, useMenuStore } from "../../../store";
@@ -8,9 +8,16 @@ const BRANCHES = ["VK Bakes", "Morning Star Cafe"];
 const PAYMENT_METHODS = ["Cash", "UPI", "Card", "Bank Transfer"];
 const PAYMENT_STATUSES = ["Paid", "Pending", "Partial"];
 
+const getLocalDateInputValue = (date = new Date()) => {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+};
+
 export default function AddSale() {
   const { items: menuItems, loading: menuLoading, fetchMenu } = useMenuStore();
-  const { create, getOverview, loading: saleLoading } = useSalesStore();
+  const { createSale, getOverview, loading: saleLoading } = useSalesStore();
 
   // Item picker
   const [selectedItemId, setSelectedItemId] = useState("");
@@ -26,7 +33,7 @@ export default function AddSale() {
   // Sale meta
   const [saleType, setSaleType] = useState("Counter");
   const [branch, setBranch] = useState("VK Bakes");
-  const [saleDate, setSaleDate] = useState(() => new Date().toISOString().slice(0, 10));
+  const [saleDate, setSaleDate] = useState(() => getLocalDateInputValue());
   const [paymentMethod, setPaymentMethod] = useState("Cash");
   const [paymentStatus, setPaymentStatus] = useState("Paid");
   const [discount, setDiscount] = useState(0);
@@ -117,7 +124,7 @@ export default function AddSale() {
     if (isWholesale && !customerName) return toast.error("Please enter customer name for wholesale sale.");
 
     setSaving(true);
-    await create({
+    await createSale({
       items: cartItems,
       subTotal,
       discount: Number(discount) || 0,
@@ -145,7 +152,9 @@ export default function AddSale() {
   };
 
   return (
-    <form onSubmit={handleSaveSale} className="bg-white p-6 rounded-2xl border border-[#E8D5C0] max-w-3xl space-y-6">
+    <form
+     onSubmit={handleSaveSale} 
+    className="bg-white p-6 rounded-2xl border border-[#E8D5C0] max-w-3xl space-y-6">
       <h2 className="text-base font-bold text-[#2D1400]">New Sale Entry</h2>
 
       {/* Item Picker */}
@@ -296,7 +305,7 @@ export default function AddSale() {
           type="date"
           className="px-3 py-2 rounded-xl border border-[#E8D5C0] text-sm"
           value={saleDate}
-          max={new Date().toISOString().slice(0, 10)}
+          max={getLocalDateInputValue()}
           onChange={(e) => setSaleDate(e.target.value)}
         />
       </div>
