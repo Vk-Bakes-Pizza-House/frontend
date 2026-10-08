@@ -1,22 +1,105 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { TrendingUp, TrendingDown, AlertCircle } from "lucide-react";
 import {
   ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip, CartesianGrid,
-  BarChart, Bar, Cell,
+  BarChart, Bar, Cell, LabelList,
 } from "recharts";
 import { useSalesStore } from "../../../store";
+import  MonthlyProductBreakdown from "./components/mothsSales"
 
-const SOURCE_COLORS = { WhatsApp: "#25D366", Counter: "#F5A623", Instagram: "#E1306C", Other: "#8B6A4F" };
-const PAYMENT_COLORS = { Cash: "#F5A623", UPI: "#7C3AED", Card: "#2563EB", "Bank Transfer": "#059669" };
+const parseSaleDate = (value) => {
+  if (typeof value === "string") {
+    const m = value.match(/^(\d{4})-(\d{2})-(\d{2})/);
+    if (m) return new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]));
+  }
+  return new Date(value);
+};
+
+const monthKey = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+
+// Last 12 months: sales count, revenue and top-selling product for each month
+const buildMonthlyStats = (sales) => {
+  const now = new Date();
+  const months = [];
+  for (let i = 11; i >= 0; i--) {
+    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    months.push({
+      key: monthKey(d),
+      month: d.toLocaleDateString("en-IN", { month: "short" }),
+      fullLabel: d.toLocaleDateString("en-IN", { month: "long", year: "numeric" }),
+      isCurrent: i === 0,
+      count: 0,
+      revenue: 0,
+      products: new Map(),
+    });
+  }
+  const byKey = new Map(months.map((m) => [m.key, m]));
+
+  for (const rec of sales || []) {
+    const raw = rec.saleDate || rec.createdAt;
+    if (!raw) continue;
+    const d = parseSaleDate(raw);
+    if (isNaN(d.getTime())) continue;
+    const bucket = byKey.get(monthKey(d));
+    if (!bucket) continue;
+    bucket.count += 1;
+    bucket.revenue += Number(rec.grandTotal ?? 0);
+    for (const it of rec.items || []) {
+      if (!it.name) continue;
+      bucket.products.set(it.name, (bucket.products.get(it.name) || 0) + Number(it.quantity ?? 0));
+    }
+  }
+
+  return months.map((m) => {
+    let topName = "";
+    let topQty = 0;
+    m.products.forEach((qty, name) => {
+      if (qty > topQty) { topQty = qty; topName = name; }
+    });
+    return {
+      key: m.key,
+      month: m.month,
+      fullLabel: m.fullLabel,
+      isCurrent: m.isCurrent,
+      count: m.count,
+      revenue: m.revenue,
+      topName: topName || "No sales",
+      topQty,
+      topLabel: topName ? `${topName} (${topQty})` : "No sales",
+    };
+  });
+};
+
+const MonthTooltip = ({ active, payload }) => {
+  if (!active || !payload?.length) return null;
+  const d = payload[0].payload;
+  return (
+    <div className="rounded-xl border border-[#E8D5C0] bg-white px-3 py-2 text-xs shadow-md">
+      <p className="font-bold text-[#2D1400]">{d.fullLabel}</p>
+      <p className="mt-1 text-[#8B6A4F]">
+        {d.count} sale{d.count === 1 ? "" : "s"} · ₹{d.revenue.toLocaleString("en-IN")}
+      </p>
+      <p className="mt-0.5 text-[#8B6A4F]">
+        Top product: <span className="font-bold text-[#2D1400]">{d.topName}</span>
+        {d.topQty > 0 && ` (${d.topQty} sold)`}
+      </p>
+    </div>
+  );
+};
 
 export default function SalesOverview() {
-  const { overview, topProducts, loading, getOverview, getTopSellingProducts } = useSalesStore();
+  const { overview, topProducts, sales, loading, getOverview, getTopSellingProducts, fetchAllSales } = useSalesStore();
   const [trendRange, setTrendRange] = useState("week"); // "week" | "month"
 
   useEffect(() => {
     getOverview();
     getTopSellingProducts(5);
-  }, [getOverview, getTopSellingProducts]);
+    if (typeof fetchAllSales === "function") fetchAllSales();
+  }, [getOverview, getTopSellingProducts, fetchAllSales]);
+
+  const monthlyStats = useMemo(() => buildMonthlyStats(sales), [sales]);
+  const hasMonthlySales = monthlyStats.some((m) => m.count > 0);
+  const maxTopQty = Math.max(...monthlyStats.map((m) => m.topQty), 1);
 
   if (loading && !overview) {
     return <div className="text-center text-xs text-[#8B6A4F] py-10">Loading overview…</div>;
@@ -27,9 +110,6 @@ export default function SalesOverview() {
     date: new Date(d._id).toLocaleDateString("en-IN", { day: "2-digit", month: "short" }),
     total: d.total,
   }));
-
-  const sourceData = (overview?.saleTypeBreakdown || []).map((s) => ({ name: s._id, total: s.total, count: s.count }));
-  const paymentData = (overview?.paymentMethodBreakdown || []).map((p) => ({ name: p._id, total: p.total, count: p.count }));
 
   const ComparisonCard = ({ title, current, previous, pctChange, previousLabel }) => (
     <div className="bg-white p-6 rounded-2xl border border-[#E8D5C0] shadow-xs">
@@ -102,66 +182,11 @@ export default function SalesOverview() {
         )}
       </div>
 
-      {/* Order Source + Payment Method side by side */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-        <div className="bg-white p-6 rounded-2xl border border-[#E8D5C0]">
-          <h3 className="text-sm font-bold text-[#2D1400] mb-4">By Order Source</h3>
-          {sourceData.length === 0 ? <p className="text-xs text-[#8B6A4F]">No data yet.</p> : (
-            <ResponsiveContainer width="100%" height={180}>
-              <BarChart data={sourceData} layout="vertical" margin={{ left: 10 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#E8D5C0" horizontal={false} />
-                <XAxis type="number" tick={{ fontSize: 10, fill: "#8B6A4F" }} tickFormatter={(v) => `₹${v}`} />
-                <YAxis type="category" dataKey="name" tick={{ fontSize: 11, fill: "#2D1400", fontWeight: 700 }} width={70} />
-                <Tooltip formatter={(v, k, p) => [`₹${Number(v).toFixed(2)} (${p.payload.count})`, p.payload.name]} contentStyle={{ borderRadius: 8, borderColor: "#E8D5C0", fontSize: 12 }} />
-                <Bar dataKey="total" radius={[0, 6, 6, 0]}>
-                  {sourceData.map((e, i) => <Cell key={i} fill={SOURCE_COLORS[e.name] ?? "#8B6A4F"} />)}
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
-          )}
-        </div>
-
-        <div className="bg-white p-6 rounded-2xl border border-[#E8D5C0]">
-          <h3 className="text-sm font-bold text-[#2D1400] mb-4">By Payment Method</h3>
-          {paymentData.length === 0 ? <p className="text-xs text-[#8B6A4F]">No data yet.</p> : (
-            <ResponsiveContainer width="100%" height={180}>
-              <BarChart data={paymentData} layout="vertical" margin={{ left: 10 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#E8D5C0" horizontal={false} />
-                <XAxis type="number" tick={{ fontSize: 10, fill: "#8B6A4F" }} tickFormatter={(v) => `₹${v}`} />
-                <YAxis type="category" dataKey="name" tick={{ fontSize: 11, fill: "#2D1400", fontWeight: 700 }} width={70} />
-                <Tooltip formatter={(v, k, p) => [`₹${Number(v).toFixed(2)} (${p.payload.count})`, p.payload.name]} contentStyle={{ borderRadius: 8, borderColor: "#E8D5C0", fontSize: 12 }} />
-                <Bar dataKey="total" radius={[0, 6, 6, 0]}>
-                  {paymentData.map((e, i) => <Cell key={i} fill={PAYMENT_COLORS[e.name] ?? "#8B6A4F"} />)}
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
-          )}
-        </div>
-      </div>
-
-      {/* Top Products */}
       <div className="bg-white p-6 rounded-2xl border border-[#E8D5C0]">
-        <h3 className="text-sm font-bold text-[#2D1400] mb-4">Top Selling Products</h3>
-        {(!topProducts || topProducts.length === 0) ? <p className="text-xs text-[#8B6A4F]">No sales data yet.</p> : (
-          <div className="space-y-4">
-            {topProducts.map((prod, idx) => {
-              const maxQty = Math.max(...topProducts.map((p) => p.qtySold ?? p.quantity ?? 0), 1);
-              const pct = Math.round(((prod.qtySold ?? prod.quantity ?? 0) / maxQty) * 100);
-              return (
-                <div key={prod._id ?? idx} className="space-y-1.5">
-                  <div className="flex justify-between text-xs font-medium">
-                    <span className="text-[#2D1400]">{prod.name}</span>
-                    <span className="text-[#8B6A4F]">₹{(prod.revenue ?? 0).toLocaleString("en-IN")} ({prod.qtySold ?? prod.quantity ?? 0} sold)</span>
-                  </div>
-                  <div className="w-full h-2 bg-[#FFF8F0] rounded-full overflow-hidden">
-                    <div className="h-full bg-[#F5A623]" style={{ width: `${pct}%` }} />
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        )}
+       
+        <MonthlyProductBreakdown sales={sales} />
       </div>
+
     </div>
   );
 }
