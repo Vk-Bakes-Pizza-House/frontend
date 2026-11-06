@@ -4,7 +4,7 @@ import { createCrudActions } from "../lib/createCrudActions";
 import { apiRequest } from "../lib/apiRequest";
 import { toast } from "sonner";
 
-const useSalesStore= create((set, get) => {
+const useSalesStore= create((set) => {
   const salesCrud = createCrudActions(set, endpoints.sales.getAll, "sales");
   return{
   sales: [],
@@ -17,9 +17,43 @@ const useSalesStore= create((set, get) => {
   error: null,
   
   ...salesCrud,
-   createSale: salesCrud.create,
-    updateSale: salesCrud.update,
-    deleteSale: salesCrud.delete,
+  createSale: salesCrud.create,
+  updateSale: salesCrud.update,
+  deleteSale: salesCrud.delete,
+  fetchAllSales: async () => {
+    set({ loading: true, error: null });
+
+    try {
+      const allSales = [];
+      let page = 1;
+      let totalPages = 1;
+
+      do {
+        const response = await apiRequest(
+          "get",
+          endpoints.sales.getAll,
+          null,
+          { params: { page, limit: 100 } }
+        );
+        const result = response?.data;
+
+        if (!Array.isArray(result?.sales)) {
+          throw new Error("The sales response did not contain a sales list.");
+        }
+
+        allSales.push(...result.sales);
+        totalPages = Number(result.pagination?.totalPages) || 1;
+        page += 1;
+      } while (page <= totalPages);
+
+      set({ sales: allSales, loading: false });
+      return allSales;
+    } catch (err) {
+      toast.error(err.message || "Failed to fetch sales history");
+      set({ loading: false, error: err.message });
+      return [];
+    }
+  },
   getOverview: async () => {
     set({ loading: true });
     try {

@@ -38,7 +38,6 @@ const useAuthStore = create(
         set({ loading: true, error: null });
         try {
           const { data } = await api.post(endpoints.auth.login, { username, password });
-          console.log("Login successful:", data);
           // Persist in sessionStorage so page refresh keeps user logged in
           sessionStorage.setItem("vk_token", data.token);
           sessionStorage.setItem("vk_admin", JSON.stringify(data.admin));
