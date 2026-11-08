@@ -61,6 +61,43 @@ const categoryCrud = createCrudActions(set, endpoints.expenses.categories, "cate
         throw err;
       }
     },
+    fetchAllExpenses: async (query = {}) => {
+      set({ loading: true, error: null });
+      try {
+        const fetchPage = async (page) => {
+          const res = await apiRequest("get", endpoints.expenses.getAll, null, {
+            params: { ...query, page, limit: 100 },
+          });
+          return res?.data ?? res;
+        };
+
+        const firstPage = await fetchPage(1);
+        const items = Array.isArray(firstPage?.expenses) ? [...firstPage.expenses] : [];
+        const totalPages = Math.max(1, Number(firstPage?.pagination?.totalPages) || 1);
+
+        for (let page = 2; page <= totalPages; page += 1) {
+          const payload = await fetchPage(page);
+          if (Array.isArray(payload?.expenses)) items.push(...payload.expenses);
+        }
+
+        const pagination = {
+          ...firstPage?.pagination,
+          total: Number(firstPage?.pagination?.total) || items.length,
+          page: totalPages,
+          limit: 100,
+          totalPages,
+        };
+
+        set({ expenses: items, pagination, loading: false });
+        return { expenses: items, pagination };
+      } catch (err) {
+        set({
+          error: err?.response?.data?.message || "Failed to load expenses",
+          loading: false,
+        });
+        throw err;
+      }
+    },
     createExpense: expenseCrud.create,
     updateExpense: expenseCrud.update,
     deleteExpense: expenseCrud.delete,
