@@ -14,13 +14,12 @@ import {
   DollarSign ,
   TrendingUp,
   ChartColumnIncreasing,
-  ClipboardList,
   Receipt,
   FileCheck,
  ClipboardCheck,
- Undo2,
  Handshake,
- Package
+ Package,
+ Users
 } from "lucide-react";
 
 export const NAV = [
@@ -38,6 +37,7 @@ export const NAV = [
     ]
   },
   { key: "store", label: "Store Management", icon: StoreIcon },
+  { key: "clients", label: "Wholesale Clients", icon: Users },
   {
     key: "inventory",
     label:"Inventory",
@@ -94,4 +94,3 @@ export const NAV = [
   { key: "gotToWebsite", label: "Go to Website", icon: Globe }
 
 ];
-
