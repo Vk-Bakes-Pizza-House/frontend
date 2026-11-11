@@ -1,6 +1,5 @@
 import { useEffect } from "react";
 import { Routes, Route, Navigate, useLocation, useNavigate } from "react-router-dom";
-import AdminLogin from "./AdminLogin";
 import Dashboard from "./Dashboard";
 import ManageMenu from "./ManageMenu";
 import ManageOrders from "./ManageOrders";
@@ -15,6 +14,7 @@ import useAuthStore from "../../store/authStore";
 import StoreManagementPanel from "./ManageStore";
 import { SalesOverview, AddSale, SalesHistory, } from "../../section/admin/Sales/index"; 
 import {AddExpense,ExpenseAnalytics,ExpenseCategories,ExpenseHistory} from "../../section/admin/Expense";
+import ManageClients from "../../section/admin/Clients/ManageClients";
 
 export default function AdminApp() {
   const { isLoggedIn, fetchMe } = useAuthStore();
@@ -35,7 +35,6 @@ export default function AdminApp() {
 
   const logout = () => {
     useAuthStore.getState().logout();
-    sessionStorage.removeItem("vk_admin_auth");
   };
 
   const handleNavigate = (pageKey) => {
@@ -53,6 +52,7 @@ export default function AdminApp() {
       expenseHistory: "/admin/expenses/history",
       categories: "/admin/expenses/categories",
       analytics: "/admin/expenses/analytics",
+      clients: "/admin/clients",
       reviews: "/admin/reviews",
       store: "/admin/store",
       howToOrder: "/admin/how-to-order",
@@ -81,6 +81,7 @@ export default function AdminApp() {
       "expenses/history": "history",
       "expenses/categories": "categories",
       "expenses/analytics": "analytics",
+      "clients": "clients",
       "reviews": "reviews",
       "add-item-details": "itemDetails",
       "combos": "combos",
@@ -114,6 +115,7 @@ export default function AdminApp() {
         <Route path="expenses/history" element={<ExpenseHistory />} />
         <Route path="expenses/categories" element={<ExpenseCategories />} />
         <Route path="expenses/analytics" element={<ExpenseAnalytics />} />
+        <Route path="clients" element={<ManageClients />} />
         <Route path="reviews" element={<ManageReviews />} />
         <Route path="add-item-details" element={<ManageItemDetail />} />
         <Route path="combos" element={<ManageCombos />} />
