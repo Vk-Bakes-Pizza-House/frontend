@@ -14,3 +14,4 @@ export { default as useReviewStore } from "./reviewStore";
 export { default as useStoreStore  } from "./storeStore";
 export { default as useFQAStore  } from "./FAQStore";
 export { default as useSalesStore  } from "./salesStore";
+export { useClientStore } from "./clientStore";

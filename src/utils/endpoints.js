@@ -80,6 +80,14 @@ const endpointsPathsDev = {
     deleteCategory: (id) => `${API_BASE}/expenses/categories/${id}`,
     summary: `${API_BASE}/expenses/category-summary`
   },
+  clients: {
+    getAll: `${API_BASE}/clients`,
+    getById: (id) => `${API_BASE}/clients/${id}`,
+    create: `${API_BASE}/clients`,
+    update: (id) => `${API_BASE}/clients/${id}`,
+    ledger: (id) => `${API_BASE}/clients/${id}/ledger`,
+    delete: (id) => `${API_BASE}/clients/${id}`,
+  },
   reviews: {
     getApproved: `${API_BASE}/reviews`,
     submit: `${API_BASE}/reviews`,
@@ -178,6 +186,14 @@ const endpointsPathsProd = {
     updateCategory: (id) => `${API_PREFIX}/expenses/categories/${id}`,
     deleteCategory: (id) => `${API_PREFIX}/expenses/categories/${id}`,
     summary: `${API_PREFIX}/expenses/category-summary`
+  },
+  clients: {
+    getAll: `${API_PREFIX}/clients`,
+    getById: (id) => `${API_PREFIX}/clients/${id}`,
+    create: `${API_PREFIX}/clients`,
+    update: (id) => `${API_PREFIX}/clients/${id}`,
+    ledger: (id) => `${API_PREFIX}/clients/${id}/ledger`,
+    delete: (id) => `${API_PREFIX}/clients/${id}`,
   },
   reviews: {
     getApproved: `${API_PREFIX}/reviews`,
