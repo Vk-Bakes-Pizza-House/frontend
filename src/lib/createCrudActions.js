@@ -41,6 +41,9 @@ export const createCrudActions = (set, endpoint, stateKey) => ({
     set({ submitting: true });
     try {
       const data = await apiRequest("post", endpoint, payload);
+      if (data?.success === false) {
+        throw new Error(data.message || "Create failed");
+      }
       const createdItem = normalizeSingleData(data);
       set((state) => ({
         [stateKey]: [createdItem, ...(Array.isArray(state[stateKey]) ? state[stateKey] : [])],

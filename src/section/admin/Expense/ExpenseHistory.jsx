@@ -345,6 +345,7 @@ export default function ExpenseHistory() {
                 </button>
 
                 <div
+                  inert={!open}
                   className={`grid transition-all duration-300 ease-in-out ${
                     open ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"
                   }`}

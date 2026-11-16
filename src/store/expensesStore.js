@@ -17,6 +17,7 @@ import { endpoints } from "../utils/endpoints";
 export const useExpenseStore = create((set, get) => {
 const expenseCrud = createCrudActions(set, endpoints.expenses.getAll, "expenses");
 const categoryCrud = createCrudActions(set, endpoints.expenses.categories, "categories");
+let latestExpenseRequestId = 0;
   return {
     // ---- Expenses ---------------------------------------------------
     expenses: [],
@@ -31,6 +32,7 @@ const categoryCrud = createCrudActions(set, endpoints.expenses.categories, "cate
 
     ...expenseCrud,
     fetchExpenses: async (query = {}) => {
+      const requestId = ++latestExpenseRequestId;
       set({ loading: true, error: null });
       try {
         const params = {
@@ -47,21 +49,26 @@ const categoryCrud = createCrudActions(set, endpoints.expenses.categories, "cate
           totalPages: 1,
         };
 
-        set({
-          expenses: items,
-          pagination,
-          loading: false,
-        });
+        if (requestId === latestExpenseRequestId) {
+          set({
+            expenses: items,
+            pagination,
+            loading: false,
+          });
+        }
         return payload;
       } catch (err) {
-        set({
-          error: err?.response?.data?.message || "Failed to load expenses",
-          loading: false,
-        });
+        if (requestId === latestExpenseRequestId) {
+          set({
+            error: err?.response?.data?.message || "Failed to load expenses",
+            loading: false,
+          });
+        }
         throw err;
       }
     },
     fetchAllExpenses: async (query = {}) => {
+      const requestId = ++latestExpenseRequestId;
       set({ loading: true, error: null });
       try {
         const fetchPage = async (page) => {
@@ -88,13 +95,17 @@ const categoryCrud = createCrudActions(set, endpoints.expenses.categories, "cate
           totalPages,
         };
 
-        set({ expenses: items, pagination, loading: false });
+        if (requestId === latestExpenseRequestId) {
+          set({ expenses: items, pagination, loading: false });
+        }
         return { expenses: items, pagination };
       } catch (err) {
-        set({
-          error: err?.response?.data?.message || "Failed to load expenses",
-          loading: false,
-        });
+        if (requestId === latestExpenseRequestId) {
+          set({
+            error: err?.response?.data?.message || "Failed to load expenses",
+            loading: false,
+          });
+        }
         throw err;
       }
     },

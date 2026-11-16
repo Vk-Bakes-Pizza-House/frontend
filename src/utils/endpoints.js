@@ -1,10 +1,10 @@
 
-const API_BASE = import.meta.env.VITE_API_URL;
+const API_URL = (import.meta.env.VITE_API_URL || "").replace(/\/+$/g, "");
 
 // If `API_BASE` already includes the `/api` prefix (e.g. https://host.com/api)
 // we must not add another `/api` when building production endpoint paths.
-const _rawBase = (API_BASE || "").replace(/\/+$/g, "");
-const _baseHasApi = _rawBase.endsWith("/api");
+const _baseHasApi = API_URL.endsWith("/api");
+const API_BASE = _baseHasApi ? API_URL : `${API_URL}/api`;
 const API_PREFIX = _baseHasApi ? "" : "/api";
 
 // ─────────────────────────────────────────────

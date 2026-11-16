@@ -3,11 +3,12 @@ import { ArrowLeft, ChevronDown, Search } from "lucide-react";
 import { useExpenseStore } from "../../../store/expensesStore";
 
 /* ---------- helpers ---------- */
-const inr = (n) => "₹" + Math.round(n || 0).toLocaleString("en-IN");
+const inr = (n) =>
+  "₹" + Number(n || 0).toLocaleString("en-IN", { maximumFractionDigits: 2 });
 
 const parseDate = (d) => {
-  if (typeof d === "string" && /^\d{4}-\d{2}-\d{2}$/.test(d)) {
-    const [year, month, day] = d.split("-").map(Number);
+  if (typeof d === "string" && /^\d{4}-\d{2}-\d{2}(?:$|T)/.test(d)) {
+    const [year, month, day] = d.slice(0, 10).split("-").map(Number);
     return new Date(year, month - 1, day);
   }
   return new Date(d);
@@ -122,7 +123,7 @@ export default function DailyExpenses({ categoryId = null, onBack }) {
   }, [period, customMonth]);
 
   const catName = useMemo(() => {
-    const map = {};
+    const map = Object.create(null);
     categories.forEach((c) => (map[c._id] = c.name));
     return (e) =>
       (typeof e.category === "object" && e.category?.name) ||
@@ -175,14 +176,14 @@ export default function DailyExpenses({ categoryId = null, onBack }) {
 
   /* same product (same title) stats */
   const itemStats = useMemo(() => {
-    const map = {};
+    const map = Object.create(null);
     rows.forEach((r) => {
       const s = (map[r.key] ||= {
         name: r.title,
         times: 0,
         total: 0,
         last: r.date,
-        qty: {},
+        qty: Object.create(null),
         categories: new Set(),
       });
       s.times += 1;
@@ -216,12 +217,22 @@ export default function DailyExpenses({ categoryId = null, onBack }) {
 
   /* category -> items (only used when not opened from a single category) */
   const categoryGroups = useMemo(() => {
-    const map = {};
+    const map = Object.create(null);
     rows.forEach((r) => {
-      const g = (map[r.category] ||= { name: r.category, total: 0, count: 0, items: {} });
+      const g = (map[r.category] ||= {
+        name: r.category,
+        total: 0,
+        count: 0,
+        items: Object.create(null),
+      });
       g.total += r.amount;
       g.count += 1;
-      const it = (g.items[r.key] ||= { name: r.title, times: 0, total: 0, qty: {} });
+      const it = (g.items[r.key] ||= {
+        name: r.title,
+        times: 0,
+        total: 0,
+        qty: Object.create(null),
+      });
       it.times += 1;
       it.total += r.amount;
       it.qty[r.unit] = (it.qty[r.unit] || 0) + r.quantity;

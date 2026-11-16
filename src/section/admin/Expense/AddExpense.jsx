@@ -61,6 +61,12 @@ export default function AddExpense({ onDone }) {
     if (!item.title.trim()) next.title = "Name is required";
     if (!item.category) next.category = "Category is required";
     if (item.amount === "" || Number(item.amount) < 0) next.amount = "Enter a valid amount";
+    ["quantity", "pricePerUnit"].forEach((field) => {
+      const value = item[field];
+      if (value !== "" && (!Number.isFinite(Number(value)) || Number(value) < 0)) {
+        next[field] = "Enter a valid non-negative number";
+      }
+    });
     setErrors(next);
     return Object.keys(next).length === 0;
   };
@@ -85,6 +91,11 @@ export default function AddExpense({ onDone }) {
     if (list.length === 0) return;
     setSuccessMsg("");
     setSubmitError("");
+    const today = todayInputValue();
+    if (!shared.expenseDate || shared.expenseDate > today) {
+      setSubmitError("Enter a valid expense date no later than today.");
+      return;
+    }
     setSubmitting(true);
 
     const savedIds = [];
@@ -92,7 +103,7 @@ export default function AddExpense({ onDone }) {
 
     for (const r of list) {
       try {
-        await createExpense({
+        const created = await createExpense({
           ...shared,
           title: r.title.trim(),
           category: r.category,
@@ -102,6 +113,9 @@ export default function AddExpense({ onDone }) {
           unit: r.unit || "pcs",
           vendor: r.vendor.trim(),
         });
+        if (!created || created.success === false) {
+          throw new Error(created?.message || "Expense creation was not confirmed");
+        }
         savedIds.push(r.id);
         saved++;
       } catch (err) {
@@ -138,7 +152,10 @@ export default function AddExpense({ onDone }) {
       )}
 
       {/* Shared details for the selected day */}
-      <div className="bg-white border border-gray-200 rounded-xl p-5 grid grid-cols-1 md:grid-cols-4 gap-4">
+      <fieldset
+        disabled={submitting}
+        className="bg-white border border-gray-200 rounded-xl p-5 grid grid-cols-1 md:grid-cols-4 gap-4"
+      >
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">Expense date</label>
           <input
@@ -167,7 +184,7 @@ export default function AddExpense({ onDone }) {
             {STATUSES.map((s) => <option key={s}>{s}</option>)}
           </select>
         </div>
-      </div>
+      </fieldset>
 
       {/* Individual expense form */}
       <div className="bg-white border border-gray-200 rounded-xl p-5 space-y-4">
@@ -217,13 +234,19 @@ export default function AddExpense({ onDone }) {
         </div>
 
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <input type="number" min="0" value={item.quantity} onChange={updateItem("quantity")}
-            placeholder="Quantity" className={inputCls} />
+          <div>
+            <input type="number" min="0" value={item.quantity} onChange={updateItem("quantity")}
+              placeholder="Quantity" className={inputCls} />
+            {errors.quantity && <p className="text-xs text-red-600 mt-1">{errors.quantity}</p>}
+          </div>
           <select value={item.unit} onChange={updateItem("unit")} className={inputCls}>
             {UNITS.map((u) => <option key={u}>{u}</option>)}
           </select>
-          <input type="number" min="0" value={item.pricePerUnit} onChange={updateItem("pricePerUnit")}
-            placeholder="Price / unit" className={inputCls} />
+          <div>
+            <input type="number" min="0" value={item.pricePerUnit} onChange={updateItem("pricePerUnit")}
+              placeholder="Price / unit" className={inputCls} />
+            {errors.pricePerUnit && <p className="text-xs text-red-600 mt-1">{errors.pricePerUnit}</p>}
+          </div>
           <input type="text" value={item.vendor} onChange={updateItem("vendor")}
             placeholder="Vendor" className={inputCls} />
         </div>
