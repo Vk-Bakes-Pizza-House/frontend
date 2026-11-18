@@ -182,10 +182,7 @@ export default function SalesOverview() {
         )}
       </div>
 
-      <div className="bg-white p-6 rounded-2xl border border-[#E8D5C0]">
-       
-        <MonthlyProductBreakdown sales={sales} />
-      </div>
+      <MonthlyProductBreakdown sales={sales} />
 
     </div>
   );

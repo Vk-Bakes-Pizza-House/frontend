@@ -4,21 +4,29 @@ import { useExpenseStore } from "../../../store/expensesStore";
 const PAYMENT_METHODS = ["Cash", "UPI", "Card", "Bank Transfer"];
 const BRANCHES = ["VK Bakes", "Morning Star Cafe"];
 const STATUSES = ["Paid", "Pending"];
+const UNITS = ["kg", "g", "L", "Q", "pcs"];
 
 const todayInputValue = () => new Date().toISOString().slice(0, 10);
 
-const emptyForm = {
+const emptyItem = {
   title: "",
   category: "",
   amount: "",
-  paymentMethod: "Cash",
-  branch: "VK Bakes",
+  quantity: "",
+  unit: "pcs",
+  pricePerUnit: "",
   vendor: "",
-  billNumber: "",
+};
+
+const sharedDefaults = {
   expenseDate: todayInputValue(),
-  notes: "",
+  branch: "VK Bakes",
+  paymentMethod: "Cash",
   status: "Paid",
 };
+
+const inputCls =
+  "w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500";
 
 export default function AddExpense({ onDone }) {
   const createExpense = useExpenseStore((s) => s.createExpense);
@@ -29,89 +37,169 @@ export default function AddExpense({ onDone }) {
     fetchCategories?.();
   }, [fetchCategories]);
 
-  const [form, setForm] = useState(emptyForm);
-  const [submitting, setSubmitting] = useState(false);
+  const [shared, setShared] = useState(sharedDefaults); // din ka common data
+  const [item, setItem] = useState(emptyItem);          // abhi bhara ja raha expense
+  const [list, setList] = useState([]);                 // add kiye hue expenses (staged)
   const [errors, setErrors] = useState({});
+  const [submitting, setSubmitting] = useState(false);
   const [successMsg, setSuccessMsg] = useState("");
+  const [submitError, setSubmitError] = useState("");
 
-  const update = (field) => (e) => {
+  const updateShared = (field) => (e) =>
+    setShared((s) => ({ ...s, [field]: e.target.value }));
+
+  const updateItem = (field) => (e) => {
     const value = e.target.value;
-    setForm((f) => ({ ...f, [field]: value }));
+    setItem((i) => ({ ...i, [field]: value }));
     setErrors((err) => ({ ...err, [field]: undefined }));
   };
 
+  const categoryName = (id) => categories.find((c) => c._id === id)?.name || "-";
+
   const validate = () => {
     const next = {};
-    if (!form.title.trim()) next.title = "Title is required";
-    if (!form.category.trim()) next.category = "Category is required";
-    if (form.amount === "" || Number(form.amount) < 0)
-      next.amount = "Enter a valid amount";
-    if (!form.branch) next.branch = "Branch is required";
+    if (!item.title.trim()) next.title = "Name is required";
+    if (!item.category) next.category = "Category is required";
+    if (item.amount === "" || Number(item.amount) < 0) next.amount = "Enter a valid amount";
+    ["quantity", "pricePerUnit"].forEach((field) => {
+      const value = item[field];
+      if (value !== "" && (!Number.isFinite(Number(value)) || Number(value) < 0)) {
+        next[field] = "Enter a valid non-negative number";
+      }
+    });
     setErrors(next);
     return Object.keys(next).length === 0;
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  // Add button: list me daalo, form clear karo
+  const handleAdd = () => {
+    if (submitting) return;
     setSuccessMsg("");
+    setSubmitError("");
     if (!validate()) return;
+    setList((l) => [...l, { ...item, id: crypto.randomUUID() }]);
+    setItem(emptyItem);
+  };
 
+  const removeFromList = (id) => {
+    if (submitting) return;
+    setList((l) => l.filter((x) => x.id !== id));
+  };
+
+  // Final save: poore din ke expenses
+  const handleSaveDay = async () => {
+    if (list.length === 0) return;
+    setSuccessMsg("");
+    setSubmitError("");
+    const today = todayInputValue();
+    if (!shared.expenseDate || shared.expenseDate > today) {
+      setSubmitError("Enter a valid expense date no later than today.");
+      return;
+    }
     setSubmitting(true);
-    try {
-      const payload = {
-        ...form,
-        amount: Number(form.amount),
-        title: form.title.trim(),
-        category: form.category,
-        vendor: form.vendor?.trim() || "",
-        billNumber: form.billNumber?.trim() || "",
-        notes: form.notes?.trim() || "",
-        quantity: form.quantity ? Number(form.quantity) : undefined,
-        pricePerUnit: form.pricePerUnit ? Number(form.pricePerUnit) : undefined,
-        unit: form.unit || "pcs",
-      };
 
-      await createExpense(payload);
-      setSuccessMsg(`"${form.title.trim()}" added successfully.`);
-      setForm(emptyForm);
-      // Uncomment to jump straight to history after saving:
+    const savedIds = [];
+    let saved = 0;
+
+    for (const r of list) {
+      try {
+        const created = await createExpense({
+          ...shared,
+          title: r.title.trim(),
+          category: r.category,
+          amount: Number(r.amount),
+          quantity: r.quantity ? Number(r.quantity) : undefined,
+          pricePerUnit: r.pricePerUnit ? Number(r.pricePerUnit) : undefined,
+          unit: r.unit || "pcs",
+          vendor: r.vendor.trim(),
+        });
+        if (!created || created.success === false) {
+          throw new Error(created?.message || "Expense creation was not confirmed");
+        }
+        savedIds.push(r.id);
+        saved++;
+      } catch (err) {
+        console.error("Error creating expense:", err);
+      }
+    }
+
+    setSubmitting(false);
+    setList((current) => current.filter((item) => !savedIds.includes(item.id)));
+
+    const failedCount = list.length - saved;
+    if (failedCount === 0) {
+      setSuccessMsg(`${saved} expense(s) saved for ${shared.expenseDate}.`);
       // onDone?.();
-    } catch (err) {
-      setErrors({
-        submit: err?.response?.data?.message || "Could not save the expense. Try again.",
-      });
-      console.error("Error creating expense:", err);
-    } finally {
-      setSubmitting(false);
+    } else {
+      if (saved) setSuccessMsg(`${saved} saved.`);
+      setSubmitError(`${failedCount} expense(s) could not be saved. Please try again.`);
     }
   };
 
-  return (
-    <div className="max-w-2xl">
-      <form onSubmit={handleSubmit} className="bg-white border border-gray-200 rounded-xl p-5 md:p-6 space-y-5">
-        {successMsg && (
-          <div className="text-sm text-green-700 bg-green-50 border border-green-200 rounded-lg px-3 py-2">
-            {successMsg}
-          </div>
-        )}
-        {errors.submit && (
-          <div className="text-sm text-red-700 bg-red-50 border border-red-200 rounded-lg px-3 py-2">
-            {errors.submit}
-          </div>
-        )}
+  const total = list.reduce((sum, r) => sum + (Number(r.amount) || 0), 0);
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+  return (
+    <div className="max-w-2xl space-y-5">
+      {successMsg && (
+        <div className="text-sm text-green-700 bg-green-50 border border-green-200 rounded-lg px-3 py-2">
+          {successMsg}
+        </div>
+      )}
+      {submitError && (
+        <div className="text-sm text-red-700 bg-red-50 border border-red-200 rounded-lg px-3 py-2">
+          {submitError}
+        </div>
+      )}
+
+      {/* Shared details for the selected day */}
+      <fieldset
+        disabled={submitting}
+        className="bg-white border border-gray-200 rounded-xl p-5 grid grid-cols-1 md:grid-cols-4 gap-4"
+      >
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Expense date</label>
+          <input
+            type="date"
+            value={shared.expenseDate}
+            max={todayInputValue()}
+            onChange={updateShared("expenseDate")}
+            className={inputCls}
+          />
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Branch</label>
+          <select value={shared.branch} onChange={updateShared("branch")} className={inputCls}>
+            {BRANCHES.map((b) => <option key={b}>{b}</option>)}
+          </select>
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Payment</label>
+          <select value={shared.paymentMethod} onChange={updateShared("paymentMethod")} className={inputCls}>
+            {PAYMENT_METHODS.map((m) => <option key={m}>{m}</option>)}
+          </select>
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
+          <select value={shared.status} onChange={updateShared("status")} className={inputCls}>
+            {STATUSES.map((s) => <option key={s}>{s}</option>)}
+          </select>
+        </div>
+      </fieldset>
+
+      {/* Individual expense form */}
+      <div className="bg-white border border-gray-200 rounded-xl p-5 space-y-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Title <span className="text-red-500">*</span>
+              Name <span className="text-red-500">*</span>
             </label>
             <input
               type="text"
-              value={form.title}
-              onChange={update("title")}
+              value={item.title}
+              onChange={updateItem("title")}
               maxLength={100}
-              placeholder="e.g. Flour & Maida purchase"
-              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
+              placeholder="e.g. Flour & Maida"
+              className={inputCls}
             />
             {errors.title && <p className="text-xs text-red-600 mt-1">{errors.title}</p>}
           </div>
@@ -120,23 +208,12 @@ export default function AddExpense({ onDone }) {
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Category <span className="text-red-500">*</span>
             </label>
-            <select
-              value={form.category}
-              onChange={update("category")}
-              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
-            >
+            <select value={item.category} onChange={updateItem("category")} className={inputCls}>
               <option value="">Select a category</option>
-              {categories
-                .filter((c) => c.isActive)
-                .map((c) => (
-                  <option key={c._id} value={c._id}>{c.name}</option>
-                ))}
+              {categories.filter((c) => c.isActive).map((c) => (
+                <option key={c._id} value={c._id}>{c.name}</option>
+              ))}
             </select>
-            {categories.length === 0 && (
-              <p className="text-xs text-gray-400 mt-1">
-                No categories yet — add one on the Categories tab first.
-              </p>
-            )}
             {errors.category && <p className="text-xs text-red-600 mt-1">{errors.category}</p>}
           </div>
 
@@ -147,167 +224,87 @@ export default function AddExpense({ onDone }) {
             <input
               type="number"
               min="0"
-
-              value={form.amount}
-              onChange={update("amount")}
+              value={item.amount}
+              onChange={updateItem("amount")}
               placeholder="0.00"
-              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
+              className={inputCls}
             />
             {errors.amount && <p className="text-xs text-red-600 mt-1">{errors.amount}</p>}
           </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Quantity</label>
-            <input
-              type="number"
-              min="0"
+        </div>
 
-              value={form.quantity}
-              onChange={update("quantity")}
-              placeholder="0.00"
-              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
-            />
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div>
+            <input type="number" min="0" value={item.quantity} onChange={updateItem("quantity")}
+              placeholder="Quantity" className={inputCls} />
             {errors.quantity && <p className="text-xs text-red-600 mt-1">{errors.quantity}</p>}
           </div>
+          <select value={item.unit} onChange={updateItem("unit")} className={inputCls}>
+            {UNITS.map((u) => <option key={u}>{u}</option>)}
+          </select>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Unit</label>
-            <select
-              value={form.unit}
-              onChange={update("unit")}
-              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
-            >
-              <option value="kg">kg</option>
-              <option value="g">g</option>
-              <option value="L">L</option>
-              <option value="Q">Q</option>
-              <option value="pcs">pcs</option>
-            </select>
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Price per Unit (₹)</label>
-            <input
-              type="number"
-
-              value={form.pricePerUnit}
-              onChange={update("pricePerUnit")}
-              placeholder="0.00"
-              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
-            />
+            <input type="number" min="0" value={item.pricePerUnit} onChange={updateItem("pricePerUnit")}
+              placeholder="Price / unit" className={inputCls} />
             {errors.pricePerUnit && <p className="text-xs text-red-600 mt-1">{errors.pricePerUnit}</p>}
           </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Expense Date</label>
-            <input
-              type="date"
-              value={form.expenseDate}
-              max={todayInputValue()}
-              onChange={update("expenseDate")}
-              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
-            />
-            <p className="text-xs text-gray-400 mt-1">Backdate this if the expense happened earlier.</p>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Branch <span className="text-red-500">*</span>
-            </label>
-            <select
-              value={form.branch}
-              onChange={update("branch")}
-              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
-            >
-              {BRANCHES.map((b) => (
-                <option key={b} value={b}>{b}</option>
-              ))}
-            </select>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Payment Method</label>
-            <select
-              value={form.paymentMethod}
-              onChange={update("paymentMethod")}
-              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
-            >
-              {PAYMENT_METHODS.map((m) => (
-                <option key={m} value={m}>{m}</option>
-              ))}
-            </select>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Vendor</label>
-            <input
-              type="text"
-              value={form.vendor}
-              onChange={update("vendor")}
-              placeholder="e.g. Local supplier name"
-              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Bill Number</label>
-            <input
-              type="text"
-              value={form.billNumber}
-              onChange={update("billNumber")}
-              placeholder="Optional"
-              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
-            <div className="flex gap-2">
-              {STATUSES.map((s) => (
-                <button
-                  type="button"
-                  key={s}
-                  onClick={() => setForm((f) => ({ ...f, status: s }))}
-                  className={`px-3 py-2 rounded-lg text-sm font-medium border transition-colors ${form.status === s
-                      ? s === "Paid"
-                        ? "bg-green-50 border-green-300 text-green-700"
-                        : "bg-yellow-50 border-yellow-300 text-yellow-700"
-                      : "bg-white border-gray-300 text-gray-600 hover:bg-gray-50"
-                    }`}
-                >
-                  {s}
-                </button>
-              ))}
-            </div>
-          </div>
+          <input type="text" value={item.vendor} onChange={updateItem("vendor")}
+            placeholder="Vendor" className={inputCls} />
         </div>
 
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Notes</label>
-          <textarea
-            value={form.notes}
-            onChange={update("notes")}
-            maxLength={500}
-            rows={3}
-            placeholder="Optional details about this expense"
-            className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
-          />
-        </div>
-
-        <div className="flex justify-end gap-3 pt-2">
+        <div className="flex justify-end">
           <button
             type="button"
-            onClick={() => setForm(emptyForm)}
-            className="px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-900"
+            onClick={handleAdd}
+            className="px-5 py-2 rounded-lg text-sm font-medium bg-amber-600 text-white hover:bg-amber-700"
           >
-            Reset
-          </button>
-          <button
-            type="submit"
-            disabled={submitting}
-            className="px-5 py-2 rounded-lg text-sm font-medium bg-amber-600 text-white hover:bg-amber-700 disabled:opacity-50"
-          >
-            {submitting ? "Saving..." : "Save Expense"}
+            + Add
           </button>
         </div>
-      </form>
+      </div>
+
+      {/* Staged expenses */}
+      {list.length > 0 && (
+        <div className="bg-white border border-gray-200 rounded-xl p-5 space-y-3">
+          <h3 className="text-sm font-semibold text-gray-700">
+            Expenses for {shared.expenseDate} ({list.length})
+          </h3>
+
+          <ul className="divide-y divide-gray-100">
+            {list.map((r) => (
+              <li key={r.id} className="flex items-center justify-between py-2 text-sm">
+                <div>
+                  <p className="font-medium text-gray-800">{r.title}</p>
+                  <p className="text-xs text-gray-500">{categoryName(r.category)}</p>
+                </div>
+                <div className="flex items-center gap-4">
+                  <span className="font-medium">₹{Number(r.amount).toFixed(2)}</span>
+                  <button
+                    type="button"
+                    onClick={() => removeFromList(r.id)}
+                    className="text-xs text-red-600 hover:underline"
+                  >
+                    Remove
+                  </button>
+                </div>
+              </li>
+            ))}
+          </ul>
+
+          <div className="flex items-center justify-between pt-2 border-t border-gray-100">
+            <p className="text-sm text-gray-600">
+              Total: <span className="font-semibold">₹{total.toFixed(2)}</span>
+            </p>
+            <button
+              type="button"
+              onClick={handleSaveDay}
+              disabled={submitting}
+              className="px-5 py-2 rounded-lg text-sm font-medium bg-green-600 text-white hover:bg-green-700 disabled:opacity-50"
+            >
+              {submitting ? "Saving..." : "Save Day"}
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -95,12 +95,15 @@ const buildPeriodKeys = (granularity, sales) => {
       keys.push(getGroupKey(d, "Month"));
     }
   } else {
-    const years = new Set([String(now.getFullYear())]);
+    const currentYear = now.getFullYear();
+    let earliestYear = currentYear;
     (sales || []).forEach((r) => {
       const d = parseSaleDate(r.saleDate || r.createdAt);
-      if (!isNaN(d.getTime())) years.add(String(d.getFullYear()));
+      if (!isNaN(d.getTime())) earliestYear = Math.min(earliestYear, d.getFullYear());
     });
-    keys.push(...Array.from(years).sort());
+    for (let year = earliestYear; year <= currentYear; year += 1) {
+      keys.push(String(year));
+    }
   }
   return keys;
 };
@@ -211,6 +214,7 @@ export default function SalesHistory() {
                 <button
                   key={g.key}
                   type="button"
+                  tabIndex={-1}
                   onClick={() => g.count && toggleExpand(g.key)}
                   title={`${g.label}: ${money(g.total)}`}
                   className="group flex h-full min-w-0 flex-1 flex-col items-center justify-end gap-1.5"

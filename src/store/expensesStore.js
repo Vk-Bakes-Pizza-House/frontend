@@ -17,6 +17,7 @@ import { endpoints } from "../utils/endpoints";
 export const useExpenseStore = create((set, get) => {
 const expenseCrud = createCrudActions(set, endpoints.expenses.getAll, "expenses");
 const categoryCrud = createCrudActions(set, endpoints.expenses.categories, "categories");
+let latestExpenseRequestId = 0;
   return {
     // ---- Expenses ---------------------------------------------------
     expenses: [],
@@ -31,6 +32,7 @@ const categoryCrud = createCrudActions(set, endpoints.expenses.categories, "cate
 
     ...expenseCrud,
     fetchExpenses: async (query = {}) => {
+      const requestId = ++latestExpenseRequestId;
       set({ loading: true, error: null });
       try {
         const params = {
@@ -47,17 +49,63 @@ const categoryCrud = createCrudActions(set, endpoints.expenses.categories, "cate
           totalPages: 1,
         };
 
-        set({
-          expenses: items,
-          pagination,
-          loading: false,
-        });
+        if (requestId === latestExpenseRequestId) {
+          set({
+            expenses: items,
+            pagination,
+            loading: false,
+          });
+        }
         return payload;
       } catch (err) {
-        set({
-          error: err?.response?.data?.message || "Failed to load expenses",
-          loading: false,
-        });
+        if (requestId === latestExpenseRequestId) {
+          set({
+            error: err?.response?.data?.message || "Failed to load expenses",
+            loading: false,
+          });
+        }
+        throw err;
+      }
+    },
+    fetchAllExpenses: async (query = {}) => {
+      const requestId = ++latestExpenseRequestId;
+      set({ loading: true, error: null });
+      try {
+        const fetchPage = async (page) => {
+          const res = await apiRequest("get", endpoints.expenses.getAll, null, {
+            params: { ...query, page, limit: 100 },
+          });
+          return res?.data ?? res;
+        };
+
+        const firstPage = await fetchPage(1);
+        const items = Array.isArray(firstPage?.expenses) ? [...firstPage.expenses] : [];
+        const totalPages = Math.max(1, Number(firstPage?.pagination?.totalPages) || 1);
+
+        for (let page = 2; page <= totalPages; page += 1) {
+          const payload = await fetchPage(page);
+          if (Array.isArray(payload?.expenses)) items.push(...payload.expenses);
+        }
+
+        const pagination = {
+          ...firstPage?.pagination,
+          total: Number(firstPage?.pagination?.total) || items.length,
+          page: totalPages,
+          limit: 100,
+          totalPages,
+        };
+
+        if (requestId === latestExpenseRequestId) {
+          set({ expenses: items, pagination, loading: false });
+        }
+        return { expenses: items, pagination };
+      } catch (err) {
+        if (requestId === latestExpenseRequestId) {
+          set({
+            error: err?.response?.data?.message || "Failed to load expenses",
+            loading: false,
+          });
+        }
         throw err;
       }
     },
